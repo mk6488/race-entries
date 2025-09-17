@@ -9,6 +9,17 @@ function toInputDateTimeLocal(d: Date) {
 
 function fromInputDateTimeLocal(s: string) { return new Date(s) }
 
+function toInputDate(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+function fromInputDate(s: string) {
+  if (!s) return new Date()
+  const [y, m, d] = s.split('-').map((v) => parseInt(v, 10))
+  return new Date(y, (m ?? 1) - 1, d ?? 1)
+}
+
 export function Races() {
   const [races, setRaces] = useState<Race[]>([])
   const [form, setForm] = useState<NewRace>({
@@ -47,12 +58,12 @@ export function Races() {
           onChange={(e) => setForm({ ...form, details: e.target.value })}
         />
         <label>
-          Start
-          <input type="datetime-local" value={toInputDateTimeLocal(form.startDate)} onChange={(e) => setForm({ ...form, startDate: fromInputDateTimeLocal(e.target.value) })} />
+          Start date
+          <input type="date" value={toInputDate(form.startDate)} onChange={(e) => setForm({ ...form, startDate: fromInputDate(e.target.value) })} />
         </label>
         <label>
-          End (optional)
-          <input type="datetime-local" value={form.endDate ? toInputDateTimeLocal(form.endDate) : ''} onChange={(e) => setForm({ ...form, endDate: e.target.value ? fromInputDateTimeLocal(e.target.value) : null })} />
+          End date (optional)
+          <input type="date" value={form.endDate ? toInputDate(form.endDate) : ''} onChange={(e) => setForm({ ...form, endDate: e.target.value ? fromInputDate(e.target.value) : null })} />
         </label>
         <label>
           BROE opens
