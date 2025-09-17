@@ -1,14 +1,20 @@
 :root {
   --sidebar-w: 260px;
   --border: #e5e7eb;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #0ea5e9;
+  --primary-600: #0284c7;
 }
 
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); }
 
 .app-shell { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100%; }
 
-.sidebar { border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.sidebar { border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 16px; background: #fff; }
 .brand { font-weight: 700; }
 .sidebar nav { display: flex; flex-direction: column; gap: 8px; }
 .sidebar a { color: #111827; text-decoration: none; padding: 8px 10px; border-radius: 8px; }
@@ -19,6 +25,40 @@ html, body, #root { height: 100%; margin: 0; font-family: system-ui, -apple-syst
 .menu-btn { display: none; font-size: 20px; background: none; border: none; cursor: pointer; }
 
 main { padding: 16px; }
+
+/* Inputs & Buttons */
+input, textarea, select {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,165,233,.15); }
+
+button {
+  border: 1px solid transparent;
+  background: var(--primary);
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+button:hover { background: var(--primary-600); }
+.icon-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; }
+.icon-btn:hover { color: var(--text); }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(2,6,23,.5); display: grid; place-items: center; padding: 16px; z-index: 40; backdrop-filter: blur(2px); }
+.modal-dialog { width: 100%; max-width: 680px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(2,6,23,.25); overflow: hidden; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.modal-title { font-weight: 600; }
+.modal-body { padding: 16px; }
+.modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 
 @media (max-width: 900px) {
   .app-shell { grid-template-columns: 1fr; }
