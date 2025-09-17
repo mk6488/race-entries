@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createRace, subscribeRaces } from '../data/races'
 import type { NewRace, Race } from '../models/race'
 import { Modal } from '../ui/Modal'
+import { Link } from 'react-router-dom'
 
 function toInputDateTimeLocal(d: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -100,21 +101,20 @@ export function Races() {
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2 style={{ marginTop: 0 }}>Existing</h2>
-        <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
+        <div className="race-grid">
           {races.map((r) => {
             const start = toInputDate(r.startDate)
             const end = r.endDate ? toInputDate(r.endDate) : null
             const dateLabel = end && end !== start ? `${start} → ${end}` : start
             return (
-              <li key={r.id} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--muted)' }}>{dateLabel}</span>
-                <span>
-                  <strong>{r.name}</strong> — {r.details || 'No details'}
-                </span>
-              </li>
+              <Link to="/entries" className="race-card" key={r.id}>
+                <div className="race-date">{dateLabel}</div>
+                <div className="race-name">{r.name}</div>
+                <div className="race-details">{r.details || 'No details'}</div>
+              </Link>
             )
           })}
-        </ul>
+        </div>
       </div>
     </div>
   )
