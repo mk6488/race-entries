@@ -9,6 +9,7 @@ export function Layout() {
         <div className="brand">Race Entries</div>
         <nav>
           <NavLink to="/" end>Home</NavLink>
+          <NavLink to="/races">Races</NavLink>
           <NavLink to="/entries">Entries</NavLink>
         </nav>
       </aside>
