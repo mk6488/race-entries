@@ -100,12 +100,20 @@ export function Races() {
 
       <div className="card" style={{ marginTop: 16 }}>
         <h2 style={{ marginTop: 0 }}>Existing</h2>
-        <ul style={{ margin: 0, paddingLeft: 18 }}>
-          {races.map((r) => (
-            <li key={r.id}>
-              <strong>{r.name}</strong> — {r.details || 'No details'}
-            </li>
-          ))}
+        <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
+          {races.map((r) => {
+            const start = toInputDate(r.startDate)
+            const end = r.endDate ? toInputDate(r.endDate) : null
+            const dateLabel = end && end !== start ? `${start} → ${end}` : start
+            return (
+              <li key={r.id} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', color: 'var(--muted)' }}>{dateLabel}</span>
+                <span>
+                  <strong>{r.name}</strong> — {r.details || 'No details'}
+                </span>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </div>

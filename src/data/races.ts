@@ -1,4 +1,4 @@
-import { Timestamp, addDoc, collection, deleteDoc, doc, getFirestore, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
+import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { NewRace, Race } from '../models/race'
 
@@ -28,7 +28,7 @@ function fromRace(r: NewRace) {
 }
 
 export function subscribeRaces(cb: (races: Race[]) => void) {
-  const q = query(racesCol)
+  const q = query(racesCol, orderBy('startDate'))
   return onSnapshot(q, (snap) => {
     cb(snap.docs.map((d) => toRace(d.id, d.data())))
   })
