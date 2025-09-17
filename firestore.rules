@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && (request.auth.token.admin == true); }
+
+    function isString(x) { return x is string; }
+    function isTimestamp(x) { return x is timestamp; }
+    function hasOnlyFields(data, allowed) { return data.keys().hasOnly(allowed); }
+
+    function validRace(data) {
+      return hasOnlyFields(data, ['name','details','startDate','endDate','broeOpens','broeCloses']) &&
+        isString(data.name) && data.name.size() > 0 && data.name.size() <= 200 &&
+        isString(data.details) &&
+        isTimestamp(data.startDate) &&
+        (!('endDate' in data) || data.endDate == null || isTimestamp(data.endDate)) &&
+        isTimestamp(data.broeOpens) &&
+        isTimestamp(data.broeCloses) &&
+        (!('endDate' in data) || data.endDate == null || data.endDate >= data.startDate) &&
+        data.broeOpens <= data.broeCloses;
+    }
+
+    // races collection
+    match /races/{raceId} {
+      allow read: if true; // public read
+      allow create: if isAdmin() && validRace(request.resource.data);
+      allow update: if isAdmin() && validRace(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // demo items collection (lock writes to admins by default)
+    match /items/{itemId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
+
+
