@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { addDoc, collection, onSnapshot } from 'firebase/firestore'
 import { db } from '../firebase'
+import { useParams } from 'react-router-dom'
 
 export function Entries() {
+  const { raceId } = useParams()
   const [items, setItems] = useState<Array<{ id: string; text: string }>>([])
   const [text, setText] = useState('')
 
@@ -16,7 +18,7 @@ export function Entries() {
 
   async function addItem() {
     if (!text.trim()) return
-    await addDoc(collection(db, 'items'), { text })
+    await addDoc(collection(db, 'items'), { text, raceId })
     setText('')
   }
 

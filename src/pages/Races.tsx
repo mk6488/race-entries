@@ -3,24 +3,7 @@ import { createRace, subscribeRaces } from '../data/races'
 import type { NewRace, Race } from '../models/race'
 import { Modal } from '../ui/Modal'
 import { Link } from 'react-router-dom'
-
-function toInputDateTimeLocal(d: Date) {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-function fromInputDateTimeLocal(s: string) { return new Date(s) }
-
-function toInputDate(d: Date) {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
-
-function fromInputDate(s: string) {
-  if (!s) return new Date()
-  const [y, m, d] = s.split('-').map((v) => parseInt(v, 10))
-  return new Date(y, (m ?? 1) - 1, d ?? 1)
-}
+import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal } from '../utils/dates'
 
 export function Races() {
   const [races, setRaces] = useState<Race[]>([])
@@ -107,7 +90,7 @@ export function Races() {
             const end = r.endDate ? toInputDate(r.endDate) : null
             const dateLabel = end && end !== start ? `${start} → ${end}` : start
             return (
-              <Link to="/entries" className="race-card" key={r.id}>
+              <Link to={`/entries/${r.id}`} className="race-card" key={r.id}>
                 <div className="race-date">{dateLabel}</div>
                 <div className="race-name">{r.name}</div>
                 <div className="race-details">{r.details || 'No details'}</div>

@@ -1,25 +1,35 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useMatch } from 'react-router-dom'
 import { useState } from 'react'
 
 export function Layout() {
   const [open, setOpen] = useState(false)
+  const match = useMatch('/entries/:raceId')
+  const raceId = match?.params?.raceId
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">Race Entries</div>
-        <nav className="nav-links">
-          <NavLink to="/" end>Home</NavLink>
-          <NavLink to="/races">Races</NavLink>
-          <NavLink to="/entries">Entries</NavLink>
-        </nav>
-        <button className="menu-btn" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
+        {raceId ? (
+          <nav className="nav-links">
+            <NavLink to="/" end>← Back to races</NavLink>
+            <NavLink to={`/entries/${raceId}`}>Entries</NavLink>
+          </nav>
+        ) : (
+          <div />
+        )}
+        {raceId ? (
+          <button className="menu-btn" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
+        ) : (
+          <div />
+        )}
       </header>
 
-      <div className={`nav-drawer ${open ? 'open' : ''}`}>
-        <NavLink to="/" end onClick={() => setOpen(false)}>Home</NavLink>
-        <NavLink to="/races" onClick={() => setOpen(false)}>Races</NavLink>
-        <NavLink to="/entries" onClick={() => setOpen(false)}>Entries</NavLink>
-      </div>
+      {raceId && (
+        <div className={`nav-drawer ${open ? 'open' : ''}`}>
+          <NavLink to="/" end onClick={() => setOpen(false)}>← Back to races</NavLink>
+          <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
+        </div>
+      )}
 
       <main>
         <Outlet />
