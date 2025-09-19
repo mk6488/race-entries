@@ -53,11 +53,11 @@ service cloud.firestore {
     // reference data
     match /boats/{boatId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isSignedIn();
     }
     match /blades/{bladeId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isSignedIn();
     }
   }
 }
