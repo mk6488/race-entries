@@ -60,9 +60,9 @@ export function Entries() {
           <thead>
             <tr>
               <th style={{ minWidth: 90 }}>Day</th>
-              <th style={{ minWidth: 90 }}>Div</th>
-              <th style={{ minWidth: 90 }}>Event</th>
-              <th style={{ minWidth: 320 }}>Athlete Names</th>
+              <th style={{ minWidth: 70 }}>Div</th>
+              <th style={{ minWidth: 70 }}>Event</th>
+              <th style={{ minWidth: 420 }}>Athlete Names</th>
               <th style={{ minWidth: 90 }}>Boat</th>
               <th style={{ minWidth: 90 }}>Blades</th>
               <th style={{ minWidth: 220 }}>Notes</th>
