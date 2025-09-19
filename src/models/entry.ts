@@ -7,12 +7,7 @@ export type Entry = {
   athleteNames: string
   boat: string
   blades: string
-  ready: boolean
-  change: boolean
   notes: string
-  entered: boolean
-  paid: boolean
-  charged: boolean
   withdrawn: boolean
   rejected: boolean
 }

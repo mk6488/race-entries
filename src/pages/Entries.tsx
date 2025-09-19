@@ -38,12 +38,7 @@ export function Entries() {
       athleteNames: '',
       boat: boatOptions[0],
       blades: bladeOptions[0],
-      ready: false,
-      change: false,
       notes: '',
-      entered: false,
-      paid: false,
-      charged: false,
       withdrawn: false,
       rejected: false,
     }
@@ -70,12 +65,7 @@ export function Entries() {
               <th style={{ minWidth: 220 }}>Athlete Names</th>
               <th style={{ minWidth: 90 }}>Boat</th>
               <th style={{ minWidth: 90 }}>Blades</th>
-              <th style={{ minWidth: 70 }}>Ready</th>
-              <th style={{ minWidth: 80 }}>Change</th>
               <th style={{ minWidth: 220 }}>Notes</th>
-              <th style={{ minWidth: 80 }}>Entered</th>
-              <th style={{ minWidth: 70 }}>Paid</th>
-              <th style={{ minWidth: 90 }}>Charged</th>
               <th style={{ minWidth: 110 }}>Withdrawn</th>
               <th style={{ minWidth: 90 }}>Rejected</th>
             </tr>
@@ -108,22 +98,7 @@ export function Entries() {
                   </select>
                 </td>
                 <td>
-                  <input type="checkbox" checked={r.ready} onChange={(e) => updateCell(r.id, { ready: e.target.checked })} />
-                </td>
-                <td>
-                  <input type="checkbox" checked={r.change} onChange={(e) => updateCell(r.id, { change: e.target.checked })} />
-                </td>
-                <td>
                   <input value={r.notes} onChange={(e) => updateCell(r.id, { notes: e.target.value })} />
-                </td>
-                <td>
-                  <input type="checkbox" checked={r.entered} onChange={(e) => updateCell(r.id, { entered: e.target.checked })} />
-                </td>
-                <td>
-                  <input type="checkbox" checked={r.paid} onChange={(e) => updateCell(r.id, { paid: e.target.checked })} />
-                </td>
-                <td>
-                  <input type="checkbox" checked={r.charged} onChange={(e) => updateCell(r.id, { charged: e.target.checked })} />
                 </td>
                 <td>
                   <input type="checkbox" checked={r.withdrawn} onChange={(e) => updateCell(r.id, { withdrawn: e.target.checked })} />

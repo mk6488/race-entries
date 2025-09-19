@@ -14,12 +14,7 @@ function toEntry(id: string, data: any): Entry {
     athleteNames: data.athleteNames || '',
     boat: data.boat || '',
     blades: data.blades || '',
-    ready: !!data.ready,
-    change: !!data.change,
     notes: data.notes || '',
-    entered: !!data.entered,
-    paid: !!data.paid,
-    charged: !!data.charged,
     withdrawn: !!data.withdrawn,
     rejected: !!data.rejected,
   }
