@@ -49,6 +49,16 @@ service cloud.firestore {
       allow update: if isSignedIn() && validEntry(request.resource.data);
       allow delete: if isSignedIn();
     }
+
+    // reference data
+    match /boats/{boatId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /blades/{bladeId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
   }
 }
 
