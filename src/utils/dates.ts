@@ -27,7 +27,8 @@ export function enumerateDaysInclusive(start: Date, end?: Date | null): Date[] {
 }
 
 export function formatDayLabel(d: Date): string {
-  return d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' })
+  const days = ['Sun','Mon','Tue','Wed','Thur','Fri','Sat']
+  return days[d.getDay()]
 }
 
 
