@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
+import { subscribeBlades, type Blade } from '../data/blades'
 import { getRaceById } from '../data/races'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
@@ -12,13 +13,18 @@ export function Entries() {
   const [race, setRace] = useState<Race | null>(null)
   const [dayOptions, setDayOptions] = useState<string[]>([])
   const boatOptions = useMemo(() => ['1x','2x','2-','2+','4x','4-','4+','8+'], [])
-  const bladeOptions = useMemo(() => ['S','B','O','F','R','L'], [])
+  const [bladeOptions, setBladeOptions] = useState<Blade[]>([])
 
   useEffect(() => {
     if (!raceId) return
     const unsub = subscribeEntries(raceId, setRows)
     return () => unsub()
   }, [raceId])
+
+  useEffect(() => {
+    const unsub = subscribeBlades(setBladeOptions)
+    return () => unsub()
+  }, [])
 
   useEffect(() => {
     if (!raceId) return
@@ -40,7 +46,7 @@ export function Entries() {
       event: '',
       athleteNames: '',
       boat: boatOptions[0],
-      blades: bladeOptions[0],
+      blades: bladeOptions[0]?.name ?? '',
       notes: '',
       withdrawn: false,
       rejected: false,
@@ -109,7 +115,7 @@ export function Entries() {
                 </td>
                 <td>
                   <select value={r.blades} onChange={(e) => updateCell(r.id, { blades: e.target.value })}>
-                    {bladeOptions.map((b) => <option key={b} value={b}>{b}</option>)}
+                    {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
                   </select>
                 </td>
                 <td>
