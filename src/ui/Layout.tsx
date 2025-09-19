@@ -13,6 +13,9 @@ export function Layout() {
           <nav className="nav-links">
             <NavLink to="/" end>← Back to races</NavLink>
             <NavLink to={`/entries/${raceId}`}>Entries</NavLink>
+            <NavLink to={`/races/${raceId}`}>Races</NavLink>
+            <NavLink to={`/equipment/${raceId}`}>Equipment</NavLink>
+            <NavLink to={`/trailer/${raceId}`}>Trailer</NavLink>
           </nav>
         ) : (
           <div />
@@ -28,6 +31,9 @@ export function Layout() {
         <div className={`nav-drawer ${open ? 'open' : ''}`}>
           <NavLink to="/" end onClick={() => setOpen(false)}>← Back to races</NavLink>
           <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
+          <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
+          <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
+          <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
         </div>
       )}
 
