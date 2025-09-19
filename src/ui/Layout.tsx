@@ -1,10 +1,10 @@
-import { NavLink, Outlet, useMatch } from 'react-router-dom'
+import { NavLink, Outlet, useMatches } from 'react-router-dom'
 import { useState } from 'react'
 
 export function Layout() {
   const [open, setOpen] = useState(false)
-  const match = useMatch('/entries/:raceId')
-  const raceId = match?.params?.raceId
+  const matches = useMatches()
+  const raceId = (matches[matches.length - 1]?.params as { raceId?: string } | undefined)?.raceId
   return (
     <div className="app-shell">
       <header className="topbar">
