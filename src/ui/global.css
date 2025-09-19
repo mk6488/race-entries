@@ -68,6 +68,14 @@ button:hover { background: var(--primary-600); }
 .race-name { font-weight: 600; }
 .race-details { color: var(--muted); font-size: 14px; }
 
+/* Spreadsheet-like table */
+table.sheet { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+table.sheet thead th { position: sticky; top: 0; background: #f8fafc; text-align: left; font-weight: 600; border-bottom: 1px solid var(--border); padding: 10px; }
+table.sheet td { border-bottom: 1px solid var(--border); padding: 6px 8px; }
+table.sheet tr:hover { background: #fbfdff; }
+table.sheet input[type="text"], table.sheet input:not([type]) , table.sheet select { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: #fff; }
+table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
+
 
 @media (max-width: 900px) {
   .nav-links { display: none; }

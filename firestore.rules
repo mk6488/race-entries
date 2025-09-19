@@ -34,6 +34,21 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if isSignedIn();
     }
+
+    // entries for a race
+    function validEntry(data) {
+      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','ready','change','notes','entered','paid','charged','withdrawn','rejected']) &&
+        isString(data.raceId) && data.raceId.size() > 0 &&
+        isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
+        isString(data.boat) && isString(data.blades) && isString(data.notes) &&
+        (data.ready is bool) && (data.change is bool) && (data.entered is bool) && (data.paid is bool) && (data.charged is bool) && (data.withdrawn is bool) && (data.rejected is bool);
+    }
+    match /entries/{entryId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validEntry(request.resource.data);
+      allow update: if isSignedIn() && validEntry(request.resource.data);
+      allow delete: if isSignedIn();
+    }
   }
 }
 
