@@ -8,10 +8,15 @@ export function Layout() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand">Race Entries</div>
+        <div className="brand">
+          {raceId ? (
+            <NavLink to="/" end>← Back to races</NavLink>
+          ) : (
+            <>Race Entries</>
+          )}
+        </div>
         {raceId ? (
           <nav className="nav-links">
-            <NavLink to="/" end>← Back to races</NavLink>
             <NavLink to={`/entries/${raceId}`}>Entries</NavLink>
             <NavLink to={`/races/${raceId}`}>Races</NavLink>
             <NavLink to={`/equipment/${raceId}`}>Equipment</NavLink>
@@ -29,7 +34,6 @@ export function Layout() {
 
       {raceId && (
         <div className={`nav-drawer ${open ? 'open' : ''}`}>
-          <NavLink to="/" end onClick={() => setOpen(false)}>← Back to races</NavLink>
           <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
           <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
           <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
