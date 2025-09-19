@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom'
 import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
 import { getRaceById } from '../data/races'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
+import type { Race } from '../models/race'
 import type { Entry, NewEntry } from '../models/entry'
 
 export function Entries() {
   const { raceId } = useParams()
   const [rows, setRows] = useState<Entry[]>([])
+  const [race, setRace] = useState<Race | null>(null)
   const [dayOptions, setDayOptions] = useState<string[]>([])
   const boatOptions = useMemo(() => ['1x','2x','2-','2+','4x','4-','4+','8+'], [])
   const bladeOptions = useMemo(() => ['S','B','O','F','R','L'], [])
@@ -21,9 +23,10 @@ export function Entries() {
   useEffect(() => {
     if (!raceId) return
     ;(async () => {
-      const race = await getRaceById(raceId)
-      if (!race) { setDayOptions([]); return }
-      const days = enumerateDaysInclusive(race.startDate, race.endDate)
+      const r = await getRaceById(raceId)
+      setRace(r)
+      if (!r) { setDayOptions([]); return }
+      const days = enumerateDaysInclusive(r.startDate, r.endDate)
       setDayOptions(days.map(formatDayLabel))
     })()
   }, [raceId])
@@ -52,7 +55,19 @@ export function Entries() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h1 style={{ margin: 0 }}>Entries</h1>
+        <div>
+          <h1 style={{ margin: 0 }}>{race?.name ?? 'Selected race'}</h1>
+          {race && (
+            <div style={{ color: 'var(--muted)', fontSize: 14 }}>
+              {(() => {
+                const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' })
+                const start = race.startDate
+                const end = race.endDate
+                return end && end.getTime() !== start.getTime() ? `${fmt(start)} → ${fmt(end)}` : fmt(start)
+              })()}
+            </div>
+          )}
+        </div>
         <button onClick={addRow}>Add row</button>
       </div>
       <div style={{ overflowX: 'auto' }}>
