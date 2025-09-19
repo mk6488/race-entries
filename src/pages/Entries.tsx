@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
 import { subscribeBlades, type Blade } from '../data/blades'
+import { subscribeBoats, type Boat } from '../data/boats'
 import { getRaceById } from '../data/races'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
@@ -12,7 +13,7 @@ export function Entries() {
   const [rows, setRows] = useState<Entry[]>([])
   const [race, setRace] = useState<Race | null>(null)
   const [dayOptions, setDayOptions] = useState<string[]>([])
-  const boatOptions = useMemo(() => ['1x','2x','2-','2+','4x','4-','4+','8+'], [])
+  const [allBoats, setAllBoats] = useState<Boat[]>([])
   const [bladeOptions, setBladeOptions] = useState<Blade[]>([])
 
   useEffect(() => {
@@ -25,6 +26,21 @@ export function Entries() {
     const unsub = subscribeBlades(setBladeOptions)
     return () => unsub()
   }, [])
+
+  useEffect(() => {
+    const unsub = subscribeBoats(setAllBoats)
+    return () => unsub()
+  }, [])
+
+  function inferBoatType(event: string): string | null {
+    const e = event.toLowerCase()
+    if (e.includes('8x+') || e.includes('8+')) return '8+'
+    if (e.includes('4x+') || e.includes('4+')) return '4+'
+    if (e.includes('4x') || e.includes('4x-') || e.includes('4-')) return '4x/-'
+    if (e.includes('2x') || e.includes('2x-') || e.includes('2-')) return '2x/-'
+    if (e.includes('1x') || e.includes('1x-')) return '1x'
+    return null
+  }
 
   useEffect(() => {
     if (!raceId) return
@@ -45,7 +61,7 @@ export function Entries() {
       div: '',
       event: '',
       athleteNames: '',
-      boat: boatOptions[0],
+      boat: '',
       blades: bladeOptions[0]?.name ?? '',
       notes: '',
       withdrawn: false,
@@ -109,9 +125,15 @@ export function Entries() {
                   <input value={r.athleteNames} onChange={(e) => updateCell(r.id, { athleteNames: e.target.value })} />
                 </td>
                 <td>
-                  <select value={r.boat} onChange={(e) => updateCell(r.id, { boat: e.target.value })}>
-                    {boatOptions.map((b) => <option key={b} value={b}>{b}</option>)}
-                  </select>
+                  {(() => {
+                    const type = inferBoatType(r.event)
+                    const options = (type ? allBoats.filter((b) => b.type === type) : allBoats).sort((a,b) => a.name.localeCompare(b.name))
+                    return (
+                      <select value={r.boat} onChange={(e) => updateCell(r.id, { boat: e.target.value })}>
+                        {options.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+                      </select>
+                    )
+                  })()}
                 </td>
                 <td>
                   <select value={r.blades} onChange={(e) => updateCell(r.id, { blades: e.target.value })}>
