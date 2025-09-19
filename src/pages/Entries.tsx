@@ -119,7 +119,21 @@ export function Entries() {
                   <input value={r.div} onChange={(e) => updateCell(r.id, { div: e.target.value })} />
                 </td>
                 <td>
-                  <input value={r.event} onChange={(e) => updateCell(r.id, { event: e.target.value })} />
+                  <input
+                    value={r.event}
+                    onChange={(e) => {
+                      const next = e.target.value
+                      const eventText = next.trim()
+                      const type = inferBoatType(eventText)
+                      const options = type && eventText
+                        ? allBoats.filter((b) => b.type === type).sort((a,b) => a.name.localeCompare(b.name))
+                        : []
+                      const boatIsValid = options.some((b) => b.name === r.boat)
+                      const patch: Partial<NewEntry> = { event: next }
+                      if (!boatIsValid) patch.boat = ''
+                      updateCell(r.id, patch)
+                    }}
+                  />
                 </td>
                 <td>
                   <input value={r.athleteNames} onChange={(e) => updateCell(r.id, { athleteNames: e.target.value })} />
