@@ -62,7 +62,7 @@ export function Entries() {
       event: '',
       athleteNames: '',
       boat: '',
-      blades: bladeOptions[0]?.name ?? '',
+      blades: '',
       notes: '',
       withdrawn: false,
       rejected: false,
@@ -126,10 +126,14 @@ export function Entries() {
                 </td>
                 <td>
                   {(() => {
-                    const type = inferBoatType(r.event)
-                    const options = (type ? allBoats.filter((b) => b.type === type) : allBoats).sort((a,b) => a.name.localeCompare(b.name))
+                    const eventText = r.event?.trim() ?? ''
+                    const type = inferBoatType(eventText)
+                    const options = type && eventText
+                      ? allBoats.filter((b) => b.type === type).sort((a,b) => a.name.localeCompare(b.name))
+                      : []
                     return (
                       <select value={r.boat} onChange={(e) => updateCell(r.id, { boat: e.target.value })}>
+                        <option value="">-</option>
                         {options.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
                       </select>
                     )
@@ -137,6 +141,7 @@ export function Entries() {
                 </td>
                 <td>
                   <select value={r.blades} onChange={(e) => updateCell(r.id, { blades: e.target.value })}>
+                    <option value="">-</option>
                     {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
                   </select>
                 </td>
