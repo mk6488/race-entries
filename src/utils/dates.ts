@@ -16,4 +16,18 @@ export function fromInputDate(s: string) {
   return new Date(y, (m ?? 1) - 1, d ?? 1)
 }
 
+export function enumerateDaysInclusive(start: Date, end?: Date | null): Date[] {
+  const s = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+  const e = end ? new Date(end.getFullYear(), end.getMonth(), end.getDate()) : s
+  const days: Date[] = []
+  for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+    days.push(new Date(d))
+  }
+  return days
+}
+
+export function formatDayLabel(d: Date): string {
+  return d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' })
+}
+
 

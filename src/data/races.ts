@@ -1,4 +1,4 @@
-import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
+import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { NewRace, Race } from '../models/race'
 
@@ -32,6 +32,13 @@ export function subscribeRaces(cb: (races: Race[]) => void) {
   return onSnapshot(q, (snap) => {
     cb(snap.docs.map((d) => toRace(d.id, d.data())))
   })
+}
+
+export async function getRaceById(id: string): Promise<Race | null> {
+  const ref = doc(db, 'races', id)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return null
+  return toRace(snap.id, snap.data())
 }
 
 export async function createRace(data: NewRace) {

@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
+import { getRaceById } from '../data/races'
+import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Entry, NewEntry } from '../models/entry'
 
 export function Entries() {
   const { raceId } = useParams()
   const [rows, setRows] = useState<Entry[]>([])
-  const dayOptions = useMemo(() => ['Sat 1', 'Sat 2', 'Sun 1', 'Sun 2'], [])
+  const [dayOptions, setDayOptions] = useState<string[]>([])
   const boatOptions = useMemo(() => ['1x','2x','2-','2+','4x','4-','4+','8+'], [])
   const bladeOptions = useMemo(() => ['S','B','O','F','R','L'], [])
 
@@ -16,11 +18,21 @@ export function Entries() {
     return () => unsub()
   }, [raceId])
 
+  useEffect(() => {
+    if (!raceId) return
+    ;(async () => {
+      const race = await getRaceById(raceId)
+      if (!race) { setDayOptions([]); return }
+      const days = enumerateDaysInclusive(race.startDate, race.endDate)
+      setDayOptions(days.map(formatDayLabel))
+    })()
+  }, [raceId])
+
   async function addRow() {
     if (!raceId) return
     const blank: NewEntry = {
       raceId,
-      day: dayOptions[0],
+      day: dayOptions[0] ?? '',
       div: '',
       event: '',
       athleteNames: '',
