@@ -28,7 +28,7 @@ export function Race() {
   }, [raceId])
 
   const entries = useMemo(() => {
-    const ready = all.filter((e) => e.status === 'ready' || e.status === 'entered')
+    const ready = all.filter((e) => e.status === 'entered')
     const matches = ready.filter((e) => {
       if (selectedDays.length > 0 && !selectedDays.includes(e.day)) return false
       if (selectedDivs.length > 0 && !selectedDivs.map((d) => d.toLowerCase()).includes(e.div.toLowerCase())) return false
