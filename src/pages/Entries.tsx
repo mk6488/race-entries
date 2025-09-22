@@ -39,6 +39,25 @@ export function Entries() {
     return () => unsub()
   }, [])
 
+  // Ensure navbar Add Entry (?add=1) opens the same prefilled modal as the Add entry button
+  useEffect(() => {
+    if (searchParams.get('add') === '1' && raceId && !form) {
+      const blank: NewEntry = {
+        raceId,
+        day: (lastDefaults.day as string) ?? (dayOptions[0] ?? ''),
+        div: (lastDefaults.div as string) ?? '',
+        event: (lastDefaults.event as string) ?? '',
+        athleteNames: '',
+        boat: (lastDefaults.boat as string) ?? '',
+        blades: (lastDefaults.blades as string) ?? '',
+        notes: '',
+        status: 'in_progress',
+        crewChanged: false,
+      }
+      setForm(blank)
+    }
+  }, [searchParams, raceId, form, dayOptions, lastDefaults])
+
   function inferBoatType(event: string): string | null {
     const e = event.toLowerCase()
     if (e.includes('8x+') || e.includes('8+')) return '8+'
