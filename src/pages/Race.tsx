@@ -14,11 +14,11 @@ export function Race() {
   const [rows, setRows] = useState<Entry[]>([])
 
   // Filters
-  const [dayFilter, setDayFilter] = useState('')
-  const [divFilter, setDivFilter] = useState('')
-  const [eventFilter, setEventFilter] = useState('')
-  const [boatFilter, setBoatFilter] = useState('')
-  const [bladesFilter, setBladesFilter] = useState('')
+  const [dayFilter, setDayFilter] = useState<string[]>([])
+  const [divFilter, setDivFilter] = useState<string[]>([])
+  const [eventFilter, setEventFilter] = useState<string[]>([])
+  const [boatFilter, setBoatFilter] = useState<string[]>([])
+  const [bladesFilter, setBladesFilter] = useState<string[]>([])
 
   // Sorting
   const [sortKey, setSortKey] = useState<SortKey>('day')
@@ -52,11 +52,11 @@ export function Race() {
 
   const filtered = useMemo(() => {
     return enteredRows.filter((r) => {
-      if (dayFilter && r.day !== dayFilter) return false
-      if (divFilter && r.div.toLowerCase() !== divFilter.toLowerCase()) return false
-      if (eventFilter && r.event !== eventFilter) return false
-      if (boatFilter && r.boat !== boatFilter) return false
-      if (bladesFilter && r.blades !== bladesFilter) return false
+      if (dayFilter.length && !dayFilter.includes(r.day)) return false
+      if (divFilter.length && !divFilter.includes(r.div)) return false
+      if (eventFilter.length && !eventFilter.includes(r.event)) return false
+      if (boatFilter.length && !boatFilter.includes(r.boat)) return false
+      if (bladesFilter.length && !bladesFilter.includes(r.blades)) return false
       return true
     })
   }, [enteredRows, dayFilter, divFilter, eventFilter, boatFilter, bladesFilter])
@@ -110,33 +110,28 @@ export function Race() {
             </tr>
             <tr>
               <th>
-                <select value={dayFilter} onChange={(e) => setDayFilter(e.target.value)}>
-                  <option value="">All</option>
+                <select multiple value={dayFilter} onChange={(e) => setDayFilter(Array.from(e.currentTarget.selectedOptions).map(o=>o.value))}>
                   {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </th>
               <th>
-                <select value={divFilter} onChange={(e) => setDivFilter(e.target.value)}>
-                  <option value="">All</option>
+                <select multiple value={divFilter} onChange={(e) => setDivFilter(Array.from(e.currentTarget.selectedOptions).map(o=>o.value))}>
                   {uniqueDivs.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </th>
               <th>
-                <select value={eventFilter} onChange={(e) => setEventFilter(e.target.value)}>
-                  <option value="">All</option>
+                <select multiple value={eventFilter} onChange={(e) => setEventFilter(Array.from(e.currentTarget.selectedOptions).map(o=>o.value))}>
                   {uniqueEvents.map((ev) => <option key={ev} value={ev}>{ev}</option>)}
                 </select>
               </th>
               <th/>
               <th>
-                <select value={boatFilter} onChange={(e) => setBoatFilter(e.target.value)}>
-                  <option value="">All</option>
+                <select multiple value={boatFilter} onChange={(e) => setBoatFilter(Array.from(e.currentTarget.selectedOptions).map(o=>o.value))}>
                   {uniqueBoats.map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
               </th>
               <th>
-                <select value={bladesFilter} onChange={(e) => setBladesFilter(e.target.value)}>
-                  <option value="">All</option>
+                <select multiple value={bladesFilter} onChange={(e) => setBladesFilter(Array.from(e.currentTarget.selectedOptions).map(o=>o.value))}>
                   {uniqueBlades.map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
               </th>
