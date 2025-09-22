@@ -17,6 +17,8 @@ export function Race() {
   const [draftNumber, setDraftNumber] = useState('')
   const [draftTimes, setDraftTimes] = useState<string[]>([])
   const [timeInput, setTimeInput] = useState('')
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [sort, setSort] = useState<{ key: 'day'|'div'|'event'|'athleteNames'|'boat'|'blades'|'raceNumber', dir: 'asc'|'desc' } | null>(null)
 
   useEffect(() => {
     if (!raceId) return
@@ -43,7 +45,7 @@ export function Race() {
     const dayOrder = race ? enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel) : []
     dayOrder.forEach((d, i) => { dayRank[d] = i })
     const num = (s: string) => { const n = Number(s); return Number.isFinite(n) ? n : null }
-    return [...matches].sort((a, b) => {
+    const defaultSorted = [...matches].sort((a, b) => {
       const ar = dayRank[a.day] ?? 9999
       const br = dayRank[b.day] ?? 9999
       if (ar !== br) return ar - br
@@ -53,7 +55,11 @@ export function Race() {
       if (divCmp !== 0) return divCmp
       return a.event.localeCompare(b.event, undefined, { sensitivity: 'base', numeric: true })
     })
-  }, [all, selectedDays, selectedDivs, race])
+    if (!sort) return defaultSorted
+    const { key, dir } = sort
+    const mul = dir === 'asc' ? 1 : -1
+    return [...defaultSorted].sort((a,b)=> String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { numeric: true, sensitivity: 'base' }) * mul)
+  }, [all, selectedDays, selectedDivs, race, sort])
 
   const dayOptions = useMemo(() => {
     const set = new Set<string>()
@@ -102,13 +108,49 @@ export function Race() {
         <table className="sheet">
           <thead>
             <tr>
-              <th style={{ minWidth: 90 }}>Day</th>
-              <th style={{ minWidth: 70 }}>Div</th>
-              <th style={{ minWidth: 120 }}>Event</th>
-              <th style={{ minWidth: 320 }}>Athlete Names</th>
-              <th style={{ minWidth: 120 }}>Boat</th>
-              <th style={{ minWidth: 90 }}>Blades</th>
-              <th style={{ minWidth: 90 }}>Race No.</th>
+              {([
+                ['day','Day',90],
+                ['div','Div',70],
+                ['event','Event',120],
+                ['athleteNames','Athlete Names',320],
+                ['boat','Boat',120],
+                ['blades','Blades',90],
+                ['raceNumber','Race No.',90],
+              ] as const).map(([key,label,min])=> (
+                <th key={key} className="th-filter" style={{ minWidth: min }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>{label}</span>
+                    <button type="button" className="menu-btn" onClick={(e)=>{ e.stopPropagation(); setOpenMenu(openMenu===key?null:key) }}>▾</button>
+                  </div>
+                  {openMenu===key && (
+                    <div className="menu-panel" onClick={(e)=>e.stopPropagation()}>
+                      <div className="menu-title">Sort</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button type="button" className="link-btn" onClick={()=>{ setSort({ key: key as any, dir: 'asc' }); setOpenMenu(null) }}>A → Z</button>
+                        <button type="button" className="link-btn" onClick={()=>{ setSort({ key: key as any, dir: 'desc' }); setOpenMenu(null) }}>Z → A</button>
+                        <button type="button" className="link-btn" onClick={()=>{ setSort(null); setOpenMenu(null) }}>Default</button>
+                      </div>
+                      {(key==='day' || key==='div') && (
+                        <>
+                          <div className="menu-title" style={{ marginTop: 8 }}>Filter</div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {(key==='day'? dayOptions : divOptions).map((d)=> (
+                              <button key={d} type="button" className={`chip selectable ${(key==='day'?selectedDays:selectedDivs).includes(d)?'selected':''}`}
+                                onClick={()=>{
+                                  if (key==='day') setSelectedDays(selectedDays.includes(d)? selectedDays.filter(x=>x!==d):[...selectedDays,d])
+                                  else setSelectedDivs(selectedDivs.includes(d)? selectedDivs.filter(x=>x!==d):[...selectedDivs,d])
+                                }}>{d}</button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                      <div className="menu-actions">
+                        <button type="button" className="link-btn" onClick={()=> setOpenMenu(null)}>Close</button>
+                      </div>
+                    </div>
+                  )}
+                </th>
+              ))}
               <th style={{ minWidth: 140 }}>Time(s)</th>
               <th style={{ minWidth: 80 }}></th>
             </tr>
