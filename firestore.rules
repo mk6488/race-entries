@@ -37,12 +37,14 @@ service cloud.firestore {
 
     // entries for a race
     function validEntry(data) {
-      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged']) &&
+      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected']) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
         isString(data.boat) && isString(data.blades) && isString(data.notes) &&
-        (data.status in ['in_progress','ready','entered','withdrawn','rejected']) &&
-        (data.crewChanged is bool);
+        (!('status' in data) || (data.status in ['in_progress','ready','entered','withdrawn','rejected'])) &&
+        (!('crewChanged' in data) || (data.crewChanged is bool)) &&
+        (!('withdrawn' in data) || (data.withdrawn is bool)) &&
+        (!('rejected' in data) || (data.rejected is bool));
     }
     match /entries/{entryId} {
       allow read: if true;
