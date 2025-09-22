@@ -61,6 +61,20 @@ export function Race() {
     })
   }, [enteredRows, daySel, divSel, eventSel, boatSel, bladesSel])
 
+  // Auto sort by day (based on race day order), then div, then event
+  const sortedRows = useMemo(() => {
+    const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
+    const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
+    return [...plainRows].sort((a, b) => {
+      const ai = dayOrder.has(a.day) ? (dayOrder.get(a.day) as number) : 9999
+      const bi = dayOrder.has(b.day) ? (dayOrder.get(b.day) as number) : 9999
+      if (ai !== bi) return ai - bi
+      const d = collator.compare(a.div || '', b.div || '')
+      if (d !== 0) return d
+      return collator.compare(a.event || '', b.event || '')
+    })
+  }, [plainRows, dayOptions])
+
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>{race?.name ?? 'Race'}</h1>
@@ -92,7 +106,7 @@ export function Race() {
             </tr>
           </thead>
           <tbody>
-            {plainRows.map((r) => (
+            {sortedRows.map((r) => (
               <tr key={r.id}>
                 <td>{r.day}</td>
                 <td>{r.div}</td>
