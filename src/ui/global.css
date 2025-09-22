@@ -135,7 +135,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .filter-btn { font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); background: #fff; border-radius: 6px; color: var(--text); cursor: pointer; }
 .filter-btn.active { background: #f3f4f6; }
 .filter-cell { position: relative; }
-.filter-popover { position: absolute; top: calc(100% + 4px); right: 0; z-index: 25; width: 260px; max-height: 300px; overflow: auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 32px rgba(2,6,23,.18); padding: 8px; }
+.filter-popover { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 25; width: 260px; max-height: 300px; overflow: auto; background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 12px 32px rgba(2,6,23,.18); padding: 8px; }
 .filter-popover h4 { margin: 4px 0 8px; font-size: 12px; color: var(--muted); font-weight: 600; }
 .filter-popover .row { display: grid; grid-template-columns: 16px 1fr; gap: 8px; align-items: center; padding: 4px 0; }
 .filter-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }

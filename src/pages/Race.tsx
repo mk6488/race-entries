@@ -121,8 +121,9 @@ export function Race() {
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto', position: 'relative', zIndex: 1 }}>
-        <table className="sheet" style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ position: 'relative', zIndex: 0 }}>
+        <table className="sheet" style={{ position: 'relative', zIndex: 0 }}>
           <thead>
             <tr>
               <th onClick={() => toggleSort('day')} style={{ cursor: 'pointer', minWidth: 90 }}>Day {sortKey==='day' ? (sortAsc?'▲':'▼') : ''}</th>
@@ -224,6 +225,7 @@ export function Race() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )
