@@ -7,6 +7,8 @@ export type Entry = {
   athleteNames: string
   boat: string
   blades: string
+  raceNumber: string
+  raceTimes: string[]
   notes: string
   status: 'in_progress' | 'ready' | 'entered' | 'withdrawn' | 'rejected'
   crewChanged: boolean

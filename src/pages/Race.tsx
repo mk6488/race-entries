@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { subscribeEntries } from '../data/entries'
+import { subscribeEntries, updateEntry } from '../data/entries'
 import type { Entry } from '../models/entry'
 import { getRaceById } from '../data/races'
 import type { Race as RaceModel } from '../models/race'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
+import { Modal } from '../ui/Modal'
 
 export function Race() {
   const { raceId } = useParams()
@@ -12,6 +13,10 @@ export function Race() {
   const [all, setAll] = useState<Entry[]>([])
   const [selectedDays, setSelectedDays] = useState<string[]>([])
   const [selectedDivs, setSelectedDivs] = useState<string[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [draftNumber, setDraftNumber] = useState('')
+  const [draftTimes, setDraftTimes] = useState<string[]>([])
+  const [timeInput, setTimeInput] = useState('')
 
   useEffect(() => {
     if (!raceId) return
@@ -103,6 +108,9 @@ export function Race() {
               <th style={{ minWidth: 320 }}>Athlete Names</th>
               <th style={{ minWidth: 120 }}>Boat</th>
               <th style={{ minWidth: 90 }}>Blades</th>
+              <th style={{ minWidth: 90 }}>Race No.</th>
+              <th style={{ minWidth: 140 }}>Time(s)</th>
+              <th style={{ minWidth: 80 }}></th>
             </tr>
           </thead>
           <tbody>
@@ -114,11 +122,83 @@ export function Race() {
                 <td>{r.athleteNames || '-'}</td>
                 <td>{r.boat || '-'}</td>
                 <td>{r.blades || '-'}</td>
+                <td>{r.raceNumber || '-'}</td>
+                <td>{(r.raceTimes && r.raceTimes.length) ? r.raceTimes.join(', ') : '-'}</td>
+                <td>
+                  <button type="button" onClick={() => {
+                    setEditingId(r.id)
+                    setDraftNumber(r.raceNumber || '')
+                    setDraftTimes(Array.isArray(r.raceTimes) ? r.raceTimes : [])
+                    setTimeInput('')
+                  }}>Edit</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <Modal
+        open={!!editingId}
+        onClose={() => { setEditingId(null); setTimeInput('') }}
+        title="Edit race details"
+        footer={null}
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (!editingId) return
+            await updateEntry(editingId, { raceNumber: draftNumber, raceTimes: draftTimes })
+            setEditingId(null)
+            setTimeInput('')
+          }}
+          className="form-grid"
+        >
+          <div className="form-row">
+            <label>Race number</label>
+            <input value={draftNumber} onChange={(e) => setDraftNumber(e.target.value)} placeholder="e.g. 57" />
+          </div>
+          <div className="form-row form-span-2">
+            <label>Time(s) (HH:MM)</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              {draftTimes.map((t, i) => (
+                <span key={t+String(i)} className="chip">
+                  {t}
+                  <button type="button" className="icon-btn" onClick={() => setDraftTimes(draftTimes.filter((_, idx) => idx !== i))}>✕</button>
+                </span>
+              ))}
+              <input
+                value={timeInput}
+                onChange={(e) => setTimeInput(e.target.value)}
+                placeholder="HH:MM"
+                style={{ width: 100 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    const val = timeInput.trim()
+                    if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(val)) {
+                      if (!draftTimes.includes(val)) setDraftTimes([...draftTimes, val])
+                      setTimeInput('')
+                    }
+                  }
+                }}
+              />
+              <button type="button" onClick={() => {
+                const val = timeInput.trim()
+                if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(val)) {
+                  if (!draftTimes.includes(val)) setDraftTimes([...draftTimes, val])
+                  setTimeInput('')
+                }
+              }}>Add</button>
+            </div>
+            <span className="muted">Press Enter to add. Click × to remove.</span>
+          </div>
+          <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <button type="button" onClick={() => { setEditingId(null); setTimeInput('') }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
+            <button type="submit">Save</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
