@@ -16,7 +16,7 @@ export function Race() {
   // Filters
   const [dayFilter, setDayFilter] = useState('')
   const [divFilter, setDivFilter] = useState('')
-  const [search, setSearch] = useState('')
+  const [eventFilter, setEventFilter] = useState('')
   const [boatFilter, setBoatFilter] = useState('')
   const [bladesFilter, setBladesFilter] = useState('')
 
@@ -46,24 +46,20 @@ export function Race() {
 
   // Unique value options for header filters
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
+  const uniqueEvents = useMemo(() => Array.from(new Set(enteredRows.map(r => r.event).filter(Boolean))).sort(), [enteredRows])
   const uniqueBoats = useMemo(() => Array.from(new Set(enteredRows.map(r => r.boat).filter(Boolean))).sort(), [enteredRows])
   const uniqueBlades = useMemo(() => Array.from(new Set(enteredRows.map(r => r.blades).filter(Boolean))).sort(), [enteredRows])
 
   const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase()
     return enteredRows.filter((r) => {
       if (dayFilter && r.day !== dayFilter) return false
       if (divFilter && r.div.toLowerCase() !== divFilter.toLowerCase()) return false
+      if (eventFilter && r.event !== eventFilter) return false
       if (boatFilter && r.boat !== boatFilter) return false
       if (bladesFilter && r.blades !== bladesFilter) return false
-      if (!s) return true
-      return (
-        r.event.toLowerCase().includes(s) ||
-        r.athleteNames.toLowerCase().includes(s) ||
-        r.boat.toLowerCase().includes(s)
-      )
+      return true
     })
-  }, [enteredRows, dayFilter, divFilter, boatFilter, bladesFilter, search])
+  }, [enteredRows, dayFilter, divFilter, eventFilter, boatFilter, bladesFilter])
 
   const sorted = useMemo(() => {
     const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
@@ -126,7 +122,10 @@ export function Race() {
                 </select>
               </th>
               <th>
-                <input placeholder="Search events" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <select value={eventFilter} onChange={(e) => setEventFilter(e.target.value)}>
+                  <option value="">All</option>
+                  {uniqueEvents.map((ev) => <option key={ev} value={ev}>{ev}</option>)}
+                </select>
               </th>
               <th/>
               <th>
