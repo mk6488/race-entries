@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
 import { subscribeBlades, type Blade } from '../data/blades'
 import { subscribeBoats, type Boat } from '../data/boats'
@@ -21,6 +21,7 @@ export function Entries() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const athleteInputRef = useRef<HTMLInputElement | null>(null)
   const [lastDefaults, setLastDefaults] = useState<Partial<NewEntry>>({})
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     if (!raceId) return
@@ -181,7 +182,7 @@ export function Entries() {
           )
         })}
       </div>
-      <Modal open={open} onClose={() => setOpen(false)} title={editingId ? 'Edit entry' : 'Add entry'} footer={null}>
+      <Modal open={open || searchParams.get('add') === '1'} onClose={() => { setOpen(false); searchParams.delete('add'); setSearchParams(searchParams) }} title={editingId ? 'Edit entry' : 'Add entry'} footer={null}>
         {form && (
           <form
             onSubmit={async (e) => {

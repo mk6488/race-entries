@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useMatches } from 'react-router-dom'
+import { NavLink, Outlet, useMatches, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 
 export function Layout() {
@@ -6,6 +6,8 @@ export function Layout() {
   const matches = useMatches()
   const raceId = (matches[matches.length - 1]?.params as { raceId?: string } | undefined)?.raceId
   const hasRace = !!raceId
+  const location = useLocation()
+  const isEntries = location.pathname.startsWith('/entries/')
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -22,6 +24,9 @@ export function Layout() {
             <NavLink to={`/races/${raceId}`}>Races</NavLink>
             <NavLink to={`/equipment/${raceId}`}>Equipment</NavLink>
             <NavLink to={`/trailer/${raceId}`}>Trailer</NavLink>
+            {isEntries ? (
+              <NavLink to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
+            ) : null}
           </nav>
         ) : (
           <div />
@@ -35,6 +40,9 @@ export function Layout() {
           {hasRace ? (
             <>
               <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
+              {isEntries ? (
+                <NavLink to={`/entries/${raceId}?add=1`} onClick={() => setOpen(false)}>Add Entry</NavLink>
+              ) : null}
               <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
               <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
               <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
