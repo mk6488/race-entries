@@ -23,7 +23,7 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 /* Utilities */
 .desktop-only { display: block; }
 .mobile-only { display: none; }
-.primary-btn { display: inline-flex; align-items: center; justify-content: center; height: 36px; line-height: 1; background: var(--primary); color: #fff; padding: 0 14px; border-radius: 10px; text-decoration: none; border: 1px solid transparent; }
+.primary-btn { display: inline-flex; align-items: center; justify-content: center; height: 36px; line-height: 1; background: var(--primary); color: #fff; padding: 0 14px; border-radius: 10px; text-decoration: none; border: 1px solid transparent; font-size: 14px; }
 .primary-btn:hover { background: var(--primary-600); }
 
 .topbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); padding: 0 12px; background: #fff; min-height: 48px; }
@@ -58,6 +58,7 @@ button {
   cursor: pointer;
 }
 button:hover { background: var(--primary-600); }
+.topbar .topbar-actions button.primary-btn { padding: 0 14px; }
 .icon-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; }
 .icon-btn:hover { color: var(--text); }
 
