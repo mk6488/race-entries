@@ -95,19 +95,31 @@ export function Race() {
         </div>
       </div>
 
-      <div className="entries-list">
-        {entries.map((r) => (
-          <div key={r.id} className="entry-row">
-            <span className="badge mono">{r.day || '-'}</span>
-            <span className="badge mono">Div {r.div || '-'}</span>
-            <span className="entry-event">{r.event || '-'}</span>
-            <span className="sep">•</span>
-            <span>{r.athleteNames || '-'}</span>
-            <span className="sep">•</span>
-            <span>Boat: {r.boat || '-'}</span>
-            <span>Blades: {r.blades || '-'}</span>
-          </div>
-        ))}
+      <div style={{ overflowX: 'auto' }}>
+        <table className="sheet">
+          <thead>
+            <tr>
+              <th style={{ minWidth: 90 }}>Day</th>
+              <th style={{ minWidth: 70 }}>Div</th>
+              <th style={{ minWidth: 120 }}>Event</th>
+              <th style={{ minWidth: 320 }}>Athlete Names</th>
+              <th style={{ minWidth: 120 }}>Boat</th>
+              <th style={{ minWidth: 90 }}>Blades</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((r) => (
+              <tr key={r.id}>
+                <td>{r.day || '-'}</td>
+                <td>{r.div || '-'}</td>
+                <td>{r.event || '-'}</td>
+                <td>{r.athleteNames || '-'}</td>
+                <td>{r.boat || '-'}</td>
+                <td>{r.blades || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )
