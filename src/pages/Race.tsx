@@ -10,9 +10,8 @@ export function Race() {
   const { raceId } = useParams()
   const [race, setRace] = useState<RaceModel | null>(null)
   const [all, setAll] = useState<Entry[]>([])
-  const [dayFilter, setDayFilter] = useState('')
-  const [divFilter, setDivFilter] = useState('')
-  const [eventFilter, setEventFilter] = useState('')
+  const [selectedDays, setSelectedDays] = useState<string[]>([])
+  const [selectedDivs, setSelectedDivs] = useState<string[]>([])
 
   useEffect(() => {
     if (!raceId) return
@@ -31,9 +30,8 @@ export function Race() {
   const entries = useMemo(() => {
     const ready = all.filter((e) => e.status === 'ready' || e.status === 'entered')
     const matches = ready.filter((e) => {
-      if (dayFilter && e.day !== dayFilter) return false
-      if (divFilter && e.div.toLowerCase() !== divFilter.toLowerCase()) return false
-      if (eventFilter && !e.event.toLowerCase().includes(eventFilter.toLowerCase())) return false
+      if (selectedDays.length > 0 && !selectedDays.includes(e.day)) return false
+      if (selectedDivs.length > 0 && !selectedDivs.map((d) => d.toLowerCase()).includes(e.div.toLowerCase())) return false
       return true
     })
     const dayRank: Record<string, number> = {}
@@ -50,12 +48,18 @@ export function Race() {
       if (divCmp !== 0) return divCmp
       return a.event.localeCompare(b.event, undefined, { sensitivity: 'base', numeric: true })
     })
-  }, [all, dayFilter, divFilter, eventFilter, race])
+  }, [all, selectedDays, selectedDivs, race])
 
   const dayOptions = useMemo(() => {
     const set = new Set<string>()
     for (const e of all) set.add(e.day)
     return Array.from(set)
+  }, [all])
+
+  const divOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const e of all) set.add((e.div || '').toString())
+    return Array.from(set).sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
   }, [all])
 
   return (
@@ -75,29 +79,36 @@ export function Race() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 12, display: 'grid', gap: 10 }}>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Day</span>
-            <select value={dayFilter} onChange={(e) => setDayFilter(e.target.value)}>
-              <option value="">All</option>
-              {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
+      <div className="card" style={{ marginBottom: 12, display: 'grid', gap: 12 }}>
+        <div style={{ display: 'grid', gap: 10 }}>
           <div style={{ display: 'grid', gap: 6 }}>
-            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Division</span>
+            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Days</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {['1','2','3','A','B','C'].map((d) => (
-                <button key={d} type="button" className={`chip selectable ${divFilter===d ? 'selected' : ''}`} onClick={() => setDivFilter(divFilter===d ? '' : d)}>{d}</button>
+              {dayOptions.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`chip selectable ${selectedDays.includes(d) ? 'selected' : ''}`}
+                  onClick={() => setSelectedDays(selectedDays.includes(d) ? selectedDays.filter(x=>x!==d) : [...selectedDays, d])}
+                >{d}</button>
               ))}
             </div>
           </div>
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Event</span>
-            <input value={eventFilter} onChange={(e) => setEventFilter(e.target.value)} placeholder="e.g. J15 2x" />
-          </label>
-          <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="button" onClick={() => { setDayFilter(''); setDivFilter(''); setEventFilter('') }}>Clear filters</button>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Divisions</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {divOptions.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`chip selectable ${selectedDivs.includes(d) ? 'selected' : ''}`}
+                  onClick={() => setSelectedDivs(selectedDivs.includes(d) ? selectedDivs.filter(x=>x!==d) : [...selectedDivs, d])}
+                >{d}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="button" onClick={() => { setSelectedDays([]); setSelectedDivs([]) }}>Clear filters</button>
           </div>
         </div>
       </div>
