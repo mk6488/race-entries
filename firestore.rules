@@ -41,7 +41,7 @@ service cloud.firestore {
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
         isString(data.boat) && isString(data.blades) && isString(data.notes) &&
-        (data.status in ['ready','entered','withdrawn','rejected']) &&
+        (data.status in ['in_progress','ready','entered','withdrawn','rejected']) &&
         (data.crewChanged is bool);
     }
     match /entries/{entryId} {

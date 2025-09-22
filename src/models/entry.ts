@@ -8,7 +8,7 @@ export type Entry = {
   boat: string
   blades: string
   notes: string
-  status: 'ready' | 'entered' | 'withdrawn' | 'rejected'
+  status: 'in_progress' | 'ready' | 'entered' | 'withdrawn' | 'rejected'
   crewChanged: boolean
 }
 
