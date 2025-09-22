@@ -117,86 +117,21 @@ export function Entries() {
         </div>
         <button onClick={addRow}>Add entry</button>
       </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table className="sheet">
-          <thead>
-            <tr>
-              <th style={{ minWidth: 90 }}>Day</th>
-              <th style={{ minWidth: 70 }}>Div</th>
-              <th style={{ minWidth: 70 }}>Event</th>
-              <th style={{ minWidth: 420 }}>Athlete Names</th>
-              <th style={{ minWidth: 90 }}>Boat</th>
-              <th style={{ minWidth: 90 }}>Blades</th>
-              <th style={{ minWidth: 220 }}>Notes</th>
-              <th style={{ minWidth: 110 }}>Withdrawn</th>
-              <th style={{ minWidth: 90 }}>Rejected</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedRows.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  <select value={r.day} onChange={(e) => updateCell(r.id, { day: e.target.value })}>
-                    {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </td>
-                <td>
-                  <input value={r.div} onChange={(e) => updateCell(r.id, { div: e.target.value })} />
-                </td>
-                <td>
-                  <input
-                    value={r.event}
-                    onChange={(e) => {
-                      const next = e.target.value
-                      const eventText = next.trim()
-                      const type = inferBoatType(eventText)
-                      const options = type && eventText
-                        ? allBoats.filter((b) => b.type === type).sort((a,b) => a.name.localeCompare(b.name))
-                        : []
-                      const boatIsValid = options.some((b) => b.name === r.boat)
-                      const patch: Partial<NewEntry> = { event: next }
-                      if (!boatIsValid) patch.boat = ''
-                      updateCell(r.id, patch)
-                    }}
-                  />
-                </td>
-                <td>
-                  <input value={r.athleteNames} onChange={(e) => updateCell(r.id, { athleteNames: e.target.value })} />
-                </td>
-                <td>
-                  {(() => {
-                    const eventText = r.event?.trim() ?? ''
-                    const type = inferBoatType(eventText)
-                    const options = type && eventText
-                      ? allBoats.filter((b) => b.type === type).sort((a,b) => a.name.localeCompare(b.name))
-                      : []
-                    return (
-                      <select value={r.boat} onChange={(e) => updateCell(r.id, { boat: e.target.value })}>
-                        <option value="">-</option>
-                        {options.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
-                      </select>
-                    )
-                  })()}
-                </td>
-                <td>
-                  <select value={r.blades} onChange={(e) => updateCell(r.id, { blades: e.target.value })}>
-                    <option value="">-</option>
-                    {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
-                  </select>
-                </td>
-                <td>
-                  <input value={r.notes} onChange={(e) => updateCell(r.id, { notes: e.target.value })} />
-                </td>
-                <td>
-                  <input type="checkbox" checked={r.withdrawn} onChange={(e) => updateCell(r.id, { withdrawn: e.target.checked })} />
-                </td>
-                <td>
-                  <input type="checkbox" checked={r.rejected} onChange={(e) => updateCell(r.id, { rejected: e.target.checked })} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="entries-list">
+        {sortedRows.map((r) => (
+          <div key={r.id} className="entry-card">
+            <div className="entry-top">
+              <span className="badge mono">{r.day || '-'}</span>
+              <span className="badge mono">Div {r.div || '-'}</span>
+              <span className="entry-event">{r.event || '-'}</span>
+            </div>
+            <div className="entry-names">{r.athleteNames || '-'}</div>
+            <div className="entry-bottom">
+              <span>Boat: {r.boat || '-'}</span>
+              <span>Blades: {r.blades || '-'}</span>
+            </div>
+          </div>
+        ))}
       </div>
       <Modal open={open} onClose={() => setOpen(false)} title="Add entry" footer={null}>
         {form && (
