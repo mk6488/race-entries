@@ -247,19 +247,6 @@ export function Entries() {
               <label>Notes</label>
               <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
-            <div className="form-row">
-              <label>Status</label>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as any })}>
-                <option value="ready">Ready</option>
-                <option value="entered">Entered</option>
-                <option value="withdrawn">Withdrawn</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-            <div className="form-row">
-              <label> Crew changed</label>
-              <input type="checkbox" checked={form.crewChanged} onChange={(e) => setForm({ ...form, crewChanged: e.target.checked })} />
-            </div>
             <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button type="button" onClick={() => { setOpen(false); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
               <button type="submit">{editingId ? 'Save' : 'Add'}</button>
