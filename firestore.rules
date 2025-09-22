@@ -37,12 +37,10 @@ service cloud.firestore {
 
     // entries for a race
     function validEntry(data) {
-      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','raceNumber','raceTimes','notes','status','crewChanged','withdrawn','rejected']) &&
+      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected']) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
         isString(data.boat) && isString(data.blades) && isString(data.notes) &&
-        (!('raceNumber' in data) || isString(data.raceNumber)) &&
-        (!('raceTimes' in data) || (data.raceTimes is list && data.raceTimes.size() <= 6 && data.raceTimes.every(t, t is string))) &&
         (!('status' in data) || (data.status in ['in_progress','ready','entered','withdrawn','rejected'])) &&
         (!('crewChanged' in data) || (data.crewChanged is bool)) &&
         (!('withdrawn' in data) || (data.withdrawn is bool)) &&

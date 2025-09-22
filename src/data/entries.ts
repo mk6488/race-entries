@@ -14,8 +14,6 @@ function toEntry(id: string, data: any): Entry {
     athleteNames: data.athleteNames || '',
     boat: data.boat || '',
     blades: data.blades || '',
-    raceNumber: data.raceNumber || '',
-    raceTimes: Array.isArray(data.raceTimes) ? (data.raceTimes as string[]) : [],
     notes: data.notes || '',
     status: (data.status as Entry['status']) || (data.withdrawn ? 'withdrawn' : data.rejected ? 'rejected' : 'ready'),
     crewChanged: !!data.crewChanged,
