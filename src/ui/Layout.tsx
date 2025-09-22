@@ -5,17 +5,18 @@ export function Layout() {
   const [open, setOpen] = useState(false)
   const matches = useMatches()
   const raceId = (matches[matches.length - 1]?.params as { raceId?: string } | undefined)?.raceId
+  const hasRace = !!raceId
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
-          {raceId ? (
+          {hasRace ? (
             <NavLink to="/" end>← Back to races</NavLink>
           ) : (
             <>Race Entries</>
           )}
         </div>
-        {raceId ? (
+        {hasRace ? (
           <nav className="nav-links">
             <NavLink to={`/entries/${raceId}`}>Entries</NavLink>
             <NavLink to={`/races/${raceId}`}>Races</NavLink>
@@ -25,24 +26,24 @@ export function Layout() {
         ) : (
           <div />
         )}
-        {raceId ? (
-          <button className="menu-btn" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
-        ) : (
-          <div />
-        )}
+        <button className="menu-btn" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
       </header>
 
-      {raceId && (
-        <>
+      <>
         <div className={`drawer-overlay ${open ? 'open' : ''}`} onClick={() => setOpen(false)} />
         <div className={`nav-drawer ${open ? 'open' : ''}`}>
-          <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
-          <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
-          <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
-          <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
+          {hasRace ? (
+            <>
+              <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
+              <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
+              <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
+              <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
+            </>
+          ) : (
+            <NavLink to={`/`} onClick={() => setOpen(false)}>Home</NavLink>
+          )}
         </div>
-        </>
-      )}
+      </>
 
       <main>
         <Outlet />
