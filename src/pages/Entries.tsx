@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
 import { subscribeBlades, type Blade } from '../data/blades'
@@ -19,6 +19,8 @@ export function Entries() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<NewEntry | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const athleteInputRef = useRef<HTMLInputElement | null>(null)
+  const [lastDefaults, setLastDefaults] = useState<Partial<NewEntry>>({})
 
   useEffect(() => {
     if (!raceId) return
@@ -82,14 +84,14 @@ export function Entries() {
     if (!raceId) return
     const blank: NewEntry = {
       raceId,
-      day: dayOptions[0] ?? '',
-      div: '',
-      event: '',
+      day: (lastDefaults.day as string) ?? (dayOptions[0] ?? ''),
+      div: (lastDefaults.div as string) ?? '',
+      event: (lastDefaults.event as string) ?? '',
       athleteNames: '',
-      boat: '',
-      blades: '',
+      boat: (lastDefaults.boat as string) ?? '',
+      blades: (lastDefaults.blades as string) ?? '',
       notes: '',
-      status: 'ready',
+      status: 'in_progress',
       crewChanged: false,
     }
     setForm(blank)
@@ -154,6 +156,28 @@ export function Entries() {
               <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
               <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
               <span className="entry-event">{r.event || '-'}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (!raceId) return
+                  const prefill: NewEntry = {
+                    raceId,
+                    day: r.day,
+                    div: r.div,
+                    event: r.event,
+                    athleteNames: '',
+                    boat: r.boat,
+                    blades: r.blades,
+                    notes: '',
+                    status: 'in_progress',
+                    crewChanged: false,
+                  }
+                  setForm(prefill)
+                  setEditingId(null)
+                  setOpen(true)
+                }}
+                style={{ marginLeft: 'auto' }}
+              >Add similar</button>
             </div>
             <div className="entry-names">{r.athleteNames || '-'}</div>
             <div className="entry-bottom">
@@ -193,6 +217,18 @@ export function Entries() {
               setEditingId(null)
             }}
             className="form-grid"
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' && (e.metaKey || e.shiftKey)) && !editingId && form) {
+                e.preventDefault()
+                ;(async () => {
+                  await createEntry(form)
+                  const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
+                  setLastDefaults(nextDefaults)
+                  setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
+                  requestAnimationFrame(() => athleteInputRef.current?.focus())
+                })()
+              }
+            }}
           >
             <div className="form-row">
               <label>Day</label>
@@ -219,7 +255,7 @@ export function Entries() {
             </div>
             <div className="form-row form-span-2">
               <label>Athlete Names</label>
-              <input value={form.athleteNames} onChange={(e) => setForm({ ...form, athleteNames: e.target.value })} />
+              <input ref={athleteInputRef} value={form.athleteNames} onChange={(e) => setForm({ ...form, athleteNames: e.target.value })} />
             </div>
             <div className="form-row">
               <label>Boat</label>
@@ -247,9 +283,22 @@ export function Entries() {
               <label>Notes</label>
               <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
-            <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button type="button" onClick={() => { setOpen(false); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
-              <button type="submit">{editingId ? 'Save' : 'Add'}</button>
+            <div className="form-span-2" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+              {!editingId ? <span style={{ color: 'var(--muted)', fontSize: 12 }}>Tip: Shift+Enter to "Add & add another"</span> : <span />}
+              <span style={{ display: 'inline-flex', gap: 8 }}>
+                <button type="button" onClick={() => { setOpen(false); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
+                {!editingId && (
+                  <button type="button" onClick={async () => {
+                    if (!form) return
+                    await createEntry(form)
+                    const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
+                    setLastDefaults(nextDefaults)
+                    setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
+                    requestAnimationFrame(() => athleteInputRef.current?.focus())
+                  }}>Add & add another</button>
+                )}
+                <button type="submit">{editingId ? 'Save' : 'Add'}</button>
+              </span>
             </div>
           </form>
         )}
