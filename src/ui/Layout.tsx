@@ -9,6 +9,8 @@ export function Layout() {
   const location = useLocation()
   const isEntries = location.pathname.startsWith('/entries/')
   const isRaces = location.pathname.startsWith('/races/')
+  const isEquipment = location.pathname.startsWith('/equipment/')
+  const isTrailer = location.pathname.startsWith('/trailer/')
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -34,7 +36,7 @@ export function Layout() {
           {isEntries && hasRace ? (
             <NavLink className="primary-btn" to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
           ) : null}
-          {isRaces && hasRace ? (
+          {(hasRace && (isRaces || isEquipment || isTrailer)) ? (
             <button className="primary-btn" onClick={() => window.print()} aria-label="Print races table">Print</button>
           ) : null}
         </div>
