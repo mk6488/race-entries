@@ -24,14 +24,16 @@ export function Layout() {
             <NavLink to={`/races/${raceId}`}>Races</NavLink>
             <NavLink to={`/equipment/${raceId}`}>Equipment</NavLink>
             <NavLink to={`/trailer/${raceId}`}>Trailer</NavLink>
-            {isEntries ? (
-              <NavLink to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
-            ) : null}
           </nav>
         ) : (
           <div />
         )}
-        <button className="menu-btn" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
+          {isEntries && hasRace ? (
+            <NavLink className="primary-btn" to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
+          ) : null}
+        </div>
       </header>
 
       <>

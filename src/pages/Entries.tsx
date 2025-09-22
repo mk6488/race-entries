@@ -120,7 +120,7 @@ export function Entries() {
             </div>
           )}
         </div>
-        <button onClick={addRow}>Add entry</button>
+        {/* Add Entry button moved to navbar */}
       </div>
       <div className="entries-list">
         {sortedRows.map((r) => {
