@@ -160,6 +160,7 @@ export function Entries() {
               <span>Boat: {r.boat || '-'}</span>
               <span>Blades: {r.blades || '-'}</span>
             </div>
+            {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
           </div>
           )
         })}
