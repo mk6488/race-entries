@@ -33,12 +33,15 @@ export function Layout() {
       </header>
 
       {raceId && (
+        <>
+        <div className={`drawer-overlay ${open ? 'open' : ''}`} onClick={() => setOpen(false)} />
         <div className={`nav-drawer ${open ? 'open' : ''}`}>
           <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
           <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
           <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
           <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
         </div>
+        </>
       )}
 
       <main>
