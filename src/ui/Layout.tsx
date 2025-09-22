@@ -40,6 +40,9 @@ export function Layout() {
           {isEntries && hasRace ? (
             <NavLink className="primary-btn" to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
           ) : null}
+          {hasRace && isRaces ? (
+            <NavLink className="secondary-btn" to={`/races/${raceId}?filter=1`}>Filter</NavLink>
+          ) : null}
           {(hasRace && (isRaces || isEquipment || isTrailer)) ? (
             <button className="primary-btn" onClick={() => window.print()} aria-label="Print races table">Print</button>
           ) : null}

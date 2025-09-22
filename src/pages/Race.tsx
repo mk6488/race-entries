@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import type { Entry } from '../models/entry'
 import { subscribeEntries } from '../data/entries'
 import { getRaceById } from '../data/races'
@@ -10,6 +10,18 @@ export function Race() {
   const { raceId } = useParams()
   const [race, setRace] = useState<RaceType | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Filter modal state via URL (?filter=1)
+  const filterOpen = searchParams.get('filter') === '1'
+  const closeFilter = () => { searchParams.delete('filter'); setSearchParams(searchParams, { replace: true }) }
+
+  // Filter selections
+  const [daySel, setDaySel] = useState<string[]>([])
+  const [divSel, setDivSel] = useState<string[]>([])
+  const [eventSel, setEventSel] = useState<string[]>([])
+  const [boatSel, setBoatSel] = useState<string[]>([])
+  const [bladesSel, setBladesSel] = useState<string[]>([])
 
   // Plain table — no filters/sorting
 
@@ -33,7 +45,21 @@ export function Race() {
 
   const enteredRows = useMemo(() => rows.filter((r) => r.status === 'entered'), [rows])
 
-  const plainRows = enteredRows
+  const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
+  const uniqueEvents = useMemo(() => Array.from(new Set(enteredRows.map(r => r.event).filter(Boolean))).sort(), [enteredRows])
+  const uniqueBoats = useMemo(() => Array.from(new Set(enteredRows.map(r => r.boat).filter(Boolean))).sort(), [enteredRows])
+  const uniqueBlades = useMemo(() => Array.from(new Set(enteredRows.map(r => r.blades).filter(Boolean))).sort(), [enteredRows])
+
+  const plainRows = useMemo(() => {
+    return enteredRows.filter((r) => {
+      if (daySel.length && !daySel.includes(r.day)) return false
+      if (divSel.length && !divSel.includes(r.div)) return false
+      if (eventSel.length && !eventSel.includes(r.event)) return false
+      if (boatSel.length && !boatSel.includes(r.boat)) return false
+      if (bladesSel.length && !bladesSel.includes(r.blades)) return false
+      return true
+    })
+  }, [enteredRows, daySel, divSel, eventSel, boatSel, bladesSel])
 
   return (
     <div>
@@ -75,6 +101,75 @@ export function Race() {
           </tbody>
         </table>
       </div>
+
+      {filterOpen && (
+        <div className="modal-overlay" onClick={closeFilter}>
+          <div className="modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Filter entries</div>
+              <button className="icon-btn" onClick={closeFilter} aria-label="Close">✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-row">
+                  <div className="section-title">Day</div>
+                  <div>
+                    {dayOptions.map((d) => (
+                      <label key={d} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
+                        <input type="checkbox" checked={daySel.includes(d)} onChange={(e)=> setDaySel(e.target.checked ? [...daySel,d] : daySel.filter(x=>x!==d))} />{d}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="section-title">Div</div>
+                  <div>
+                    {uniqueDivs.map((v) => (
+                      <label key={v} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
+                        <input type="checkbox" checked={divSel.includes(v)} onChange={(e)=> setDivSel(e.target.checked ? [...divSel,v] : divSel.filter(x=>x!==v))} />{v}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="section-title">Event</div>
+                  <div>
+                    {uniqueEvents.map((v) => (
+                      <label key={v} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
+                        <input type="checkbox" checked={eventSel.includes(v)} onChange={(e)=> setEventSel(e.target.checked ? [...eventSel,v] : eventSel.filter(x=>x!==v))} />{v}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="section-title">Boat</div>
+                  <div>
+                    {uniqueBoats.map((v) => (
+                      <label key={v} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
+                        <input type="checkbox" checked={boatSel.includes(v)} onChange={(e)=> setBoatSel(e.target.checked ? [...boatSel,v] : boatSel.filter(x=>x!==v))} />{v}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="section-title">Blades</div>
+                  <div>
+                    {uniqueBlades.map((v) => (
+                      <label key={v} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
+                        <input type="checkbox" checked={bladesSel.includes(v)} onChange={(e)=> setBladesSel(e.target.checked ? [...bladesSel,v] : bladesSel.filter(x=>x!==v))} />{v}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-link" onClick={() => { setDaySel([]); setDivSel([]); setEventSel([]); setBoatSel([]); setBladesSel([]) }}>Clear</button>
+              <button className="primary-btn" onClick={closeFilter}>Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
