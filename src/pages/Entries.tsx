@@ -156,28 +156,7 @@ export function Entries() {
               <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
               <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
               <span className="entry-event">{r.event || '-'}</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (!raceId) return
-                  const prefill: NewEntry = {
-                    raceId,
-                    day: r.day,
-                    div: r.div,
-                    event: r.event,
-                    athleteNames: '',
-                    boat: r.boat,
-                    blades: r.blades,
-                    notes: '',
-                    status: 'in_progress',
-                    crewChanged: false,
-                  }
-                  setForm(prefill)
-                  setEditingId(null)
-                  setOpen(true)
-                }}
-                style={{ marginLeft: 'auto' }}
-              >Add similar</button>
+              {/* Add similar button removed as requested */}
             </div>
             <div className="entry-names">{r.athleteNames || '-'}</div>
             <div className="entry-bottom">
