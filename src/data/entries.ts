@@ -15,8 +15,8 @@ function toEntry(id: string, data: any): Entry {
     boat: data.boat || '',
     blades: data.blades || '',
     notes: data.notes || '',
-    withdrawn: !!data.withdrawn,
-    rejected: !!data.rejected,
+    status: (data.status as Entry['status']) || (data.withdrawn ? 'withdrawn' : data.rejected ? 'rejected' : 'ready'),
+    crewChanged: !!data.crewChanged,
   }
 }
 

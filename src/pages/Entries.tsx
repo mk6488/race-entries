@@ -89,8 +89,8 @@ export function Entries() {
       boat: '',
       blades: '',
       notes: '',
-      withdrawn: false,
-      rejected: false,
+      status: 'ready',
+      crewChanged: false,
     }
     setForm(blank)
     setOpen(true)
@@ -142,8 +142,8 @@ export function Entries() {
                 boat: r.boat,
                 blades: r.blades,
                 notes: r.notes,
-                withdrawn: r.withdrawn,
-                rejected: r.rejected,
+                status: r.status || 'ready',
+                crewChanged: r.crewChanged || false,
               }
               setForm(initial)
               setEditingId(r.id)
@@ -159,6 +159,8 @@ export function Entries() {
             <div className="entry-bottom">
               <span>Boat: {r.boat || '-'}</span>
               <span>Blades: {r.blades || '-'}</span>
+              <span className={`status ${r.status}`}>{r.status}</span>
+              {r.crewChanged ? <span className="chip">Crew changed</span> : null}
             </div>
             {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
           </div>
@@ -233,6 +235,19 @@ export function Entries() {
             <div className="form-row form-span-2">
               <label>Notes</label>
               <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </div>
+            <div className="form-row">
+              <label>Status</label>
+              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as any })}>
+                <option value="ready">Ready</option>
+                <option value="entered">Entered</option>
+                <option value="withdrawn">Withdrawn</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div className="form-row">
+              <label> Crew changed</label>
+              <input type="checkbox" checked={form.crewChanged} onChange={(e) => setForm({ ...form, crewChanged: e.target.checked })} />
             </div>
             <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button type="button" onClick={() => { setOpen(false); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>

@@ -8,8 +8,8 @@ export type Entry = {
   boat: string
   blades: string
   notes: string
-  withdrawn: boolean
-  rejected: boolean
+  status: 'ready' | 'entered' | 'withdrawn' | 'rejected'
+  crewChanged: boolean
 }
 
 export type NewEntry = Omit<Entry, 'id'>
