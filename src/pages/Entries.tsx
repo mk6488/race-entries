@@ -18,6 +18,7 @@ export function Entries() {
   const [bladeOptions, setBladeOptions] = useState<Blade[]>([])
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<NewEntry | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!raceId) return
@@ -93,6 +94,7 @@ export function Entries() {
     }
     setForm(blank)
     setOpen(true)
+    setEditingId(null)
   }
 
   async function updateCell(id: string, patch: Partial<NewEntry>) {
@@ -126,7 +128,28 @@ export function Entries() {
             return (r.div || '').toUpperCase().charCodeAt(0) % 6
           })()
           return (
-          <div key={r.id} className="entry-card">
+          <div
+            key={r.id}
+            className="entry-card"
+            onClick={() => {
+              if (!raceId) return
+              const initial: NewEntry = {
+                raceId,
+                day: r.day,
+                div: r.div,
+                event: r.event,
+                athleteNames: r.athleteNames,
+                boat: r.boat,
+                blades: r.blades,
+                notes: r.notes,
+                withdrawn: r.withdrawn,
+                rejected: r.rejected,
+              }
+              setForm(initial)
+              setEditingId(r.id)
+              setOpen(true)
+            }}
+          >
             <div className="entry-top">
               <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
               <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
@@ -141,14 +164,19 @@ export function Entries() {
           )
         })}
       </div>
-      <Modal open={open} onClose={() => setOpen(false)} title="Add entry" footer={null}>
+      <Modal open={open} onClose={() => setOpen(false)} title={editingId ? 'Edit entry' : 'Add entry'} footer={null}>
         {form && (
           <form
             onSubmit={async (e) => {
               e.preventDefault()
-              await createEntry(form)
+              if (editingId) {
+                await updateEntry(editingId, form)
+              } else {
+                await createEntry(form)
+              }
               setOpen(false)
               setForm(null)
+              setEditingId(null)
             }}
             className="form-grid"
           >
@@ -206,8 +234,8 @@ export function Entries() {
               <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
             <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button type="button" onClick={() => { setOpen(false); setForm(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
-              <button type="submit">Add</button>
+              <button type="button" onClick={() => { setOpen(false); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
+              <button type="submit">{editingId ? 'Save' : 'Add'}</button>
             </div>
           </form>
         )}
