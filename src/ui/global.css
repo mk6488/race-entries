@@ -7,7 +7,7 @@
   --muted: #64748b;
   --primary: #0ea5e9;
   --primary-600: #0284c7;
-  --topbar-h: 52px;
+  --topbar-h: 56px;
 }
 
 * { box-sizing: border-box; }
@@ -26,7 +26,7 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .primary-btn { display: inline-flex; align-items: center; justify-content: center; height: 36px; line-height: 1; background: var(--primary); color: #fff; padding: 0 14px; border-radius: 10px; text-decoration: none; border: 1px solid transparent; }
 .primary-btn:hover { background: var(--primary-600); }
 
-.topbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); padding: 10px 12px; background: #fff; min-height: var(--topbar-h); }
+.topbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); padding: 6px 12px; background: #fff; min-height: 48px; }
 .topbar .brand { min-width: 0; }
 .topbar .topbar-actions { justify-self: end; display: inline-flex; align-items: center; gap: 8px; }
 .menu-btn { display: none; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--text); padding: 6px; border-radius: 8px; }
