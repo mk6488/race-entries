@@ -42,9 +42,6 @@ export function Layout() {
           {hasRace ? (
             <>
               <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
-              {isEntries ? (
-                <NavLink to={`/entries/${raceId}?add=1`} onClick={() => setOpen(false)}>Add Entry</NavLink>
-              ) : null}
               <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
               <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
               <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
