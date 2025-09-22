@@ -29,7 +29,7 @@ export function Layout() {
         ) : (
           <div />
         )}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <div className="topbar-actions">
           {isEntries && hasRace ? (
             <NavLink className="primary-btn" to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
           ) : null}

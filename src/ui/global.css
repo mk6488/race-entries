@@ -27,6 +27,8 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .primary-btn:hover { background: var(--primary-600); }
 
 .topbar { position: sticky; top: 0; z-index: 30; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); padding: 10px 12px; background: #fff; min-height: var(--topbar-h); }
+.topbar .brand { min-width: 0; }
+.topbar .topbar-actions { justify-self: end; display: inline-flex; align-items: center; gap: 8px; }
 .menu-btn { display: none; font-size: 20px; background: none; border: none; cursor: pointer; }
 
 .nav-drawer { display: none; }
