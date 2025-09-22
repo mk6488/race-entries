@@ -97,19 +97,15 @@ export function Race() {
 
       <div className="entries-list">
         {entries.map((r) => (
-          <div key={r.id} className="entry-card">
-            <div className="entry-top">
-              <span className="badge mono">{r.day || '-'}</span>
-              <span className="badge mono">Div {r.div || '-'}</span>
-              <span className="entry-event">{r.event || '-'}</span>
-            </div>
-            <div className="entry-names">{r.athleteNames || '-'}</div>
-            <div className="entry-bottom">
-              <span>Boat: {r.boat || '-'}</span>
-              <span>Blades: {r.blades || '-'}</span>
-              <span className={`status ${r.status}`}>{r.status.replace('_',' ')}</span>
-            </div>
-            {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
+          <div key={r.id} className="entry-row">
+            <span className="badge mono">{r.day || '-'}</span>
+            <span className="badge mono">Div {r.div || '-'}</span>
+            <span className="entry-event">{r.event || '-'}</span>
+            <span className="sep">•</span>
+            <span>{r.athleteNames || '-'}</span>
+            <span className="sep">•</span>
+            <span>Boat: {r.boat || '-'}</span>
+            <span>Blades: {r.blades || '-'}</span>
           </div>
         ))}
       </div>

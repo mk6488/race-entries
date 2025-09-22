@@ -132,6 +132,10 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .entry-card.withdrawn, .entry-card.rejected { background: #fee2e2; border-color: #fecaca; }
 .entry-card.changed { box-shadow: inset 0 0 0 2px #fb923c66; background: #fff7ed; }
 
+/* Compact list row */
+.entry-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.entry-row .sep { color: var(--muted); }
+
 
 @media (max-width: 900px) {
   .modal-overlay { padding: 0; }
