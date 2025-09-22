@@ -79,38 +79,18 @@ export function Race() {
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 12, display: 'grid', gap: 12 }}>
-        <div style={{ display: 'grid', gap: 10 }}>
-          <div style={{ display: 'grid', gap: 6 }}>
-            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Days</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {dayOptions.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={`chip selectable ${selectedDays.includes(d) ? 'selected' : ''}`}
-                  onClick={() => setSelectedDays(selectedDays.includes(d) ? selectedDays.filter(x=>x!==d) : [...selectedDays, d])}
-                >{d}</button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: 'grid', gap: 6 }}>
-            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Divisions</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {divOptions.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={`chip selectable ${selectedDivs.includes(d) ? 'selected' : ''}`}
-                  onClick={() => setSelectedDivs(selectedDivs.includes(d) ? selectedDivs.filter(x=>x!==d) : [...selectedDivs, d])}
-                >{d}</button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="button" onClick={() => { setSelectedDays([]); setSelectedDivs([]) }}>Clear filters</button>
-          </div>
-        </div>
+      <div className="filter-bar" style={{ marginBottom: 12 }}>
+        <span className="muted">Day:</span>
+        {dayOptions.map((d) => (
+          <button key={d} type="button" className={`chip selectable ${selectedDays.includes(d) ? 'selected' : ''}`} onClick={() => setSelectedDays(selectedDays.includes(d) ? selectedDays.filter(x=>x!==d) : [...selectedDays, d])}>{d}</button>
+        ))}
+        <span className="sep">|</span>
+        <span className="muted">Div:</span>
+        {divOptions.map((d) => (
+          <button key={d} type="button" className={`chip selectable ${selectedDivs.includes(d) ? 'selected' : ''}`} onClick={() => setSelectedDivs(selectedDivs.includes(d) ? selectedDivs.filter(x=>x!==d) : [...selectedDivs, d])}>{d}</button>
+        ))}
+        <span style={{ marginLeft: 'auto' }} />
+        <button className="link-btn" type="button" onClick={() => { setSelectedDays([]); setSelectedDivs([]) }}>Clear</button>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
