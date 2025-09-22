@@ -44,6 +44,11 @@ export function Race() {
 
   const enteredRows = useMemo(() => rows.filter((r) => r.status === 'entered'), [rows])
 
+  // Unique value options for header filters
+  const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
+  const uniqueBoats = useMemo(() => Array.from(new Set(enteredRows.map(r => r.boat).filter(Boolean))).sort(), [enteredRows])
+  const uniqueBlades = useMemo(() => Array.from(new Set(enteredRows.map(r => r.blades).filter(Boolean))).sort(), [enteredRows])
+
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase()
     return enteredRows.filter((r) => {
@@ -94,21 +99,7 @@ export function Race() {
         </div>
       )}
 
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <select value={dayFilter} onChange={(e) => setDayFilter(e.target.value)}>
-            <option value="">All days</option>
-            {dayOptions.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-          <input placeholder="Div" value={divFilter} onChange={(e) => setDivFilter(e.target.value)} style={{ width: 90 }} />
-          <input placeholder="Search event, crew, boat" value={search} onChange={(e) => setSearch(e.target.value)} style={{ minWidth: 240, flex: 1 }} />
-          <input placeholder="Boat" value={boatFilter} onChange={(e) => setBoatFilter(e.target.value)} style={{ width: 160 }} />
-          <input placeholder="Blades" value={bladesFilter} onChange={(e) => setBladesFilter(e.target.value)} style={{ width: 120 }} />
-          <button onClick={() => { setDayFilter(''); setDivFilter(''); setSearch(''); setBoatFilter(''); setBladesFilter('') }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Clear</button>
-        </div>
-      </div>
+      {/* Filters are embedded in the table header below */}
 
       <div style={{ overflowX: 'auto' }}>
         <table className="sheet">
@@ -120,6 +111,36 @@ export function Race() {
               <th onClick={() => toggleSort('athleteNames')} style={{ cursor: 'pointer', minWidth: 320 }}>Athlete Names {sortKey==='athleteNames' ? (sortAsc?'▲':'▼') : ''}</th>
               <th onClick={() => toggleSort('boat')} style={{ cursor: 'pointer', minWidth: 160 }}>Boat {sortKey==='boat' ? (sortAsc?'▲':'▼') : ''}</th>
               <th onClick={() => toggleSort('blades')} style={{ cursor: 'pointer', minWidth: 120 }}>Blades {sortKey==='blades' ? (sortAsc?'▲':'▼') : ''}</th>
+            </tr>
+            <tr>
+              <th>
+                <select value={dayFilter} onChange={(e) => setDayFilter(e.target.value)}>
+                  <option value="">All</option>
+                  {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </th>
+              <th>
+                <select value={divFilter} onChange={(e) => setDivFilter(e.target.value)}>
+                  <option value="">All</option>
+                  {uniqueDivs.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </th>
+              <th>
+                <input placeholder="Search events" value={search} onChange={(e) => setSearch(e.target.value)} />
+              </th>
+              <th/>
+              <th>
+                <select value={boatFilter} onChange={(e) => setBoatFilter(e.target.value)}>
+                  <option value="">All</option>
+                  {uniqueBoats.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </th>
+              <th>
+                <select value={bladesFilter} onChange={(e) => setBladesFilter(e.target.value)}>
+                  <option value="">All</option>
+                  {uniqueBlades.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </th>
             </tr>
           </thead>
           <tbody>
