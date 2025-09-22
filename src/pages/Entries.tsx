@@ -7,6 +7,7 @@ import { getRaceById } from '../data/races'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
 import type { Entry, NewEntry } from '../models/entry'
+import { Modal } from '../ui/Modal'
 
 export function Entries() {
   const { raceId } = useParams()
@@ -15,6 +16,8 @@ export function Entries() {
   const [dayOptions, setDayOptions] = useState<string[]>([])
   const [allBoats, setAllBoats] = useState<Boat[]>([])
   const [bladeOptions, setBladeOptions] = useState<Blade[]>([])
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState<NewEntry | null>(null)
 
   useEffect(() => {
     if (!raceId) return
@@ -42,6 +45,27 @@ export function Entries() {
     return null
   }
 
+  const sortedRows = useMemo(() => {
+    const dayRank: Record<string, number> = {}
+    dayOptions.forEach((d, i) => { dayRank[d] = i })
+    const parseMaybeNum = (s: string) => {
+      const n = Number(s)
+      return Number.isFinite(n) ? n : null
+    }
+    const cmp = (a: Entry, b: Entry) => {
+      const ar = dayRank[a.day] ?? 9999
+      const br = dayRank[b.day] ?? 9999
+      if (ar !== br) return ar - br
+      const ad = a.div.trim(); const bd = b.div.trim()
+      const adn = parseMaybeNum(ad); const bdn = parseMaybeNum(bd)
+      if (adn !== null && bdn !== null && adn !== bdn) return adn - bdn
+      const divCmp = ad.localeCompare(bd, undefined, { sensitivity: 'base', numeric: true })
+      if (divCmp !== 0) return divCmp
+      return a.event.localeCompare(b.event, undefined, { sensitivity: 'base', numeric: true })
+    }
+    return [...rows].sort(cmp)
+  }, [rows, dayOptions])
+
   useEffect(() => {
     if (!raceId) return
     ;(async () => {
@@ -67,7 +91,8 @@ export function Entries() {
       withdrawn: false,
       rejected: false,
     }
-    await createEntry(blank)
+    setForm(blank)
+    setOpen(true)
   }
 
   async function updateCell(id: string, patch: Partial<NewEntry>) {
@@ -90,7 +115,7 @@ export function Entries() {
             </div>
           )}
         </div>
-        <button onClick={addRow}>Add row</button>
+        <button onClick={addRow}>Add entry</button>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table className="sheet">
@@ -108,7 +133,7 @@ export function Entries() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {sortedRows.map((r) => (
               <tr key={r.id}>
                 <td>
                   <select value={r.day} onChange={(e) => updateCell(r.id, { day: e.target.value })}>
@@ -173,6 +198,77 @@ export function Entries() {
           </tbody>
         </table>
       </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="Add entry" footer={null}>
+        {form && (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              await createEntry(form)
+              setOpen(false)
+              setForm(null)
+            }}
+            style={{ display: 'grid', gap: 12 }}
+          >
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Day</label>
+              <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })}>
+                {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Div</label>
+              <input value={form.div} onChange={(e) => setForm({ ...form, div: e.target.value })} />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Event</label>
+              <input
+                value={form.event}
+                onChange={(e) => {
+                  const next = e.target.value
+                  const type = inferBoatType(next.trim())
+                  const options = type && next.trim() ? allBoats.filter((b) => b.type === type) : []
+                  const valid = options.some((b) => b.name === form.boat)
+                  setForm({ ...form, event: next, boat: valid ? form.boat : '' })
+                }}
+              />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Athlete Names</label>
+              <input value={form.athleteNames} onChange={(e) => setForm({ ...form, athleteNames: e.target.value })} />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Boat</label>
+              {(() => {
+                const type = inferBoatType(form.event.trim())
+                const options = type && form.event.trim()
+                  ? allBoats.filter((b) => b.type === type).sort((a,b) => a.name.localeCompare(b.name))
+                  : []
+                return (
+                  <select value={form.boat} onChange={(e) => setForm({ ...form, boat: e.target.value })}>
+                    <option value="">-</option>
+                    {options.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+                  </select>
+                )
+              })()}
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Blades</label>
+              <select value={form.blades} onChange={(e) => setForm({ ...form, blades: e.target.value })}>
+                <option value="">-</option>
+                {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Notes</label>
+              <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button type="button" onClick={() => { setOpen(false); setForm(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
+              <button type="submit">Add</button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   )
 }
