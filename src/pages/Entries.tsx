@@ -150,19 +150,19 @@ export function Entries() {
               setOpen(false)
               setForm(null)
             }}
-            style={{ display: 'grid', gap: 12 }}
+            className="form-grid"
           >
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row">
               <label>Day</label>
               <select value={form.day} onChange={(e) => setForm({ ...form, day: e.target.value })}>
                 {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row">
               <label>Div</label>
               <input value={form.div} onChange={(e) => setForm({ ...form, div: e.target.value })} />
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row form-span-2">
               <label>Event</label>
               <input
                 value={form.event}
@@ -175,11 +175,11 @@ export function Entries() {
                 }}
               />
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row form-span-2">
               <label>Athlete Names</label>
               <input value={form.athleteNames} onChange={(e) => setForm({ ...form, athleteNames: e.target.value })} />
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row">
               <label>Boat</label>
               {(() => {
                 const type = inferBoatType(form.event.trim())
@@ -194,18 +194,18 @@ export function Entries() {
                 )
               })()}
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row">
               <label>Blades</label>
               <select value={form.blades} onChange={(e) => setForm({ ...form, blades: e.target.value })}>
                 <option value="">-</option>
                 {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
               </select>
             </div>
-            <div style={{ display: 'grid', gap: 6 }}>
+            <div className="form-row form-span-2">
               <label>Notes</label>
               <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button type="button" onClick={() => { setOpen(false); setForm(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
               <button type="submit">Add</button>
             </div>
