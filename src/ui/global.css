@@ -56,10 +56,10 @@ button:hover { background: var(--primary-600); }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(2,6,23,.5); display: grid; place-items: center; padding: 16px; z-index: 40; backdrop-filter: blur(2px); }
-.modal-dialog { width: 100%; max-width: 680px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(2,6,23,.25); overflow: hidden; }
+.modal-dialog { width: 100%; max-width: 680px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(2,6,23,.25); overflow: hidden; display: flex; flex-direction: column; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
 .modal-title { font-weight: 600; }
-.modal-body { padding: 16px; }
+.modal-body { padding: 16px; flex: 1; overflow: auto; }
 .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 
 /* Races grid */
@@ -85,12 +85,26 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .entry-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .badge { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 12px; color: #0f172a; background: #f8fafc; }
 .badge.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+.badge.day-0 { background: #e0f2fe; border-color: #bae6fd; }
+.badge.day-1 { background: #dcfce7; border-color: #bbf7d0; }
+.badge.day-2 { background: #fde68a; border-color: #fcd34d; }
+.badge.day-3 { background: #fce7f3; border-color: #f9a8d4; }
+.badge.day-4 { background: #ede9fe; border-color: #ddd6fe; }
+.badge.day-5 { background: #fee2e2; border-color: #fecaca; }
+.badge.div-0 { background: #f1f5f9; border-color: #e2e8f0; }
+.badge.div-1 { background: #eef2ff; border-color: #e0e7ff; }
+.badge.div-2 { background: #ecfeff; border-color: #cffafe; }
+.badge.div-3 { background: #fef3c7; border-color: #fde68a; }
+.badge.div-4 { background: #dcfce7; border-color: #bbf7d0; }
+.badge.div-5 { background: #ffe4e6; border-color: #fecdd3; }
 .entry-event { font-weight: 600; }
 .entry-names { color: var(--text); }
 .entry-bottom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
 
 
 @media (max-width: 900px) {
+  .modal-overlay { padding: 0; }
+  .modal-dialog { max-width: none; width: 100%; height: 100svh; border-radius: 0; border: none; }
   .nav-links { display: none; }
   .menu-btn { display: inline-flex; }
   .drawer-overlay { position: fixed; inset: 0; background: rgba(2,6,23,.45); z-index: 39; display: none; }

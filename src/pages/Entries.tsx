@@ -118,11 +118,18 @@ export function Entries() {
         <button onClick={addRow}>Add entry</button>
       </div>
       <div className="entries-list">
-        {sortedRows.map((r) => (
+        {sortedRows.map((r) => {
+          const dayIndex = Math.max(0, dayOptions.indexOf(r.day))
+          const divIndex = (() => {
+            const n = Number(r.div)
+            if (Number.isFinite(n)) return Math.min(5, Math.max(0, n % 6))
+            return (r.div || '').toUpperCase().charCodeAt(0) % 6
+          })()
+          return (
           <div key={r.id} className="entry-card">
             <div className="entry-top">
-              <span className="badge mono">{r.day || '-'}</span>
-              <span className="badge mono">Div {r.div || '-'}</span>
+              <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
+              <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
               <span className="entry-event">{r.event || '-'}</span>
             </div>
             <div className="entry-names">{r.athleteNames || '-'}</div>
@@ -131,7 +138,8 @@ export function Entries() {
               <span>Blades: {r.blades || '-'}</span>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
       <Modal open={open} onClose={() => setOpen(false)} title="Add entry" footer={null}>
         {form && (
