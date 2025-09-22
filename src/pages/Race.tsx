@@ -20,8 +20,6 @@ export function Race() {
   const [daySel, setDaySel] = useState<string[]>([])
   const [divSel, setDivSel] = useState<string[]>([])
   const [eventSel, setEventSel] = useState<string[]>([])
-  const [boatSel, setBoatSel] = useState<string[]>([])
-  const [bladesSel, setBladesSel] = useState<string[]>([])
 
   // Plain table — no filters/sorting
 
@@ -47,19 +45,15 @@ export function Race() {
 
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   const uniqueEvents = useMemo(() => Array.from(new Set(enteredRows.map(r => r.event).filter(Boolean))).sort(), [enteredRows])
-  const uniqueBoats = useMemo(() => Array.from(new Set(enteredRows.map(r => r.boat).filter(Boolean))).sort(), [enteredRows])
-  const uniqueBlades = useMemo(() => Array.from(new Set(enteredRows.map(r => r.blades).filter(Boolean))).sort(), [enteredRows])
 
   const plainRows = useMemo(() => {
     return enteredRows.filter((r) => {
       if (daySel.length && !daySel.includes(r.day)) return false
       if (divSel.length && !divSel.includes(r.div)) return false
       if (eventSel.length && !eventSel.includes(r.event)) return false
-      if (boatSel.length && !boatSel.includes(r.boat)) return false
-      if (bladesSel.length && !bladesSel.includes(r.blades)) return false
       return true
     })
-  }, [enteredRows, daySel, divSel, eventSel, boatSel, bladesSel])
+  }, [enteredRows, daySel, divSel, eventSel])
 
   // Auto sort by day (based on race day order), then div, then event
   const sortedRows = useMemo(() => {
@@ -159,30 +153,11 @@ export function Race() {
                     ))}
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="section-title">Boat</div>
-                  <div>
-                    {uniqueBoats.map((v) => (
-                      <label key={v} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
-                        <input type="checkbox" checked={boatSel.includes(v)} onChange={(e)=> setBoatSel(e.target.checked ? [...boatSel,v] : boatSel.filter(x=>x!==v))} />{v}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="section-title">Blades</div>
-                  <div>
-                    {uniqueBlades.map((v) => (
-                      <label key={v} className="row" style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 8, alignItems: 'center', padding: '4px 0' }}>
-                        <input type="checkbox" checked={bladesSel.includes(v)} onChange={(e)=> setBladesSel(e.target.checked ? [...bladesSel,v] : bladesSel.filter(x=>x!==v))} />{v}
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn-link" onClick={() => { setDaySel([]); setDivSel([]); setEventSel([]); setBoatSel([]); setBladesSel([]) }}>Clear</button>
+              <button className="btn-link" onClick={() => { setDaySel([]); setDivSel([]); setEventSel([]) }}>Clear</button>
               <button className="primary-btn" onClick={closeFilter}>Apply</button>
             </div>
           </div>
