@@ -55,6 +55,10 @@ export function Entries() {
         crewChanged: false,
       }
       setForm(blank)
+      setOpen(true)
+      const next = new URLSearchParams(searchParams)
+      next.delete('add')
+      setSearchParams(next)
     }
   }, [searchParams, raceId, form, dayOptions, lastDefaults])
 
@@ -201,7 +205,7 @@ export function Entries() {
           )
         })}
       </div>
-      <Modal open={open || searchParams.get('add') === '1'} onClose={() => { setOpen(false); searchParams.delete('add'); setSearchParams(searchParams) }} title={editingId ? 'Edit entry' : 'Add entry'} footer={null}>
+      <Modal open={open} onClose={() => { setOpen(false); setForm(null); setEditingId(null) }} title={editingId ? 'Edit entry' : 'Add entry'} footer={null}>
         {form && (
           <form
             onSubmit={async (e) => {
@@ -212,6 +216,8 @@ export function Entries() {
                 await createEntry(form)
               }
               setOpen(false)
+              searchParams.delete('add')
+              setSearchParams(searchParams)
               setForm(null)
               setEditingId(null)
             }}
@@ -285,7 +291,7 @@ export function Entries() {
             <div className="form-span-2" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               {!editingId ? <span style={{ color: 'var(--muted)', fontSize: 12 }}>Tip: Shift+Enter to "Add & add another"</span> : <span />}
               <span style={{ display: 'inline-flex', gap: 8 }}>
-                <button type="button" onClick={() => { setOpen(false); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
+                <button type="button" onClick={() => { setOpen(false); searchParams.delete('add'); setSearchParams(searchParams); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
                 {!editingId && (
                   <button type="button" onClick={async () => {
                     if (!form) return
