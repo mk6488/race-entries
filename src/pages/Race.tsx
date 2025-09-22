@@ -84,14 +84,21 @@ export function Race() {
               {dayOptions.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
-          <label style={{ display: 'grid', gap: 6 }}>
+          <div style={{ display: 'grid', gap: 6 }}>
             <span style={{ color: 'var(--muted)', fontSize: 12 }}>Division</span>
-            <input value={divFilter} onChange={(e) => setDivFilter(e.target.value)} placeholder="e.g. 1" />
-          </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {['1','2','3','A','B','C'].map((d) => (
+                <button key={d} type="button" className={`chip selectable ${divFilter===d ? 'selected' : ''}`} onClick={() => setDivFilter(divFilter===d ? '' : d)}>{d}</button>
+              ))}
+            </div>
+          </div>
           <label style={{ display: 'grid', gap: 6 }}>
             <span style={{ color: 'var(--muted)', fontSize: 12 }}>Event</span>
             <input value={eventFilter} onChange={(e) => setEventFilter(e.target.value)} placeholder="e.g. J15 2x" />
           </label>
+          <div className="form-span-2" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button type="button" onClick={() => { setDayFilter(''); setDivFilter(''); setEventFilter('') }}>Clear filters</button>
+          </div>
         </div>
       </div>
 

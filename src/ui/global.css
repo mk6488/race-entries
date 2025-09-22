@@ -127,6 +127,8 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .status.withdrawn { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
 .status.rejected { background: #ffe4e6; border-color: #fecdd3; color: #9f1239; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: #f1f5f9; color: #0f172a; font-size: 12px; }
+.chip.selectable { cursor: pointer; border: 1px solid var(--border); }
+.chip.selected { background: #dbeafe; border-color: #bfdbfe; color: #1e3a8a; }
 
 /* Entry card state backgrounds */
 .entry-card.withdrawn, .entry-card.rejected { background: #fee2e2; border-color: #fecaca; }
