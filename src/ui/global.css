@@ -166,11 +166,12 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 /* Print styles */
 @media print {
   @page { margin: 12mm; }
-  html, body { background: #fff !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  * { background: transparent !important; box-shadow: none !important; }
   .topbar, .nav-drawer, .drawer-overlay { display: none !important; }
   main { padding: 0; }
   table.sheet { border-radius: 0; box-shadow: none; }
-  table.sheet thead th { position: static !important; background: #fff !important; }
+  table.sheet thead th { position: static !important; background: transparent !important; }
   table.sheet, table.sheet tr, table.sheet td, table.sheet th { break-inside: avoid; page-break-inside: avoid; }
 }
 
