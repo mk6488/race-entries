@@ -97,6 +97,29 @@ export function Race() {
 
       {/* Filters are embedded in the table header below */}
 
+      <div className="card" style={{ marginBottom: 8 }}>
+        <div className="chips">
+          {dayFilter.map((v) => (
+            <span key={`day:${v}`} className="chip">Day: {v} <button onClick={() => setDayFilter(dayFilter.filter(x=>x!==v))}>✕</button></span>
+          ))}
+          {divFilter.map((v) => (
+            <span key={`div:${v}`} className="chip">Div: {v} <button onClick={() => setDivFilter(divFilter.filter(x=>x!==v))}>✕</button></span>
+          ))}
+          {eventFilter.map((v) => (
+            <span key={`event:${v}`} className="chip">Event: {v} <button onClick={() => setEventFilter(eventFilter.filter(x=>x!==v))}>✕</button></span>
+          ))}
+          {boatFilter.map((v) => (
+            <span key={`boat:${v}`} className="chip">Boat: {v} <button onClick={() => setBoatFilter(boatFilter.filter(x=>x!==v))}>✕</button></span>
+          ))}
+          {bladesFilter.map((v) => (
+            <span key={`blades:${v}`} className="chip">Blades: {v} <button onClick={() => setBladesFilter(bladesFilter.filter(x=>x!==v))}>✕</button></span>
+          ))}
+          {(dayFilter.length||divFilter.length||eventFilter.length||boatFilter.length||bladesFilter.length) ? (
+            <button onClick={() => { setDayFilter([]); setDivFilter([]); setEventFilter([]); setBoatFilter([]); setBladesFilter([]) }} style={{ marginLeft: 'auto', background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Clear all</button>
+          ) : null}
+        </div>
+      </div>
+
       <div style={{ overflowX: 'auto' }}>
         <table className="sheet">
           <thead>
