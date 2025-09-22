@@ -11,11 +11,12 @@ export function Layout() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand">
+        <div className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
           {hasRace ? (
-            <NavLink to="/" end>← Back to races</NavLink>
+            <NavLink className="desktop-only" to="/" end>← Back to races</NavLink>
           ) : (
-            <>Race Entries</>
+            <span className="desktop-only">Race Entries</span>
           )}
         </div>
         {hasRace ? (
@@ -29,7 +30,6 @@ export function Layout() {
           <div />
         )}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
           {isEntries && hasRace ? (
             <NavLink className="primary-btn" to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
           ) : null}
