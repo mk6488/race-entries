@@ -75,6 +75,10 @@ export function Race() {
         </div>
       )}
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</button>
+      </div>
+
       <div style={{ overflowX: 'auto' }}>
         <table className="sheet">
           <thead>
