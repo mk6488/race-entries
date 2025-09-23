@@ -280,7 +280,7 @@ export function Entries() {
               <label>Div</label>
               <input value={form.div} onChange={(e) => setForm({ ...form, div: e.target.value })} />
             </div>
-            <div className="form-row form-span-2">
+            <div className="form-row">
               <label>Event</label>
               <input
                 value={form.event}
@@ -312,7 +312,7 @@ export function Entries() {
                 )
               })()}
             </div>
-            <div className="form-row form-span-2">
+            <div className="form-row">
               <label>Blades</label>
               {!splitBlades ? (
                 <>
