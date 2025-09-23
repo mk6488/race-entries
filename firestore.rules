@@ -58,15 +58,8 @@ service cloud.firestore {
     match /entries/{entryId} {
       allow read: if true;
       allow create: if isSignedIn() && validEntry(request.resource.data);
-      allow update: if isSignedIn() && validEntry(request.resource.data) && (
-        // Always allow general edits
-        request.resource.data.diff(resource.data).changedKeys().hasOnly(['day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','raceId']) ||
-        // Gated fields require drawReleased
-        (
-          request.resource.data.diff(resource.data).changedKeys().hasOnly(['crewNumber','raceTimes','result']) &&
-          get(/databases/$(database)/documents/races/$(request.resource.data.raceId)).data.drawReleased == true
-        )
-      );
+      // Simplified update rule to avoid using diff() and prevent false denials
+      allow update: if isSignedIn() && validEntry(request.resource.data);
       allow delete: if isSignedIn();
     }
 

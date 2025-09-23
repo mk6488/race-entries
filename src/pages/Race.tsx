@@ -403,7 +403,7 @@ export function Race() {
                       </div>
                     ))}
                     <div>
-                      <button className="row-action" onClick={() => { if (!raceId || !groupsDay) return; createDivisionGroup({ id: '', raceId, day: groupsDay, group: 'Group', divisions: [] } as any) }}>Add group</button>
+                      <button className="row-action" onClick={() => { if (!raceId || !groupsDay) return; createDivisionGroup({ raceId, day: groupsDay, group: 'Group', divisions: [] } as any) }}>Add group</button>
                     </div>
                   </div>
                 </div>
