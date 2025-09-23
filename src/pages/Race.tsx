@@ -171,7 +171,7 @@ export function Race() {
               <th style={{ minWidth: 140 }}>Event</th>
               <th style={{ minWidth: 320 }}>Athlete Names</th>
               <th style={{ minWidth: 160 }}>Boat</th>
-              <th style={{ minWidth: 120 }}>Blades</th>
+              <th style={{ minWidth: 160 }}>Blades</th>
               <th style={{ minWidth: 100 }}>Crew #</th>
               <th style={{ minWidth: 160 }}>Times</th>
               <th style={{ width: 1 }} />

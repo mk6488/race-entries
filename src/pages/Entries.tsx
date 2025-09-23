@@ -22,6 +22,9 @@ export function Entries() {
   const athleteInputRef = useRef<HTMLInputElement | null>(null)
   const [lastDefaults, setLastDefaults] = useState<Partial<NewEntry>>({})
   const [searchParams, setSearchParams] = useSearchParams()
+  const [splitBlades, setSplitBlades] = useState(false)
+  const [splitA, setSplitA] = useState('')
+  const [splitB, setSplitB] = useState('')
 
   useEffect(() => {
     if (!raceId) return
@@ -71,6 +74,22 @@ export function Entries() {
     if (e.includes('1x') || e.includes('1x-')) return '1x'
     return null
   }
+
+  // Initialize split blades state when opening the modal
+  useEffect(() => {
+    if (!open || !form) return
+    const raw = (form.blades || '').trim()
+    const parts = raw.includes('+') ? raw.split('+').map((s) => s.trim()).filter(Boolean) : []
+    if (parts.length === 2) {
+      setSplitBlades(true)
+      setSplitA(parts[0] || '')
+      setSplitB(parts[1] || '')
+    } else {
+      setSplitBlades(false)
+      setSplitA('')
+      setSplitB('')
+    }
+  }, [open, form])
 
   const sortedRows = useMemo(() => {
     const dayRank: Record<string, number> = {}
@@ -295,10 +314,70 @@ export function Entries() {
             </div>
             <div className="form-row">
               <label>Blades</label>
-              <select value={form.blades} onChange={(e) => setForm({ ...form, blades: e.target.value })}>
-                <option value="">-</option>
-                {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
-              </select>
+              {!splitBlades ? (
+                <>
+                  <select value={form.blades} onChange={(e) => setForm({ ...form, blades: e.target.value })}>
+                    <option value="">-</option>
+                    {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+                  </select>
+                  <label style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 13 }}>
+                    <input
+                      type="checkbox"
+                      checked={splitBlades}
+                      onChange={(e) => {
+                        const enable = e.target.checked
+                        setSplitBlades(enable)
+                        if (enable) {
+                          // initialize from single value
+                          const single = (form.blades || '').trim()
+                          setSplitA(single)
+                          setSplitB('')
+                        }
+                      }}
+                    />
+                    Use two sets
+                  </label>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <select value={splitA} onChange={(e) => {
+                      const v = e.target.value
+                      setSplitA(v)
+                      const combined = [v, splitB].filter((x) => x && x !== '-').join(' + ')
+                      setForm({ ...form, blades: combined })
+                    }}>
+                      <option value="">-</option>
+                      {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+                    </select>
+                    <select value={splitB} onChange={(e) => {
+                      const v = e.target.value
+                      setSplitB(v)
+                      const combined = [splitA, v].filter((x) => x && x !== '-').join(' + ')
+                      setForm({ ...form, blades: combined })
+                    }}>
+                      <option value="">-</option>
+                      {bladeOptions.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+                    </select>
+                  </div>
+                  <label style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 13 }}>
+                    <input
+                      type="checkbox"
+                      checked={splitBlades}
+                      onChange={(e) => {
+                        const enable = e.target.checked
+                        if (!enable) {
+                          // collapse to single value (prefer A then B)
+                          const single = splitA || splitB || ''
+                          setForm({ ...form, blades: single })
+                        }
+                        setSplitBlades(enable)
+                      }}
+                    />
+                    Use two sets
+                  </label>
+                </>
+              )}
             </div>
             <div className="form-row form-span-2">
               <label>Notes</label>
