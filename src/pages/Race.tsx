@@ -7,11 +7,15 @@ import type { Race as RaceType } from '../models/race'
 import { updateEntry } from '../data/entries'
 import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
+import { subscribeDivisionGroups, type DivisionGroup } from '../data/divisionGroups'
+import { createSilence, deleteSilenceByBoat, subscribeSilences, type Silence } from '../data/silences'
 
 export function Race() {
   const { raceId } = useParams()
   const [race, setRace] = useState<RaceType | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
+  const [groups, setGroups] = useState<DivisionGroup[]>([])
+  const [silences, setSilences] = useState<Silence[]>([])
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Filter modal state via URL (?filter=1)
@@ -32,6 +36,16 @@ export function Race() {
 
   useEffect(() => {
     if (!raceId) return
+    return subscribeDivisionGroups(raceId, setGroups)
+  }, [raceId])
+
+  useEffect(() => {
+    if (!raceId) return
+    return subscribeSilences(raceId, setSilences)
+  }, [raceId])
+
+  useEffect(() => {
+    if (!raceId) return
     ;(async () => {
       const r = await getRaceById(raceId)
       setRace(r)
@@ -44,6 +58,64 @@ export function Race() {
   }, [race])
 
   const enteredRows = useMemo(() => rows.filter((r) => r.status === 'entered'), [rows])
+  // Build grouping map per day → group name → set of divisions
+  const groupMap = useMemo(() => {
+    const m = new Map<string, Map<string, Set<string>>>()
+    for (const g of groups) {
+      if (!m.has(g.day)) m.set(g.day, new Map())
+      const gm = m.get(g.day) as Map<string, Set<string>>
+      gm.set(g.group, new Set(g.divisions || []))
+    }
+    return m
+  }, [groups])
+
+  // Assign each entered row to a day/group key. If div not in any group that day, fallback to its own group named by div.
+  const rowsByDayGroup = useMemo(() => {
+    const out = new Map<string, Entry[]>()
+    for (const r of enteredRows) {
+      const dm = groupMap.get(r.day)
+      let key = `${r.day}::__${r.div}` // default solo group
+      if (dm) {
+        for (const [gname, set] of dm.entries()) {
+          if (set.has(r.div)) { key = `${r.day}::${gname}`; break }
+        }
+      }
+      if (!out.has(key)) out.set(key, [])
+      ;(out.get(key) as Entry[]).push(r)
+    }
+    return out
+  }, [enteredRows, groupMap])
+
+  // Compute clashes per day/group: same boat appears >1 times
+  const clashes = useMemo(() => {
+    type Clash = { key: string; day: string; group: string; boat: string; count: number; entries: Entry[]; silenced: boolean }
+    const list: Clash[] = []
+    for (const [key, ers] of rowsByDayGroup.entries()) {
+      const [day, group] = key.split('::')
+      const byBoat = new Map<string, Entry[]>()
+      for (const e of ers) {
+        const boat = (e.boat || '').trim()
+        if (!boat) continue
+        if (!byBoat.has(boat)) byBoat.set(boat, [])
+        byBoat.get(boat)!.push(e)
+      }
+      for (const [boat, es] of byBoat.entries()) {
+        if (es.length > 1) {
+          const silenced = silences.some(s => s.raceId === (raceId||'') && s.day === day && s.group === group && s.boat === boat)
+          list.push({ key: `${day}::${group}::${boat}`, day, group, boat, count: es.length, entries: es, silenced })
+        }
+      }
+    }
+    // Sort clashes by day order then group name then boat
+    const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
+    return list.sort((a,b) => {
+      const ai = dayOrder.get(a.day) ?? 9999
+      const bi = dayOrder.get(b.day) ?? 9999
+      if (ai !== bi) return ai - bi
+      if (a.group !== b.group) return a.group.localeCompare(b.group)
+      return a.boat.localeCompare(b.boat)
+    })
+  }, [rowsByDayGroup, silences, dayOptions, raceId])
 
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   const uniqueEvents = useMemo(() => Array.from(new Set(enteredRows.map(r => r.event).filter(Boolean))).sort(), [enteredRows])
@@ -161,6 +233,30 @@ export function Race() {
           {drawReleased ? 'Draw released ✓' : 'Release draw'}
         </button>
       </div>
+
+      {clashes.length > 0 && (
+        <div className="clashes">
+          {clashes.map((c) => (
+            <div key={c.key} className="clash">
+              <div className="clash-header">
+                <div className="clash-title">Boat clash: {c.boat}</div>
+                <div className="clash-actions">
+                  {c.silenced ? (
+                    <button className="row-action" onClick={() => deleteSilenceByBoat(raceId||'', c.day, c.group, c.boat)}>Unsilence</button>
+                  ) : (
+                    <button className="row-action" onClick={() => createSilence({ raceId: raceId||'', day: c.day, group: c.group, boat: c.boat })}>Silence</button>
+                  )}
+                </div>
+              </div>
+              <div className="clash-meta">
+                <span>Day: {c.day}</span>
+                <span>Group: {c.group.replace(/^__/, '')}</span>
+                <span>Count: {c.count}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="table-scroll">
         <table className="sheet">

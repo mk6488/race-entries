@@ -70,6 +70,34 @@ service cloud.firestore {
       allow delete: if isSignedIn();
     }
 
+    // Division Groups for a race (to group divisions that are simultaneous)
+    function validDivisionGroup(data) {
+      return data.keys().hasOnly(['raceId','day','group','divisions']) &&
+        isString(data.raceId) && data.raceId.size() > 0 &&
+        isString(data.day) && isString(data.group) &&
+        (data.divisions is list) &&
+        (data.divisions.size() == 0 || (data.divisions[0] is string));
+    }
+    match /divisionGroups/{groupId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validDivisionGroup(request.resource.data);
+      allow update: if isSignedIn() && validDivisionGroup(request.resource.data);
+      allow delete: if isSignedIn();
+    }
+
+    // Silenced clashes (to acknowledge/ignore a specific boat clash in a group)
+    function validSilence(data) {
+      return data.keys().hasOnly(['raceId','day','group','boat']) &&
+        isString(data.raceId) && data.raceId.size() > 0 &&
+        isString(data.day) && isString(data.group) && isString(data.boat);
+    }
+    match /silencedClashes/{silenceId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validSilence(request.resource.data);
+      allow update: if isSignedIn() && validSilence(request.resource.data);
+      allow delete: if isSignedIn();
+    }
+
     // reference data
     match /boats/{boatId} {
       allow read: if true;

@@ -45,6 +45,14 @@ main { padding: 16px; }
 /* Scrollable table container */
 .table-scroll { overflow-x: auto; width: 100%; max-width: 100%; -webkit-overflow-scrolling: touch; }
 
+/* Clashes list */
+.clashes { display: grid; gap: 8px; margin-bottom: 12px; }
+.clash { display: grid; gap: 6px; border: 1px solid var(--border); border-left: 4px solid #ef4444; background: #fff; border-radius: 10px; padding: 10px 12px; }
+.clash-header { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.clash-title { font-weight: 600; }
+.clash-meta { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
+.clash-actions { display: inline-flex; gap: 8px; align-items: center; }
+
 /* Inputs & Buttons */
 input, textarea, select {
   border: 1px solid var(--border);
