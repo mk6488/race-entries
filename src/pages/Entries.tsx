@@ -312,7 +312,7 @@ export function Entries() {
                 )
               })()}
             </div>
-            <div className="form-row">
+            <div className="form-row col-span-2-lg">
               <label>Blades</label>
               {!splitBlades ? (
                 <>
