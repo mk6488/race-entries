@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import type { Entry } from '../models/entry'
 import { subscribeEntries } from '../data/entries'
-import { getRaceById } from '../data/races'
+import { getRaceById, updateRace } from '../data/races'
 import type { Race as RaceType } from '../models/race'
 import { updateEntry } from '../data/entries'
 import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
@@ -75,6 +75,7 @@ export function Race() {
   const [crewInput, setCrewInput] = useState('')
   const [times, setTimes] = useState<{ round: string; time: string }[]>([])
   const drawReleased = !!race?.drawReleased
+  const [savingDraw, setSavingDraw] = useState(false)
 
   function openTimes(e: Entry) {
     setEditing(e)
@@ -116,8 +117,25 @@ export function Race() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8 }}>
         <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</button>
+        <button
+          className="row-action"
+          disabled={!raceId || savingDraw}
+          onClick={async () => {
+            if (!raceId) return
+            try {
+              setSavingDraw(true)
+              await updateRace(raceId, { drawReleased: !drawReleased })
+              setRace(r => r ? { ...r, drawReleased: !drawReleased } : r)
+            } finally {
+              setSavingDraw(false)
+            }
+          }}
+          title={drawReleased ? 'Disable times editing' : 'Enable times editing'}
+        >
+          {drawReleased ? 'Draw released ✓' : 'Release draw'}
+        </button>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
