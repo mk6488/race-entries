@@ -42,6 +42,9 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 
 main { padding: 16px; }
 
+/* Scrollable table container */
+.table-scroll { overflow-x: auto; width: 100%; max-width: 100%; -webkit-overflow-scrolling: touch; }
+
 /* Inputs & Buttons */
 input, textarea, select {
   border: 1px solid var(--border);
@@ -170,6 +173,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .nav-drawer a { display: block; color: #111827; text-decoration: none; padding: 14px 16px; border-bottom: 1px solid var(--border); }
   .nav-drawer a.active { background: #f8fafc; }
   .drawer-overlay.open { display: block; }
+  main { overflow-x: hidden; }
 }
 
 /* Print styles */

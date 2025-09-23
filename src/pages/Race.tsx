@@ -138,7 +138,7 @@ export function Race() {
         </button>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
+      <div className="table-scroll">
         <table className="sheet">
           <thead>
             <tr>
