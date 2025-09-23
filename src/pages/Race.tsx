@@ -293,7 +293,6 @@ export function Race() {
               const out: JSX.Element[] = []
               let prevKey: string | null = null
               for (const r of sortedRows) {
-                // determine group key for this row
                 let gkey = `${r.day}::__${r.div}`
                 const dm = groupMap.get(r.day)
                 if (dm) {
@@ -301,16 +300,10 @@ export function Race() {
                     if (set.has(r.div)) { gkey = `${r.day}::${gname}`; break }
                   }
                 }
-                if (prevKey !== null && gkey !== prevKey) {
-                  out.push(
-                    <tr className="group-sep" key={`sep-${r.id}`}>
-                      <td colSpan={9} />
-                    </tr>
-                  )
-                }
+                const isGroupStart = prevKey !== null && gkey !== prevKey
                 prevKey = gkey
                 out.push(
-                  <tr key={r.id}>
+                  <tr key={r.id} className={isGroupStart ? 'group-start' : undefined}>
                     <td>{r.day}</td>
                     <td>{r.div}</td>
                     <td>{r.event}</td>

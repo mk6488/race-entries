@@ -116,6 +116,7 @@ table.sheet { width: 100%; border-collapse: collapse; background: #fff; border: 
 table.sheet thead th { position: sticky; top: 0; background: #f8fafc; text-align: left; font-weight: 600; border-bottom: 1px solid var(--border); padding: 10px; }
 table.sheet td { border-bottom: 1px solid var(--border); padding: 6px 8px; }
 table.sheet tr:hover { background: #fbfdff; }
+.group-start td { border-top: 3px solid #111 !important; }
 .group-sep td { padding: 6px 0 !important; border-bottom: 0 !important; }
 table.sheet input[type="text"], table.sheet input:not([type]) , table.sheet select { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: #fff; }
 table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
@@ -202,7 +203,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   table.sheet { border-radius: 0; box-shadow: none; }
   table.sheet thead th { position: static !important; background: transparent !important; }
   table.sheet, table.sheet tr, table.sheet td, table.sheet th { break-inside: avoid; page-break-inside: avoid; }
-  .group-sep td { padding: 4mm 0 !important; }
+  .group-start td { border-top: 2pt solid #000 !important; }
 }
 
 
