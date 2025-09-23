@@ -61,10 +61,34 @@ export function Race() {
   const sortedRows = useMemo(() => {
     const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
     const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
+    const hasWord = (s: string, w: string) => new RegExp(`(^|[^a-zA-Z])${w}([^a-zA-Z]|$)`, 'i').test(s)
+    const divRank = (s: string) => {
+      const lower = (s || '').toLowerCase()
+      const am = hasWord(lower, 'am')
+      const pm = hasWord(lower, 'pm')
+      const shortW = hasWord(lower, 'short')
+      const longW = hasWord(lower, 'long')
+      // Only apply ordering when both sides contain an am/pm marker or short/long marker.
+      return { am, pm, shortW, longW }
+    }
     return [...plainRows].sort((a, b) => {
       const ai = dayOrder.has(a.day) ? (dayOrder.get(a.day) as number) : 9999
       const bi = dayOrder.has(b.day) ? (dayOrder.get(b.day) as number) : 9999
       if (ai !== bi) return ai - bi
+      const ar = divRank(a.div || '')
+      const br = divRank(b.div || '')
+      // am before pm when both have am/pm markers
+      if ((ar.am || ar.pm) && (br.am || br.pm)) {
+        const aOrder = ar.am ? 0 : ar.pm ? 1 : 2
+        const bOrder = br.am ? 0 : br.pm ? 1 : 2
+        if (aOrder !== bOrder) return aOrder - bOrder
+      }
+      // short before long when both have short/long markers
+      if ((ar.shortW || ar.longW) && (br.shortW || br.longW)) {
+        const aOrder = ar.shortW ? 0 : ar.longW ? 1 : 2
+        const bOrder = br.shortW ? 0 : br.longW ? 1 : 2
+        if (aOrder !== bOrder) return aOrder - bOrder
+      }
       const d = collator.compare(a.div || '', b.div || '')
       if (d !== 0) return d
       return collator.compare(a.event || '', b.event || '')
