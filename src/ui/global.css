@@ -33,6 +33,7 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .home-link:hover { background: #f3f4f6; }
 .secondary-btn { display: inline-flex; align-items: center; justify-content: center; height: 36px; line-height: 1; background: transparent; color: var(--text); padding: 0 12px; border-radius: 10px; text-decoration: none; border: 1px solid var(--border); }
 .secondary-btn:hover { background: #f3f4f6; }
+.secondary-btn, .row-action { white-space: nowrap; }
 .topbar .topbar-actions .primary-btn { width: 120px; }
 .menu-btn { display: none; font-size: 22px; background: none; border: none; cursor: pointer; color: var(--text); padding: 6px; border-radius: 8px; }
 .menu-btn:hover { background: #f3f4f6; }

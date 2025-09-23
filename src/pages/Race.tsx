@@ -7,7 +7,7 @@ import type { Race as RaceType } from '../models/race'
 import { updateEntry } from '../data/entries'
 import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
-import { subscribeDivisionGroups, type DivisionGroup } from '../data/divisionGroups'
+import { subscribeDivisionGroups, type DivisionGroup, createDivisionGroup, updateDivisionGroup, deleteDivisionGroup } from '../data/divisionGroups'
 import { createSilence, deleteSilenceByBoat, subscribeSilences, type Silence } from '../data/silences'
 
 export function Race() {
@@ -21,6 +21,8 @@ export function Race() {
   // Filter modal state via URL (?filter=1)
   const filterOpen = searchParams.get('filter') === '1'
   const closeFilter = () => { searchParams.delete('filter'); setSearchParams(searchParams, { replace: true }) }
+  const groupsOpen = searchParams.get('groups') === '1'
+  const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
 
   // Filter selections
   const [daySel, setDaySel] = useState<string[]>([])
@@ -118,6 +120,17 @@ export function Race() {
   }, [rowsByDayGroup, silences, dayOptions, raceId])
 
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
+  const uniqueDivsByDay = useMemo(() => {
+    const m = new Map<string, string[]>()
+    for (const d of dayOptions) m.set(d, [])
+    for (const r of enteredRows) {
+      if (!m.has(r.day)) m.set(r.day, [])
+      const arr = m.get(r.day) as string[]
+      if (r.div && !arr.includes(r.div)) arr.push(r.div)
+    }
+    for (const [d, arr] of m) arr.sort()
+    return m
+  }, [enteredRows, dayOptions])
   const uniqueEvents = useMemo(() => Array.from(new Set(enteredRows.map(r => r.event).filter(Boolean))).sort(), [enteredRows])
 
   const plainRows = useMemo(() => {
@@ -172,6 +185,7 @@ export function Race() {
   const [times, setTimes] = useState<{ round: string; time: string }[]>([])
   const drawReleased = !!race?.drawReleased
   const [savingDraw, setSavingDraw] = useState(false)
+  const [groupsDay, setGroupsDay] = useState<string>('')
 
   function openTimes(e: Entry) {
     setEditing(e)
@@ -213,8 +227,9 @@ export function Race() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
         <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</button>
+        <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Groups</button>
         <button
           className="row-action"
           disabled={!raceId || savingDraw}
@@ -338,6 +353,64 @@ export function Race() {
             <div className="modal-footer">
               <button className="btn-link" onClick={() => { setDaySel([]); setDivSel([]); setEventSel([]) }}>Clear</button>
               <button className="primary-btn" onClick={closeFilter}>Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {groupsOpen && (
+        <div className="modal-overlay" onClick={closeGroups}>
+          <div className="modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Manage division groups</div>
+              <button className="icon-btn" onClick={closeGroups} aria-label="Close">✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-row">
+                  <label className="section-title">Day</label>
+                  <select value={groupsDay} onChange={(e)=> setGroupsDay(e.target.value)}>
+                    {dayOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div className="form-row form-span-2">
+                  <div className="section-title">Groups on {groupsDay || '-'}</div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {groups.filter(g => g.day === groupsDay).map((g) => (
+                      <div key={g.id} className="card" style={{ display: 'grid', gap: 8 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
+                          <input value={g.group} onChange={(e)=> updateDivisionGroup(g.id, { group: e.target.value })} placeholder="Group name (e.g. Block A)" />
+                          <button className="row-action" onClick={() => deleteDivisionGroup(g.id)}>Delete</button>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Divisions</div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 8 }}>
+                            {Array.from(uniqueDivsByDay.get(groupsDay || '') || []).map((dv) => {
+                              const checked = (g.divisions || []).includes(dv)
+                              return (
+                                <label key={dv} style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                                  <input type="checkbox" checked={checked} onChange={(e)=> {
+                                    const next = new Set(g.divisions || [])
+                                    if (e.target.checked) next.add(dv); else next.delete(dv)
+                                    updateDivisionGroup(g.id, { divisions: Array.from(next) })
+                                  }} />
+                                  {dv}
+                                </label>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <button className="row-action" onClick={() => { if (!raceId || !groupsDay) return; createDivisionGroup({ id: '', raceId, day: groupsDay, group: 'Group', divisions: [] } as any) }}>Add group</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="primary-btn" onClick={closeGroups}>Done</button>
             </div>
           </div>
         </div>
