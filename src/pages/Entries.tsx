@@ -79,6 +79,7 @@ export function Entries() {
       const n = Number(s)
       return Number.isFinite(n) ? n : null
     }
+    const hasWord = (s: string, w: string) => new RegExp(`(^|[^a-zA-Z])${w}([^a-zA-Z]|$)`, 'i').test(s)
     const cmp = (a: Entry, b: Entry) => {
       const ar = dayRank[a.day] ?? 9999
       const br = dayRank[b.day] ?? 9999
@@ -86,6 +87,21 @@ export function Entries() {
       const ad = a.div.trim(); const bd = b.div.trim()
       const adn = parseMaybeNum(ad); const bdn = parseMaybeNum(bd)
       if (adn !== null && bdn !== null && adn !== bdn) return adn - bdn
+      // Special handling: am before pm, short before long when both sides contain them
+      const aAm = hasWord(ad, 'am'); const aPm = hasWord(ad, 'pm');
+      const bAm = hasWord(bd, 'am'); const bPm = hasWord(bd, 'pm');
+      if ((aAm || aPm) && (bAm || bPm)) {
+        const aOrder = aAm ? 0 : aPm ? 1 : 2
+        const bOrder = bAm ? 0 : bPm ? 1 : 2
+        if (aOrder !== bOrder) return aOrder - bOrder
+      }
+      const aShort = hasWord(ad, 'short'); const aLong = hasWord(ad, 'long');
+      const bShort = hasWord(bd, 'short'); const bLong = hasWord(bd, 'long');
+      if ((aShort || aLong) && (bShort || bLong)) {
+        const aOrder = aShort ? 0 : aLong ? 1 : 2
+        const bOrder = bShort ? 0 : bLong ? 1 : 2
+        if (aOrder !== bOrder) return aOrder - bOrder
+      }
       const divCmp = ad.localeCompare(bd, undefined, { sensitivity: 'base', numeric: true })
       if (divCmp !== 0) return divCmp
       return a.event.localeCompare(b.event, undefined, { sensitivity: 'base', numeric: true })
