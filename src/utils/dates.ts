@@ -31,4 +31,26 @@ export function formatDayLabel(d: Date): string {
   return days[d.getDay()]
 }
 
+export function parseRaceTimeToMs(input: string): number | null {
+  const s = input.trim()
+  if (!s) return null
+  const m = s.match(/^([0-9]{1,2}):([0-5][0-9])(\.[0-9]{1,3})?$/)
+  if (!m) return null
+  const minutes = parseInt(m[1], 10)
+  const seconds = parseInt(m[2], 10)
+  const millis = m[3] ? Math.round(parseFloat(m[3]) * 1000) : 0
+  return minutes * 60000 + seconds * 1000 + millis
+}
+
+export function formatRaceTime(ms: number | null | undefined): string {
+  if (ms == null || isNaN(ms)) return ''
+  const minutes = Math.floor(ms / 60000)
+  const seconds = Math.floor((ms % 60000) / 1000)
+  const millis = ms % 1000
+  const secStr = seconds.toString().padStart(2, '0')
+  if (millis === 0) return `${minutes}:${secStr}`
+  const msStr = Math.round(millis).toString().padStart(3, '0').replace(/0+$/, '')
+  return `${minutes}:${secStr}.${msStr}`
+}
+
 

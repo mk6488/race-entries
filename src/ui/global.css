@@ -137,6 +137,11 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .chip button:hover { color: #0f172a; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
+/* Row action (hidden on print) */
+.row-action { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; cursor: pointer; }
+.row-action:hover { background: #f3f4f6; }
+.row-action[disabled] { opacity: .5; cursor: not-allowed; }
+
 /* Table header filter popovers */
 .filter-btn { font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); background: #fff; border-radius: 6px; color: var(--text); cursor: pointer; }
 .filter-btn.active { background: #f3f4f6; }
@@ -174,6 +179,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   * { background: transparent !important; box-shadow: none !important; }
   .topbar, .nav-drawer, .drawer-overlay { display: none !important; }
   .secondary-btn { display: none !important; }
+  .row-action { display: none !important; }
   main { padding: 0; }
   table.sheet { border-radius: 0; box-shadow: none; }
   table.sheet thead th { position: static !important; background: transparent !important; }

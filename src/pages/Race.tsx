@@ -4,6 +4,8 @@ import type { Entry } from '../models/entry'
 import { subscribeEntries } from '../data/entries'
 import { getRaceById } from '../data/races'
 import type { Race as RaceType } from '../models/race'
+import { updateEntry } from '../data/entries'
+import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 
 export function Race() {
@@ -69,6 +71,37 @@ export function Race() {
     })
   }, [plainRows, dayOptions])
 
+  const [editing, setEditing] = useState<Entry | null>(null)
+  const [crewInput, setCrewInput] = useState('')
+  const [times, setTimes] = useState<{ round: string; time: string }[]>([])
+  const drawReleased = !!race?.drawReleased
+
+  function openTimes(e: Entry) {
+    setEditing(e)
+    setCrewInput(e.crewNumber != null ? String(e.crewNumber) : '')
+    const initial = (e.raceTimes || []).map(t => ({ round: t.round || '', time: formatRaceTime(t.timeMs) }))
+    setTimes(initial.length ? initial : [{ round: 'Heat', time: '' }])
+  }
+
+  function addTimeRow() {
+    setTimes(prev => [...prev, { round: 'Final', time: '' }])
+  }
+
+  function removeTimeRow(idx: number) {
+    setTimes(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  async function saveTimes() {
+    if (!editing) return
+    const crewNumber = crewInput.trim() ? parseInt(crewInput, 10) : null
+    if (crewInput.trim() && (!Number.isFinite(crewNumber) || crewNumber! < 0)) return
+    const raceTimes = times
+      .map(t => ({ round: t.round.trim(), timeMs: parseRaceTimeToMs(t.time) }))
+      .filter(t => t.round && t.timeMs != null) as { round: string; timeMs: number }[]
+    await updateEntry(editing.id, { crewNumber: crewNumber ?? null, raceTimes })
+    setEditing(null)
+  }
+
   return (
     <div>
       <h1 style={{ marginTop: 0 }}>{race?.name ?? 'Race'}</h1>
@@ -97,6 +130,9 @@ export function Race() {
               <th style={{ minWidth: 320 }}>Athlete Names</th>
               <th style={{ minWidth: 160 }}>Boat</th>
               <th style={{ minWidth: 120 }}>Blades</th>
+              <th style={{ minWidth: 100 }}>Crew #</th>
+              <th style={{ minWidth: 160 }}>Times</th>
+              <th style={{ width: 1 }} />
             </tr>
           </thead>
           <tbody>
@@ -108,6 +144,11 @@ export function Race() {
                 <td>{r.athleteNames}</td>
                 <td>{r.boat}</td>
                 <td>{r.blades}</td>
+                <td>{r.crewNumber ?? ''}</td>
+                <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t.round}:{' '}{formatRaceTime(t.timeMs)}</span>)}</td>
+                <td>
+                  <button className="row-action" onClick={() => openTimes(r)} disabled={!drawReleased}>Times</button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -159,6 +200,45 @@ export function Race() {
             <div className="modal-footer">
               <button className="btn-link" onClick={() => { setDaySel([]); setDivSel([]); setEventSel([]) }}>Clear</button>
               <button className="primary-btn" onClick={closeFilter}>Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editing && (
+        <div className="modal-overlay" onClick={() => setEditing(null)}>
+          <div className="modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Edit crew number & race times</div>
+              <button className="icon-btn" onClick={() => setEditing(null)} aria-label="Close">✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-row">
+                  <label className="section-title">Crew number</label>
+                  <input type="number" min={0} placeholder="e.g. 152" value={crewInput} onChange={(e)=> setCrewInput(e.target.value)} />
+                </div>
+
+                <div className="form-row form-span-2">
+                  <div className="section-title">Race times</div>
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    {times.map((t, idx) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+                        <input type="text" placeholder="Round (Heat / Semi / Final)" value={t.round} onChange={(e)=> setTimes(prev => prev.map((x,i)=> i===idx? { ...x, round: e.target.value }: x))} />
+                        <input type="text" placeholder="mm:ss(.SS)" value={t.time} onChange={(e)=> setTimes(prev => prev.map((x,i)=> i===idx? { ...x, time: e.target.value }: x))} />
+                        <button type="button" className="row-action" onClick={() => removeTimeRow(idx)}>Remove</button>
+                      </div>
+                    ))}
+                    <div>
+                      <button type="button" className="row-action" onClick={addTimeRow}>Add time</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-link" onClick={() => setEditing(null)}>Cancel</button>
+              <button className="primary-btn" onClick={saveTimes}>Save</button>
             </div>
           </div>
         </div>

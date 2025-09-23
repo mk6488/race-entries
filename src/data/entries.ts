@@ -17,6 +17,9 @@ function toEntry(id: string, data: any): Entry {
     notes: data.notes || '',
     status: (data.status as Entry['status']) || (data.withdrawn ? 'withdrawn' : data.rejected ? 'rejected' : 'ready'),
     crewChanged: !!data.crewChanged,
+    crewNumber: typeof data.crewNumber === 'number' ? data.crewNumber : null,
+    raceTimes: Array.isArray(data.raceTimes) ? data.raceTimes.map((t: any) => ({ round: String(t.round||''), timeMs: Number(t.timeMs||0) })) : [],
+    result: data.result || 'OK',
   }
 }
 

@@ -9,7 +9,7 @@ service cloud.firestore {
     function hasOnlyFields(data, allowed) { return data.keys().hasOnly(allowed); }
 
     function validRace(data) {
-      return hasOnlyFields(data, ['name','details','startDate','endDate','broeOpens','broeCloses']) &&
+      return hasOnlyFields(data, ['name','details','startDate','endDate','broeOpens','broeCloses','drawReleased']) &&
         isString(data.name) && data.name.size() > 0 && data.name.size() <= 200 &&
         isString(data.details) &&
         isTimestamp(data.startDate) &&
@@ -17,7 +17,8 @@ service cloud.firestore {
         isTimestamp(data.broeOpens) &&
         isTimestamp(data.broeCloses) &&
         (!('endDate' in data) || data.endDate == null || data.endDate >= data.startDate) &&
-        data.broeOpens <= data.broeCloses;
+        data.broeOpens <= data.broeCloses &&
+        (!('drawReleased' in data) || (data.drawReleased is bool));
     }
 
     // races collection
@@ -37,19 +38,35 @@ service cloud.firestore {
 
     // entries for a race
     function validEntry(data) {
-      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected']) &&
+      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','crewNumber','raceTimes','result']) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
         isString(data.boat) && isString(data.blades) && isString(data.notes) &&
         (!('status' in data) || (data.status in ['in_progress','ready','entered','withdrawn','rejected'])) &&
         (!('crewChanged' in data) || (data.crewChanged is bool)) &&
         (!('withdrawn' in data) || (data.withdrawn is bool)) &&
-        (!('rejected' in data) || (data.rejected is bool));
+        (!('rejected' in data) || (data.rejected is bool)) &&
+        (!('crewNumber' in data) || (data.crewNumber is int && data.crewNumber >= 0)) &&
+        (!('raceTimes' in data) || (data.raceTimes is list && data.raceTimes.size() <= 12 && (
+          data.raceTimes.size() == 0 || (data.raceTimes[0] is map &&
+            data.raceTimes[0].keys().hasOnly(['round','timeMs']) &&
+            isString(data.raceTimes[0].round) && (data.raceTimes[0].timeMs is int && data.raceTimes[0].timeMs >= 0)
+          )
+        ))) &&
+        (!('result' in data) || (data.result in ['OK','DNS','DNF','DQ']));
     }
     match /entries/{entryId} {
       allow read: if true;
       allow create: if isSignedIn() && validEntry(request.resource.data);
-      allow update: if isSignedIn() && validEntry(request.resource.data);
+      allow update: if isSignedIn() && validEntry(request.resource.data) && (
+        // Always allow general edits
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','raceId']) ||
+        // Gated fields require drawReleased
+        (
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['crewNumber','raceTimes','result']) &&
+          get(/databases/$(database)/documents/races/$(request.resource.data.raceId)).data.drawReleased == true
+        )
+      );
       allow delete: if isSignedIn();
     }
 
