@@ -289,21 +289,44 @@ export function Race() {
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.day}</td>
-                <td>{r.div}</td>
-                <td>{r.event}</td>
-                <td>{r.athleteNames}</td>
-                <td>{r.boat}</td>
-                <td>{r.blades}</td>
-                <td>{r.crewNumber ?? ''}</td>
-                <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t.round}:{' '}{formatRaceTime(t.timeMs)}</span>)}</td>
-                <td>
-                  <button className="row-action" onClick={() => openTimes(r)} disabled={!drawReleased}>Times</button>
-                </td>
-              </tr>
-            ))}
+            {(() => {
+              const out: JSX.Element[] = []
+              let prevKey: string | null = null
+              for (const r of sortedRows) {
+                // determine group key for this row
+                let gkey = `${r.day}::__${r.div}`
+                const dm = groupMap.get(r.day)
+                if (dm) {
+                  for (const [gname, set] of dm.entries()) {
+                    if (set.has(r.div)) { gkey = `${r.day}::${gname}`; break }
+                  }
+                }
+                if (prevKey !== null && gkey !== prevKey) {
+                  out.push(
+                    <tr className="group-sep" key={`sep-${r.id}`}>
+                      <td colSpan={9} />
+                    </tr>
+                  )
+                }
+                prevKey = gkey
+                out.push(
+                  <tr key={r.id}>
+                    <td>{r.day}</td>
+                    <td>{r.div}</td>
+                    <td>{r.event}</td>
+                    <td>{r.athleteNames}</td>
+                    <td>{r.boat}</td>
+                    <td>{r.blades}</td>
+                    <td>{r.crewNumber ?? ''}</td>
+                    <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t.round}:{' '}{formatRaceTime(t.timeMs)}</span>)}</td>
+                    <td>
+                      <button className="row-action" onClick={() => openTimes(r)} disabled={!drawReleased}>Times</button>
+                    </td>
+                  </tr>
+                )
+              }
+              return out
+            })()}
           </tbody>
         </table>
       </div>
