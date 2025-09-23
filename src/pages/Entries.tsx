@@ -297,7 +297,7 @@ export function Entries() {
               <label>Athlete Names</label>
               <input ref={athleteInputRef} value={form.athleteNames} onChange={(e) => setForm({ ...form, athleteNames: e.target.value })} />
             </div>
-            <div className="form-row form-span-2">
+            <div className="form-row">
               <label>Boat</label>
               {(() => {
                 const type = inferBoatType(form.event.trim())
