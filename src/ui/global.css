@@ -82,7 +82,7 @@ button:hover { background: var(--primary-600); }
 .modal-header .icon-btn { color: rgba(255,255,255,.9); }
 .modal-header .icon-btn:hover { color: #fff; }
 /* Pretty form grid inside modals */
-.form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
 .form-row { display: grid; gap: 6px; }
 .form-span-2 { grid-column: 1 / -1; }
 .section-title { font-weight: 600; color: var(--muted); font-size: 13px; margin-top: 4px; }

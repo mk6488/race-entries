@@ -297,7 +297,7 @@ export function Entries() {
               <label>Athlete Names</label>
               <input ref={athleteInputRef} value={form.athleteNames} onChange={(e) => setForm({ ...form, athleteNames: e.target.value })} />
             </div>
-            <div className="form-row">
+            <div className="form-row form-span-2">
               <label>Boat</label>
               {(() => {
                 const type = inferBoatType(form.event.trim())
@@ -312,7 +312,7 @@ export function Entries() {
                 )
               })()}
             </div>
-            <div className="form-row">
+            <div className="form-row form-span-2">
               <label>Blades</label>
               {!splitBlades ? (
                 <>
@@ -340,7 +340,7 @@ export function Entries() {
                 </>
               ) : (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'start' }}>
                     <select value={splitA} onChange={(e) => {
                       const v = e.target.value
                       setSplitA(v)
