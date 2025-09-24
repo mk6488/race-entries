@@ -329,31 +329,65 @@ export function Entries() {
               setOpen(true)
             }}
           >
-            <div className="entry-top">
-              <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
-              <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
-              <span className="entry-event">{r.event || '-'}</span>
-              {/* Add similar button removed as requested */}
+            {/* Desktop inline row */}
+            <div className="desktop-only">
+              <div className="entry-inline">
+                <div>{r.day || '-'}</div>
+                <div>{r.div || '-'}</div>
+                <div>{r.event || '-'}</div>
+                <div>{r.athleteNames || '-'}</div>
+                <div>{r.boat || '-'}</div>
+                <div>{r.blades || '-'}</div>
+                <div>
+                  <span
+                    className={`status ${r.status}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
+                      const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
+                      updateCell(r.id, { status: next as any })
+                    }}
+                    title="Click to change status"
+                    style={{ cursor: 'pointer' }}
+                  >{r.status.replace('_',' ')}</span>
+                </div>
+                <div>
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
+                    <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
+                    Crew changed
+                  </label>
+                </div>
+              </div>
+              {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
-            <div className="entry-names">{r.athleteNames || '-'}</div>
-            <div className="entry-bottom">
-              <span>Boat: {r.boat || '-'}</span>
-              <span>Blades: {r.blades || '-'}</span>
-              <span className={`status ${r.status}`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
-                  const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
-                  updateCell(r.id, { status: next as any })
-                }}
-                title="Click to change status"
-              >{r.status.replace('_',' ')}</span>
-              <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
-                <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
-                Crew changed
-              </label>
+
+            {/* Mobile stacked layout (original) */}
+            <div className="mobile-only" style={{ display: 'grid', gap: 8 }}>
+              <div className="entry-top">
+                <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
+                <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
+                <span className="entry-event">{r.event || '-'}</span>
+              </div>
+              <div className="entry-names">{r.athleteNames || '-'}</div>
+              <div className="entry-bottom">
+                <span>Boat: {r.boat || '-'}</span>
+                <span>Blades: {r.blades || '-'}</span>
+                <span className={`status ${r.status}`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
+                    const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
+                    updateCell(r.id, { status: next as any })
+                  }}
+                  title="Click to change status"
+                >{r.status.replace('_',' ')}</span>
+                <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
+                  <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
+                  Crew changed
+                </label>
+              </div>
+              {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
-            {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
           </div>
           )
         })}
