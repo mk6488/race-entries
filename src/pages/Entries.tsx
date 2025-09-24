@@ -207,6 +207,14 @@ export function Entries() {
     })
   }, [rowsByDayGroup, silences, dayOptions, raceId])
 
+  const clashLookup = useMemo(() => {
+    const m = new Map<string, boolean>()
+    for (const c of clashes) {
+      m.set(`${c.day}::${c.group}::${c.boat}`, c.silenced)
+    }
+    return m
+  }, [clashes])
+
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   const uniqueDivsByDay = useMemo(() => {
     const m = new Map<string, string[]>()
@@ -313,6 +321,18 @@ export function Entries() {
             if (Number.isFinite(n)) return Math.min(5, Math.max(0, n % 6))
             return (r.div || '').toUpperCase().charCodeAt(0) % 6
           })()
+          // Determine current entry's group key for clash lookup
+          let gkey = `${r.day}::__${r.div}`
+          const dm = groupMap.get(r.day)
+          if (dm) {
+            for (const [gname, set] of dm.entries()) {
+              if (set.has(r.div)) { gkey = `${r.day}::${gname}`; break }
+            }
+          }
+          const trimmedBoat = (r.boat || '').trim()
+          const clashKey = `${gkey}::${trimmedBoat}`
+          const hasClash = !!trimmedBoat && clashLookup.has(clashKey)
+          const isSilenced = hasClash ? (clashLookup.get(clashKey) as boolean) : false
           return (
           <div
             key={r.id}
@@ -343,7 +363,14 @@ export function Entries() {
                 <div>{r.div || '-'}</div>
                 <div>{r.event || '-'}</div>
                 <div>{r.athleteNames || '-'}</div>
-                <div>{r.boat || '-'}</div>
+                <div>
+                  {r.boat || '-'}
+                  {hasClash ? (
+                    <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
+                      {isSilenced ? '⚠️' : '🚨'}
+                    </span>
+                  ) : null}
+                </div>
                 <div>{r.blades || '-'}</div>
                 <div>
                   <span
@@ -377,7 +404,14 @@ export function Entries() {
               </div>
               <div className="entry-names">{r.athleteNames || '-'}</div>
               <div className="entry-bottom">
-                <span>Boat: {r.boat || '-'}</span>
+                <span>
+                  Boat: {r.boat || '-'}
+                  {hasClash ? (
+                    <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
+                      {isSilenced ? '⚠️' : '🚨'}
+                    </span>
+                  ) : null}
+                </span>
                 <span>Blades: {r.blades || '-'}</span>
                 <span className={`status ${r.status}`}
                   onClick={(e) => {

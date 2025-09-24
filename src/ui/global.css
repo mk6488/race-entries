@@ -137,6 +137,8 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 /* Desktop inline layout for entry cards */
 .entry-inline { display: grid; grid-template-columns: 90px 70px 160px 1fr 160px 160px 140px 160px; gap: 8px; align-items: center; }
 .entry-notes { color: #b91c1c; }
+.clash-icon.active { color: #dc2626; }
+.clash-icon.silenced { color: #d97706; }
 .badge.day-5 { background: #fee2e2; border-color: #fecaca; }
 .badge.div-0 { background: #f1f5f9; border-color: #e2e8f0; }
 .badge.div-1 { background: #eef2ff; border-color: #e0e7ff; }
