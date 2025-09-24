@@ -251,7 +251,14 @@ export function Entries() {
   }
 
   async function updateCell(id: string, patch: Partial<NewEntry>) {
-    await updateEntry(id, patch)
+    const nextPatch: Partial<NewEntry> = { ...patch }
+    if (typeof nextPatch.status === 'string') {
+      const s = nextPatch.status
+      if (s === 'withdrawn' || s === 'rejected') {
+        nextPatch.crewChanged = false
+      }
+    }
+    await updateEntry(id, nextPatch)
   }
 
   return (
