@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../firebase'
 
 export type Silence = {
@@ -32,10 +32,6 @@ export async function createSilence(data: Omit<Silence, 'id'>) {
 
 export async function deleteSilenceByBoat(raceId: string, day: string, group: string, boat: string) {
   const q = query(col, where('raceId','==',raceId), where('day','==',day), where('group','==',group), where('boat','==',boat))
-  const unsub = onSnapshot(q, async (snap) => {
-    for (const d of snap.docs) {
-      await deleteDoc(doc(db, 'silencedClashes', d.id))
-    }
-  })
-  setTimeout(() => unsub(), 0)
+  const snap = await getDocs(q)
+  await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, 'silencedClashes', d.id))))
 }
