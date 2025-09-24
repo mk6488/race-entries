@@ -7,12 +7,14 @@ import type { Race as RaceType } from '../models/race'
 import { updateEntry } from '../data/entries'
 import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
+import { subscribeDivisionGroups, type DivisionGroup } from '../data/divisionGroups'
  
 
 export function Race() {
   const { raceId } = useParams()
   const [race, setRace] = useState<RaceType | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
+  const [groups, setGroups] = useState<DivisionGroup[]>([])
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Filter modal state via URL (?filter=1)
@@ -32,6 +34,12 @@ export function Race() {
     return subscribeEntries(raceId, setRows)
   }, [raceId])
 
+  // Bring back lightweight division group subscription to support visual separators only
+  useEffect(() => {
+    if (!raceId) return
+    return subscribeDivisionGroups(raceId, setGroups)
+  }, [raceId])
+
   
 
   useEffect(() => {
@@ -48,6 +56,17 @@ export function Race() {
   }, [race])
 
   const enteredRows = useMemo(() => rows.filter((r) => r.status === 'entered'), [rows])
+
+  // Build grouping map per day → group name → set of divisions (for separators only)
+  const groupMap = useMemo(() => {
+    const m = new Map<string, Map<string, Set<string>>>()
+    for (const g of groups) {
+      if (!m.has(g.day)) m.set(g.day, new Map())
+      const gm = m.get(g.day) as Map<string, Set<string>>
+      gm.set(g.group, new Set(g.divisions || []))
+    }
+    return m
+  }, [groups])
 
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   
@@ -187,21 +206,38 @@ export function Race() {
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((r) => (
-              <tr key={r.id}>
-                <td>{r.day}</td>
-                <td>{r.div}</td>
-                <td>{r.event}</td>
-                <td>{r.athleteNames}</td>
-                <td>{r.boat}</td>
-                <td>{r.blades}</td>
-                <td>{r.crewNumber ?? ''}</td>
-                <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t.round}:{' '}{formatRaceTime(t.timeMs)}</span>)}</td>
-                <td>
-                  <button className="row-action" onClick={() => openTimes(r)} disabled={!drawReleased}>Times</button>
-                </td>
-              </tr>
-            ))}
+            {(() => {
+              const out: JSX.Element[] = []
+              let prevKey: string | null = null
+              for (const r of sortedRows) {
+                // Determine grouping key for separator rendering
+                let gkey = `${r.day}::__${r.div}`
+                const dm = groupMap.get(r.day)
+                if (dm) {
+                  for (const [gname, set] of dm.entries()) {
+                    if (set.has(r.div)) { gkey = `${r.day}::${gname}`; break }
+                  }
+                }
+                const isGroupStart = prevKey !== null && gkey !== prevKey
+                prevKey = gkey
+                out.push(
+                  <tr key={r.id} className={isGroupStart ? 'group-start' : undefined}>
+                    <td>{r.day}</td>
+                    <td>{r.div}</td>
+                    <td>{r.event}</td>
+                    <td>{r.athleteNames}</td>
+                    <td>{r.boat}</td>
+                    <td>{r.blades}</td>
+                    <td>{r.crewNumber ?? ''}</td>
+                    <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t.round}:{' '}{formatRaceTime(t.timeMs)}</span>)}</td>
+                    <td>
+                      <button className="row-action" onClick={() => openTimes(r)} disabled={!drawReleased}>Times</button>
+                    </td>
+                  </tr>
+                )
+              }
+              return out
+            })()}
           </tbody>
         </table>
       </div>
