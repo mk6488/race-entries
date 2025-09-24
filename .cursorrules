@@ -1,0 +1,17 @@
+# Cursor Project Rules
+
+- Always commit and push after successful code edits so Netlify can deploy:
+  - Run: git add -A && git commit -m "<type(scope): concise summary>" && git push
+  - Use the existing branch (main) unless instructed otherwise.
+  - After pushing, inform the user: "Pushed. Netlify should deploy shortly."
+
+- Before declaring work done:
+  - Run linter checks on edited files and fix clear issues.
+  - Preserve existing indentation style and width in all edits.
+
+- Tooling hygiene:
+  - Prefer absolute paths in tool calls.
+  - Provide a brief status update when running tools.
+
+- Domain-specific:
+  - After edits to `src/pages/Race.tsx` or `src/pages/Entries.tsx`, quickly verify print styles remain clean.
