@@ -48,6 +48,23 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .home-link { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; color: var(--text); text-decoration: none; }
 .home-link:hover { background: #f3f4f6; }
 .brand-logo { height: 28px; width: auto; display: inline-block; }
+
+/* Page watermark */
+body::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(60vw, 720px);
+  height: min(60vh, 720px);
+  background-image: url('/logo.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: .06;
+  pointer-events: none;
+}
 .secondary-btn { display: inline-flex; align-items: center; justify-content: center; height: 36px; line-height: 1; background: transparent; color: var(--text); padding: 0 12px; border-radius: 10px; text-decoration: none; border: 1px solid var(--border); }
 .secondary-btn:hover { background: #f3f4f6; }
 .secondary-btn, .row-action { white-space: nowrap; }

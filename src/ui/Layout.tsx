@@ -16,7 +16,7 @@ export function Layout() {
       <header className="topbar">
         <div className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
-          <img src="/logo.svg" alt="Club logo" className="brand-logo" />
+          {/* Logo moved to watermark in background */}
           {hasRace ? (
             <>
               <NavLink className="desktop-only home-link" to="/" end aria-label="Home">
