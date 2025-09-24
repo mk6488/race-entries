@@ -287,7 +287,7 @@ export function Entries() {
         </div>
         {/* Add Entry button moved to navbar */}
         <div style={{ display: 'inline-flex', gap: 8 }}>
-          <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Groups</button>
+          <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Div Groups</button>
         </div>
       </div>
       {clashes.length > 0 && (
