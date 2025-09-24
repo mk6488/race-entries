@@ -298,65 +298,7 @@ export function Entries() {
           ))}
         </div>
       )}
-      {/* Desktop: inline table */}
-      <div className="desktop-only">
-        <div className="table-scroll">
-          <table className="sheet">
-            <thead>
-              <tr>
-                <th style={{ minWidth: 90 }}>Day</th>
-                <th style={{ minWidth: 70 }}>Div</th>
-                <th style={{ minWidth: 140 }}>Event</th>
-                <th style={{ minWidth: 320 }}>Athlete Names</th>
-                <th style={{ minWidth: 160 }}>Boat</th>
-                <th style={{ minWidth: 160 }}>Blades</th>
-                <th style={{ minWidth: 120 }}>Status</th>
-                <th style={{ minWidth: 140 }}>Crew changed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRows.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.day}</td>
-                  <td>{r.div}</td>
-                  <td>{r.event}</td>
-                  <td>{r.athleteNames}</td>
-                  <td>{r.boat}</td>
-                  <td>{r.blades}</td>
-                  <td>
-                    <span
-                      className={`status ${r.status}`}
-                      onClick={() => {
-                        const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
-                        const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
-                        updateCell(r.id, { status: next as any })
-                      }}
-                      title="Click to change status"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {r.status.replace('_',' ')}
-                    </span>
-                  </td>
-                  <td>
-                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <input
-                        type="checkbox"
-                        disabled={r.status==='withdrawn'||r.status==='rejected'}
-                        checked={r.crewChanged}
-                        onChange={(e) => updateCell(r.id, { crewChanged: e.target.checked })}
-                      />
-                      Crew changed
-                    </label>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Mobile: keep card list */}
-      <div className="entries-list mobile-only">
+      <div className="entries-list">
         {sortedRows.map((r) => {
           const dayIndex = Math.max(0, dayOptions.indexOf(r.day))
           const divIndex = (() => {
