@@ -4,6 +4,8 @@ import { subscribeEntries, createEntry, updateEntry } from '../data/entries'
 import { subscribeBlades, type Blade } from '../data/blades'
 import { subscribeBoats, type Boat } from '../data/boats'
 import { getRaceById } from '../data/races'
+import { subscribeDivisionGroups, type DivisionGroup, createDivisionGroup, updateDivisionGroup, deleteDivisionGroup } from '../data/divisionGroups'
+import { subscribeSilences, createSilence, deleteSilenceByBoat, type Silence } from '../data/silences'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
 import type { Entry, NewEntry } from '../models/entry'
@@ -25,6 +27,11 @@ export function Entries() {
   const [splitBlades, setSplitBlades] = useState(false)
   const [splitA, setSplitA] = useState('')
   const [splitB, setSplitB] = useState('')
+  const [groups, setGroups] = useState<DivisionGroup[]>([])
+  const [silences, setSilences] = useState<Silence[]>([])
+  const groupsOpen = searchParams.get('groups') === '1'
+  const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
+  const [groupsDay, setGroupsDay] = useState<string>('')
 
   useEffect(() => {
     if (!raceId) return
@@ -41,6 +48,16 @@ export function Entries() {
     const unsub = subscribeBoats(setAllBoats)
     return () => unsub()
   }, [])
+
+  useEffect(() => {
+    if (!raceId) return
+    return subscribeDivisionGroups(raceId, setGroups)
+  }, [raceId])
+
+  useEffect(() => {
+    if (!raceId) return
+    return subscribeSilences(raceId, setSilences)
+  }, [raceId])
 
   // Ensure navbar Add Entry (?add=1) opens the same prefilled modal as the Add entry button
   useEffect(() => {
@@ -128,6 +145,81 @@ export function Entries() {
     return [...rows].sort(cmp)
   }, [rows, dayOptions])
 
+  // Entered-only rows for clash checks and grouping
+  const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
+
+  // Build grouping map per day → group name → set of divisions
+  const groupMap = useMemo(() => {
+    const m = new Map<string, Map<string, Set<string>>>()
+    for (const g of groups) {
+      if (!m.has(g.day)) m.set(g.day, new Map())
+      const gm = m.get(g.day) as Map<string, Set<string>>
+      gm.set(g.group, new Set(g.divisions || []))
+    }
+    return m
+  }, [groups])
+
+  // Assign each entered row to a day/group key. If div not in any group that day, fallback to its own group named by div.
+  const rowsByDayGroup = useMemo(() => {
+    const out = new Map<string, Entry[]>()
+    for (const r of enteredRows) {
+      const dm = groupMap.get(r.day)
+      let key = `${r.day}::__${r.div}` // default solo group
+      if (dm) {
+        for (const [gname, set] of dm.entries()) {
+          if (set.has(r.div)) { key = `${r.day}::${gname}`; break }
+        }
+      }
+      if (!out.has(key)) out.set(key, [])
+      ;(out.get(key) as Entry[]).push(r)
+    }
+    return out
+  }, [enteredRows, groupMap])
+
+  // Compute clashes per day/group: same boat appears >1 times
+  const clashes = useMemo(() => {
+    type Clash = { key: string; day: string; group: string; boat: string; count: number; entries: Entry[]; silenced: boolean }
+    const list: Clash[] = []
+    for (const [key, ers] of rowsByDayGroup.entries()) {
+      const [day, group] = key.split('::')
+      const byBoat = new Map<string, Entry[]>()
+      for (const e of ers) {
+        const boat = (e.boat || '').trim()
+        if (!boat) continue
+        if (!byBoat.has(boat)) byBoat.set(boat, [])
+        byBoat.get(boat)!.push(e)
+      }
+      for (const [boat, es] of byBoat.entries()) {
+        if (es.length > 1) {
+          const silenced = silences.some(s => s.raceId === (raceId||'') && s.day === day && s.group === group && s.boat === boat)
+          list.push({ key: `${day}::${group}::${boat}`, day, group, boat, count: es.length, entries: es, silenced })
+        }
+      }
+    }
+    // Sort clashes by day order then group name then boat
+    const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
+    return list.sort((a,b) => {
+      const ai = dayOrder.get(a.day) ?? 9999
+      const bi = dayOrder.get(b.day) ?? 9999
+      if (ai !== bi) return ai - bi
+      if (a.group !== b.group) return a.group.localeCompare(b.group)
+      return a.boat.localeCompare(b.boat)
+    })
+  }, [rowsByDayGroup, silences, dayOptions, raceId])
+
+  const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
+  const uniqueDivsByDay = useMemo(() => {
+    const m = new Map<string, string[]>()
+    for (const d of dayOptions) m.set(d, [])
+    for (const r of enteredRows) {
+      if (!m.has(r.day)) m.set(r.day, [])
+      const arr = m.get(r.day) as string[]
+      if (r.div && !arr.includes(r.div)) arr.push(r.div)
+    }
+    for (const [d, arr] of m) arr.sort()
+    return m
+  }, [enteredRows, dayOptions])
+
   useEffect(() => {
     if (!raceId) return
     ;(async () => {
@@ -179,7 +271,33 @@ export function Entries() {
           )}
         </div>
         {/* Add Entry button moved to navbar */}
+        <div style={{ display: 'inline-flex', gap: 8 }}>
+          <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Groups</button>
+        </div>
       </div>
+      {clashes.length > 0 && (
+        <div className="clashes">
+          {clashes.map((c) => (
+            <div key={c.key} className="clash">
+              <div className="clash-header">
+                <div className="clash-title">Boat clash: {c.boat}</div>
+                <div className="clash-actions">
+                  {c.silenced ? (
+                    <button className="row-action" onClick={() => deleteSilenceByBoat(raceId||'', c.day, c.group, c.boat)}>Unsilence</button>
+                  ) : (
+                    <button className="row-action" onClick={() => createSilence({ raceId: raceId||'', day: c.day, group: c.group, boat: c.boat })}>Silence</button>
+                  )}
+                </div>
+              </div>
+              <div className="clash-meta">
+                <span>Day: {c.day}</span>
+                <span>Group: {c.group.replace(/^__/, '')}</span>
+                <span>Count: {c.count}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="entries-list">
         {sortedRows.map((r) => {
           const dayIndex = Math.max(0, dayOptions.indexOf(r.day))
@@ -403,6 +521,63 @@ export function Entries() {
           </form>
         )}
       </Modal>
+      {groupsOpen && (
+        <div className="modal-overlay" onClick={closeGroups}>
+          <div className="modal-dialog" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Manage division groups</div>
+              <button className="icon-btn" onClick={closeGroups} aria-label="Close">✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-row">
+                  <label className="section-title">Day</label>
+                  <select value={groupsDay} onChange={(e)=> setGroupsDay(e.target.value)}>
+                    {dayOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div className="form-row form-span-2">
+                  <div className="section-title">Groups on {groupsDay || '-'}</div>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {groups.filter(g => g.day === groupsDay).map((g) => (
+                      <div key={g.id} className="card" style={{ display: 'grid', gap: 8 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
+                          <input value={g.group} onChange={(e)=> updateDivisionGroup(g.id, { group: e.target.value })} placeholder="Group name (e.g. Block A)" />
+                          <button className="row-action" onClick={() => deleteDivisionGroup(g.id)}>Delete</button>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Divisions</div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 8 }}>
+                            {Array.from(uniqueDivsByDay.get(groupsDay || '') || []).map((dv) => {
+                              const checked = (g.divisions || []).includes(dv)
+                              return (
+                                <label key={dv} style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                                  <input type="checkbox" checked={checked} onChange={(e)=> {
+                                    const next = new Set(g.divisions || [])
+                                    if (e.target.checked) next.add(dv); else next.delete(dv)
+                                    updateDivisionGroup(g.id, { divisions: Array.from(next) })
+                                  }} />
+                                  {dv}
+                                </label>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <button className="row-action" onClick={() => { if (!raceId || !groupsDay) return; createDivisionGroup({ raceId, day: groupsDay, group: 'Group', divisions: [] } as any) }}>Add group</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="primary-btn" onClick={closeGroups}>Done</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
