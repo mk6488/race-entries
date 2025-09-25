@@ -14,6 +14,7 @@ export function Equipment() {
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
+  const [bladeAmounts, setBladeAmounts] = useState<Record<string, number>>({})
   const dayOptions = useMemo(() => {
     if (!race) return [] as string[]
     return enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel)
@@ -50,6 +51,11 @@ export function Equipment() {
       const l = b ? JSON.parse(b) : {}
       setLoadedBlades(l && typeof l === 'object' ? l : {})
     } catch {}
+    try {
+      const b = localStorage.getItem(`equip:${raceId}:bladeAmounts`)
+      const l = b ? JSON.parse(b) : {}
+      setBladeAmounts(l && typeof l === 'object' ? l : {})
+    } catch {}
   }, [raceId])
 
   useEffect(() => {
@@ -60,6 +66,10 @@ export function Equipment() {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:blades`, JSON.stringify(loadedBlades)) } catch {}
   }, [loadedBlades, raceId])
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`equip:${raceId}:bladeAmounts`, JSON.stringify(bladeAmounts)) } catch {}
+  }, [bladeAmounts, raceId])
 
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
@@ -319,20 +329,36 @@ export function Equipment() {
               <thead>
                 <tr>
                   <th style={{ minWidth: 180 }}>Set</th>
+                  <th style={{ width: 120 }}>Amount</th>
                   <th style={{ width: 120 }}>Loaded</th>
                 </tr>
               </thead>
               <tbody>
-                {mapToSortedArray(overall.blades.map).map(([name]) => (
-                  <tr key={name}>
-                    <td>{name}</td>
-                    <td>
-                      <input type="checkbox" checked={!!loadedBlades[name]} onChange={(e)=> setLoadedBlades(prev => ({ ...prev, [name]: e.target.checked }))} />
-                    </td>
-                  </tr>
-                ))}
+                {mapToSortedArray(overall.blades.map).map(([name, counted]) => {
+                  const amount = (name in bladeAmounts) ? bladeAmounts[name] : (counted || 0)
+                  return (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>
+                        <input
+                          type="number"
+                          min={0}
+                          value={amount}
+                          onChange={(e)=> {
+                            const v = parseInt(e.target.value || '0', 10)
+                            setBladeAmounts(prev => ({ ...prev, [name]: Number.isFinite(v) ? v : 0 }))
+                          }}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td>
+                        <input type="checkbox" checked={!!loadedBlades[name]} onChange={(e)=> setLoadedBlades(prev => ({ ...prev, [name]: e.target.checked }))} />
+                      </td>
+                    </tr>
+                  )
+                })}
                 {overall.blades.map.size === 0 ? (
-                  <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No blades assigned yet</td></tr>
+                  <tr><td colSpan={3} style={{ color: 'var(--muted)' }}>No blades assigned yet</td></tr>
                 ) : null}
               </tbody>
             </table>
