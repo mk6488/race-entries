@@ -15,20 +15,12 @@ export function Equipment() {
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
   const [bladeAmounts, setBladeAmounts] = useState<Record<string, string>>({})
-  const otherItems = useMemo(() => [
-    'Toolbag and spares',
-    'First Aid Pouch',
-    'Sani Bag',
-    'Cox boxes',
-    'Cox box chargers',
-    'Lifejacket',
-    'Stroke coaches',
-    'Trestles',
-    'Throw Lines',
-    'Gazebo',
-    'Tables',
-    'Chairs',
-    'Kitchen',
+  const otherSections = useMemo(() => [
+    { title: 'Safety', items: ['First Aid Pouch', 'Lifejacket', 'Throw Lines'] },
+    { title: 'Coxing', items: ['Cox boxes', 'Cox box chargers'] },
+    { title: 'Coaching / Boat handling', items: ['Stroke coaches', 'Trestles'] },
+    { title: 'Essentials', items: ['Toolbag and spares', 'Sani Bag'] },
+    { title: 'Site setup', items: ['Gazebo', 'Tables', 'Chairs', 'Kitchen'] },
   ], [])
   const [loadedOther, setLoadedOther] = useState<Record<string, boolean>>({})
   const dayOptions = useMemo(() => {
@@ -391,28 +383,33 @@ export function Equipment() {
         </div>
 
         {/* Right: Other equipment */}
-        <div className="card">
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Other equipment</div>
-          <div className="table-scroll">
-            <table className="sheet">
-              <thead>
-                <tr>
-                  <th style={{ minWidth: 220 }}>Item</th>
-                  <th style={{ width: 120 }}>Loaded</th>
-                </tr>
-              </thead>
-              <tbody>
-                {otherItems.map((name) => (
-                  <tr key={name}>
-                    <td>{name}</td>
-                    <td>
-                      <input type="checkbox" checked={!!loadedOther[name]} onChange={(e)=> setLoadedOther(prev => ({ ...prev, [name]: e.target.checked }))} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="card" style={{ display: 'grid', gap: 12 }}>
+          <div style={{ fontWeight: 700 }}>Other equipment</div>
+          {otherSections.map((section) => (
+            <div key={section.title}>
+              <div className="section-title" style={{ marginBottom: 6 }}>{section.title}</div>
+              <div className="table-scroll">
+                <table className="sheet">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 220 }}>Item</th>
+                      <th style={{ width: 120 }}>Loaded</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.items.map((name) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>
+                          <input type="checkbox" checked={!!loadedOther[name]} onChange={(e)=> setLoadedOther(prev => ({ ...prev, [name]: e.target.checked }))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
