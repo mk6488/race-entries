@@ -224,8 +224,9 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 /* Trailer planner */
 .trailer-layout { display: grid; gap: 12px; grid-template-columns: 1fr; }
 @media (min-width: 1100px) {
-  .trailer-layout { grid-template-columns: 1fr 1fr; }
+  .trailer-layout { grid-template-columns: 1fr 1.4fr; align-items: start; }
 }
+.trailer-right { display: grid; gap: 12px; }
 .unassigned { display: grid; gap: 8px; grid-auto-rows: minmax(36px, auto); border: 1px dashed var(--border); padding: 8px; border-radius: 8px; background: #fff; }
 .draggable { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: #f8fafc; cursor: grab; }
 .draggable:active { cursor: grabbing; }

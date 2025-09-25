@@ -169,7 +169,7 @@ export function Trailer() {
       </div>
 
       <div className="trailer-layout">
-        {/* Unassigned list */}
+        {/* Unassigned list (left) */}
         <div className="card">
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Unassigned boats</div>
           <div className="unassigned" onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop('unassigned')}>
@@ -186,8 +186,8 @@ export function Trailer() {
           </div>
         </div>
 
-        {/* Small trailer */}
-        {(mode === 'small' || mode === 'both') && (
+        {/* Trailers (right) */}
+        {mode === 'small' && (
           <div className="card">
             <div style={{ fontWeight: 700, marginBottom: 8 }}>Small trailer</div>
             <div className="trailer-grid" style={{ gridTemplateColumns: `repeat(${small.columns}, 1fr)` }}>
@@ -198,7 +198,6 @@ export function Trailer() {
                   ))}
                 </div>
               ))}
-              {/* Bottom bay spanning */}
               <div className="trailer-cell base" style={{ gridColumn: `1 / span ${small.columns}` }} onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop('s-base')}>
                 {(smallBoard['s-base']||[]).map((b) => (
                   <div key={b} className="draggable" draggable onDragStart={(e)=> onDragStart(e, b, 's-base')}>{b}</div>
@@ -208,8 +207,7 @@ export function Trailer() {
           </div>
         )}
 
-        {/* Big trailer */}
-        {(mode === 'big' || mode === 'both') && (
+        {mode === 'big' && (
           <div className="card">
             <div style={{ fontWeight: 700, marginBottom: 8 }}>Big trailer</div>
             <div className="trailer-grid" style={{ gridTemplateColumns: `repeat(${big.columns}, 1fr)` }}>
@@ -220,11 +218,49 @@ export function Trailer() {
                   ))}
                 </div>
               ))}
-              {/* Bottom bay spanning */}
               <div className="trailer-cell base" style={{ gridColumn: `1 / span ${big.columns}` }} onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop('b-base')}>
                 {(bigBoard['b-base']||[]).map((b) => (
                   <div key={b} className="draggable" draggable onDragStart={(e)=> onDragStart(e, b, 'b-base')}>{b}</div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {mode === 'both' && (
+          <div className="trailer-right">
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Small trailer</div>
+              <div className="trailer-grid" style={{ gridTemplateColumns: `repeat(${small.columns}, 1fr)` }}>
+                {small.cellIds.slice(0, small.columns*small.rows).map((id) => (
+                  <div key={id} className="trailer-cell" onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop(id)}>
+                    {(smallBoard[id]||[]).map((b) => (
+                      <div key={b} className="draggable" draggable onDragStart={(e)=> onDragStart(e, b, id)}>{b}</div>
+                    ))}
+                  </div>
+                ))}
+                <div className="trailer-cell base" style={{ gridColumn: `1 / span ${small.columns}` }} onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop('s-base')}>
+                  {(smallBoard['s-base']||[]).map((b) => (
+                    <div key={b} className="draggable" draggable onDragStart={(e)=> onDragStart(e, b, 's-base')}>{b}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Big trailer</div>
+              <div className="trailer-grid" style={{ gridTemplateColumns: `repeat(${big.columns}, 1fr)` }}>
+                {big.cellIds.slice(0, big.columns*big.rows).map((id) => (
+                  <div key={id} className="trailer-cell" onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop(id)}>
+                    {(bigBoard[id]||[]).map((b) => (
+                      <div key={b} className="draggable" draggable onDragStart={(e)=> onDragStart(e, b, id)}>{b}</div>
+                    ))}
+                  </div>
+                ))}
+                <div className="trailer-cell base" style={{ gridColumn: `1 / span ${big.columns}` }} onDragOver={(e)=> e.preventDefault()} onDrop={handleDrop('b-base')}>
+                  {(bigBoard['b-base']||[]).map((b) => (
+                    <div key={b} className="draggable" draggable onDragStart={(e)=> onDragStart(e, b, 'b-base')}>{b}</div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
