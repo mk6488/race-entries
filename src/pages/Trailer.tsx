@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries } from '../data/entries'
+import { subscribeBoats, type Boat } from '../data/boats'
 import type { Entry } from '../models/entry'
 import { getRaceById } from '../data/races'
 import type { Race } from '../models/race'
@@ -41,6 +42,7 @@ export function Trailer() {
   const [race, setRace] = useState<Race | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
   const [mode, setMode] = useState<TrailerMode>('small')
+  const [boatsRef, setBoatsRef] = useState<Boat[]>([])
 
   // Load entries
   useEffect(() => {
@@ -64,6 +66,36 @@ export function Trailer() {
     }
     return Array.from(set).sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
   }, [rows])
+
+  // Boat types for sorting
+  useEffect(() => {
+    const unsub = subscribeBoats(setBoatsRef)
+    return () => unsub()
+  }, [])
+  const boatNameToType = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const b of boatsRef) m.set((b.name||'').trim(), (b.type||'').trim())
+    return m
+  }, [boatsRef])
+  function typeGroupIndex(t: string): number {
+    const type = (t || '').toLowerCase()
+    if (type === '8+' || type === '8x+') return 0
+    if (type === '4x/-' || type === '4-' || type === '4x') return 1
+    if (type === '4+' || type === '4x+') return 2
+    if (type === '2x/-' || type === '2-' || type === '2x') return 3
+    if (type === '1x') return 4
+    return 99
+  }
+  function sortBoats(list: string[]) {
+    return [...list].sort((a,b) => {
+      const ta = boatNameToType.get(a) || ''
+      const tb = boatNameToType.get(b) || ''
+      const ga = typeGroupIndex(ta)
+      const gb = typeGroupIndex(tb)
+      if (ga !== gb) return ga - gb
+      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+    })
+  }
 
   // Board states
   const [smallBoard, setSmallBoard] = useState<BoardState>({})
@@ -106,7 +138,7 @@ export function Trailer() {
     const collect = (board: BoardState) => Object.values(board).forEach(list => list.forEach(x => placed.add(x)))
     collect(smallBoard); collect(bigBoard)
     const list = boats.filter(b => !placed.has(b) && !unassigned.includes(b))
-    if (list.length) setUnassigned(prev => [...prev, ...list])
+    if (list.length) setUnassigned(prev => sortBoats([...prev, ...list]))
   }, [boats])
 
   function removeFromAll(boat: string) {
@@ -139,7 +171,7 @@ export function Trailer() {
       removeFromAll(boat)
       // Add to target
       if (targetId === 'unassigned') {
-        setUnassigned(prev => [...prev, boat])
+        setUnassigned(prev => sortBoats([...prev, boat]))
       } else if (targetId.startsWith('s-')) {
         setSmallBoard(prev => ({ ...prev, [targetId]: [...(prev[targetId]||[]), boat] }))
       } else if (targetId.startsWith('b-')) {
