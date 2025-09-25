@@ -97,6 +97,12 @@ export function Trailer() {
     })
   }
 
+  function arraysEqual(a: string[], b: string[]) {
+    if (a.length !== b.length) return false
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+    return true
+  }
+
   // Board states
   const [smallBoard, setSmallBoard] = useState<BoardState>({})
   const [bigBoard, setBigBoard] = useState<BoardState>({})
@@ -140,6 +146,15 @@ export function Trailer() {
     const list = boats.filter(b => !placed.has(b) && !unassigned.includes(b))
     if (list.length) setUnassigned(prev => sortBoats([...prev, ...list]))
   }, [boats])
+
+  // Ensure unassigned stays sorted (after refresh or when boat types load)
+  useEffect(() => {
+    setUnassigned(prev => {
+      const dedup = Array.from(new Set(prev))
+      const sorted = sortBoats(dedup)
+      return arraysEqual(prev, sorted) ? prev : sorted
+    })
+  }, [boatNameToType])
 
   function removeFromAll(boat: string) {
     setUnassigned(prev => prev.filter(x => x !== boat))
