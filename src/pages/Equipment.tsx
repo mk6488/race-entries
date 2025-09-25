@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries } from '../data/entries'
+import { subscribeBoats, type Boat } from '../data/boats'
 import type { Entry } from '../models/entry'
 import { getRaceById } from '../data/races'
 import type { Race } from '../models/race'
@@ -10,6 +11,7 @@ export function Equipment() {
   const { raceId } = useParams()
   const [race, setRace] = useState<Race | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
+  const [boatsRef, setBoatsRef] = useState<Boat[]>([])
   const dayOptions = useMemo(() => {
     if (!race) return [] as string[]
     return enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel)
@@ -27,6 +29,11 @@ export function Equipment() {
       setRace(r)
     })()
   }, [raceId])
+
+  useEffect(() => {
+    const unsub = subscribeBoats(setBoatsRef)
+    return () => unsub()
+  }, [])
 
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
@@ -73,6 +80,48 @@ export function Equipment() {
     return Array.from(m.entries()).sort((a,b) => a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' }))
   }
 
+  // Boat sorting by type groups with gaps
+  const boatNameToType = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const b of boatsRef) map.set((b.name || '').trim(), (b.type || '').trim())
+    return map
+  }, [boatsRef])
+
+  function typeGroupIndex(t: string): number {
+    const type = (t || '').toLowerCase()
+    if (type.startsWith('8')) return 0 // eights / octuples
+    if (type.startsWith('4')) return 1 // quads / fours
+    if (type.startsWith('2')) return 2 // doubles / pairs
+    if (type.startsWith('1')) return 3 // singles
+    return 99
+  }
+
+  function sortBoatsWithGroups(m: Map<string, number>) {
+    const items = Array.from(m.entries()) // [name, count]
+    items.sort((a, b) => {
+      const ta = boatNameToType.get(a[0]) || ''
+      const tb = boatNameToType.get(b[0]) || ''
+      const ga = typeGroupIndex(ta)
+      const gb = typeGroupIndex(tb)
+      if (ga !== gb) return ga - gb
+      return a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' })
+    })
+    // Break into groups for separators
+    const groups: Array<Array<[string, number]>> = [[], [], [], [], []]
+    for (const it of items) {
+      const g = typeGroupIndex(boatNameToType.get(it[0]) || '')
+      const idx = Math.min(g, groups.length - 1)
+      groups[idx].push(it)
+    }
+    const out: Array<{ kind: 'row'; name: string; count: number } | { kind: 'sep' }> = []
+    groups.forEach((g, i) => {
+      if (g.length === 0) return
+      if (out.length > 0) out.push({ kind: 'sep' })
+      g.forEach(([name, count]) => out.push({ kind: 'row', name, count }))
+    })
+    return out
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -103,11 +152,15 @@ export function Equipment() {
               </tr>
             </thead>
             <tbody>
-              {mapToSortedArray(overall.boats.map).map(([name, count]) => (
-                <tr key={name}>
-                  <td>{name}</td>
-                  <td>{count}</td>
-                </tr>
+              {sortBoatsWithGroups(overall.boats.map).map((item, idx) => (
+                item.kind === 'sep' ? (
+                  <tr key={`sep-${idx}`} className="group-sep"><td colSpan={2}></td></tr>
+                ) : (
+                  <tr key={item.name}>
+                    <td>{item.name}</td>
+                    <td>{item.count}</td>
+                  </tr>
+                )
               ))}
               {overall.boats.map.size === 0 ? (
                 <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No boats assigned yet</td></tr>
@@ -160,11 +213,15 @@ export function Equipment() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mapToSortedArray(data.boats.map).map(([name, count]) => (
-                      <tr key={name}>
-                        <td>{name}</td>
-                        <td>{count}</td>
-                      </tr>
+                    {sortBoatsWithGroups(data.boats.map).map((item, idx) => (
+                      item.kind === 'sep' ? (
+                        <tr key={`sep-${idx}`} className="group-sep"><td colSpan={2}></td></tr>
+                      ) : (
+                        <tr key={item.name}>
+                          <td>{item.name}</td>
+                          <td>{item.count}</td>
+                        </tr>
+                      )
                     ))}
                     {data.boats.map.size === 0 ? (
                       <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No boats assigned</td></tr>
