@@ -115,10 +115,17 @@ export function Equipment() {
 
   function typeGroupIndex(t: string): number {
     const type = (t || '').toLowerCase()
-    if (type.startsWith('8')) return 0 // eights / octuples
-    if (type.startsWith('4')) return 1 // quads / fours
-    if (type.startsWith('2')) return 2 // doubles / pairs
-    if (type.startsWith('1')) return 3 // singles
+    // Explicit grouping:
+    // 0: 8x+/8+
+    if (type === '8+' || type === '8x+') return 0
+    // 1: 4x/4- (coxless)
+    if (type === '4x/-' || type === '4-' || type === '4x') return 1
+    // 2: 4x+/4+ (coxed)
+    if (type === '4+' || type === '4x+') return 2
+    // 3: 2x/2-
+    if (type === '2x/-' || type === '2-' || type === '2x') return 3
+    // 4: 1x
+    if (type === '1x') return 4
     return 99
   }
 
@@ -151,11 +158,11 @@ export function Equipment() {
   // Prepare boat groups as separate lists (unique names)
   const boatGroups = useMemo(() => {
     const names = Array.from(overall.boats.map.keys())
-    const groups: Array<string[]> = [[], [], [], []]
+    const groups: Array<string[]> = [[], [], [], [], []]
     for (const name of names) {
       const t = boatNameToType.get(name) || ''
       const gi = typeGroupIndex(t)
-      if (gi < 4) groups[gi].push(name)
+      if (gi < 5) groups[gi].push(name)
     }
     groups.forEach((g) => g.sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })))
     return groups
@@ -207,7 +214,7 @@ export function Equipment() {
             </div>
           </div>
           <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x/4-/4+</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x/4- (coxless)</div>
             <div className="table-scroll">
               <table className="sheet">
                 <thead>
@@ -231,7 +238,7 @@ export function Equipment() {
             </div>
           </div>
           <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 2x/2-/2+</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x+/4+ (coxed)</div>
             <div className="table-scroll">
               <table className="sheet">
                 <thead>
@@ -255,7 +262,7 @@ export function Equipment() {
             </div>
           </div>
           <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 1x</div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 2x/2-</div>
             <div className="table-scroll">
               <table className="sheet">
                 <thead>
@@ -274,6 +281,30 @@ export function Equipment() {
                     </tr>
                   ))}
                   {boatGroups[3].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="card">
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 1x</div>
+            <div className="table-scroll">
+              <table className="sheet">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 220 }}>Boat</th>
+                    <th style={{ width: 120 }}>Loaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boatGroups[4].map((name) => (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>
+                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                      </td>
+                    </tr>
+                  ))}
+                  {boatGroups[4].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
                 </tbody>
               </table>
             </div>
