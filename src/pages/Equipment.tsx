@@ -344,7 +344,6 @@ export function Equipment() {
                           type="number"
                           min={0}
                           value={amount}
-                          placeholder={String(counted || '')}
                           onChange={(e)=> {
                             const v = e.target.value
                             setBladeAmounts(prev => ({ ...prev, [name]: v }))
