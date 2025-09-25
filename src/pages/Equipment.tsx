@@ -15,6 +15,22 @@ export function Equipment() {
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
   const [bladeAmounts, setBladeAmounts] = useState<Record<string, string>>({})
+  const otherItems = useMemo(() => [
+    'Toolbag and spares',
+    'First Aid Pouch',
+    'Sani Bag',
+    'Cox boxes',
+    'Cox box chargers',
+    'Lifejacket',
+    'Stroke coaches',
+    'Trestles',
+    'Throw Lines',
+    'Gazebo',
+    'Tables',
+    'Chairs',
+    'Kitchen',
+  ], [])
+  const [loadedOther, setLoadedOther] = useState<Record<string, boolean>>({})
   const dayOptions = useMemo(() => {
     if (!race) return [] as string[]
     return enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel)
@@ -56,6 +72,11 @@ export function Equipment() {
       const l = b ? JSON.parse(b) : {}
       setBladeAmounts(l && typeof l === 'object' ? l : {})
     } catch {}
+    try {
+      const b = localStorage.getItem(`equip:${raceId}:other`)
+      const l = b ? JSON.parse(b) : {}
+      setLoadedOther(l && typeof l === 'object' ? l : {})
+    } catch {}
   }, [raceId])
 
   useEffect(() => {
@@ -70,6 +91,10 @@ export function Equipment() {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:bladeAmounts`, JSON.stringify(bladeAmounts)) } catch {}
   }, [bladeAmounts, raceId])
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`equip:${raceId}:other`, JSON.stringify(loadedOther)) } catch {}
+  }, [loadedOther, raceId])
 
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
@@ -368,7 +393,26 @@ export function Equipment() {
         {/* Right: Other equipment */}
         <div className="card">
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Other equipment</div>
-          <div style={{ color: 'var(--muted)' }}>TBC</div>
+          <div className="table-scroll">
+            <table className="sheet">
+              <thead>
+                <tr>
+                  <th style={{ minWidth: 220 }}>Item</th>
+                  <th style={{ width: 120 }}>Loaded</th>
+                </tr>
+              </thead>
+              <tbody>
+                {otherItems.map((name) => (
+                  <tr key={name}>
+                    <td>{name}</td>
+                    <td>
+                      <input type="checkbox" checked={!!loadedOther[name]} onChange={(e)=> setLoadedOther(prev => ({ ...prev, [name]: e.target.checked }))} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
