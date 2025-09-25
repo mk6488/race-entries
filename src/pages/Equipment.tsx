@@ -12,6 +12,8 @@ export function Equipment() {
   const [race, setRace] = useState<Race | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
+  const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
+  const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
   const dayOptions = useMemo(() => {
     if (!race) return [] as string[]
     return enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel)
@@ -34,6 +36,30 @@ export function Equipment() {
     const unsub = subscribeBoats(setBoatsRef)
     return () => unsub()
   }, [])
+
+  // Persist loaded-state in localStorage per race
+  useEffect(() => {
+    if (!raceId) return
+    try {
+      const b = localStorage.getItem(`equip:${raceId}:boats`)
+      const l = b ? JSON.parse(b) : {}
+      setLoadedBoats(l && typeof l === 'object' ? l : {})
+    } catch {}
+    try {
+      const b = localStorage.getItem(`equip:${raceId}:blades`)
+      const l = b ? JSON.parse(b) : {}
+      setLoadedBlades(l && typeof l === 'object' ? l : {})
+    } catch {}
+  }, [raceId])
+
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`equip:${raceId}:boats`, JSON.stringify(loadedBoats)) } catch {}
+  }, [loadedBoats, raceId])
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`equip:${raceId}:blades`, JSON.stringify(loadedBlades)) } catch {}
+  }, [loadedBlades, raceId])
 
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
@@ -122,6 +148,19 @@ export function Equipment() {
     return out
   }
 
+  // Prepare boat groups as separate lists (unique names)
+  const boatGroups = useMemo(() => {
+    const names = Array.from(overall.boats.map.keys())
+    const groups: Array<string[]> = [[], [], [], []]
+    for (const name of names) {
+      const t = boatNameToType.get(name) || ''
+      const gi = typeGroupIndex(t)
+      if (gi < 4) groups[gi].push(name)
+    }
+    groups.forEach((g) => g.sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })))
+    return groups
+  }, [overall.boats.map, boatNameToType])
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -140,123 +179,140 @@ export function Equipment() {
         </div>
       </div>
 
-      {/* Overall requirements */}
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>Overall requirements</div>
-        <div className="table-scroll" style={{ marginBottom: 10 }}>
-          <table className="sheet">
-            <thead>
-              <tr>
-                <th style={{ minWidth: 180 }}>Boats</th>
-                <th style={{ width: 120 }}>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortBoatsWithGroups(overall.boats.map).map((item, idx) => (
-                item.kind === 'sep' ? (
-                  <tr key={`sep-${idx}`} className="group-sep"><td colSpan={2}></td></tr>
-                ) : (
-                  <tr key={item.name}>
-                    <td>{item.name}</td>
-                    <td>{item.count}</td>
+      <div className="equipment-grid">
+        {/* Left: Boats */}
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div className="card">
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 8+/8x+</div>
+            <div className="table-scroll">
+              <table className="sheet">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 220 }}>Boat</th>
+                    <th style={{ width: 120 }}>Loaded</th>
                   </tr>
-                )
-              ))}
-              {overall.boats.map.size === 0 ? (
-                <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No boats assigned yet</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="table-scroll">
-          <table className="sheet">
-            <thead>
-              <tr>
-                <th style={{ minWidth: 180 }}>Blades</th>
-                <th style={{ width: 120 }}>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mapToSortedArray(overall.blades.map).map(([name, count]) => (
-                <tr key={name}>
-                  <td>{name}</td>
-                  <td>{count}</td>
-                </tr>
-              ))}
-              {overall.blades.map.size === 0 ? (
-                <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No blades assigned yet</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ display: 'flex', gap: 12, marginTop: 8, color: 'var(--muted)' }}>
-          <div>Missing boat assignments: {overall.boats.missing}</div>
-          <div>Missing blade assignments: {overall.blades.missing}</div>
-        </div>
-      </div>
-
-      {/* Per day breakdown */}
-      <div style={{ display: 'grid', gap: 12 }}>
-        {dayOptions.map((d) => {
-          const data = byDay.get(d)
-          if (!data) return null
-          return (
-            <div key={d} className="card">
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Requirements on {d}</div>
-              <div className="table-scroll" style={{ marginBottom: 8 }}>
-                <table className="sheet">
-                  <thead>
-                    <tr>
-                      <th style={{ minWidth: 180 }}>Boats</th>
-                      <th style={{ width: 120 }}>Count</th>
+                </thead>
+                <tbody>
+                  {boatGroups[0].map((name) => (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>
+                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {sortBoatsWithGroups(data.boats.map).map((item, idx) => (
-                      item.kind === 'sep' ? (
-                        <tr key={`sep-${idx}`} className="group-sep"><td colSpan={2}></td></tr>
-                      ) : (
-                        <tr key={item.name}>
-                          <td>{item.name}</td>
-                          <td>{item.count}</td>
-                        </tr>
-                      )
-                    ))}
-                    {data.boats.map.size === 0 ? (
-                      <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No boats assigned</td></tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              </div>
-              <div className="table-scroll">
-                <table className="sheet">
-                  <thead>
-                    <tr>
-                      <th style={{ minWidth: 180 }}>Blades</th>
-                      <th style={{ width: 120 }}>Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mapToSortedArray(data.blades.map).map(([name, count]) => (
-                      <tr key={name}>
-                        <td>{name}</td>
-                        <td>{count}</td>
-                      </tr>
-                    ))}
-                    {data.blades.map.size === 0 ? (
-                      <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No blades assigned</td></tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{ display: 'flex', gap: 12, marginTop: 8, color: 'var(--muted)' }}>
-                <div>Missing boat assignments: {data.boats.missing}</div>
-                <div>Missing blade assignments: {data.blades.missing}</div>
-              </div>
+                  ))}
+                  {boatGroups[0].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
+                </tbody>
+              </table>
             </div>
-          )
-        })}
+          </div>
+          <div className="card">
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x/4-/4+</div>
+            <div className="table-scroll">
+              <table className="sheet">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 220 }}>Boat</th>
+                    <th style={{ width: 120 }}>Loaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boatGroups[1].map((name) => (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>
+                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                      </td>
+                    </tr>
+                  ))}
+                  {boatGroups[1].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="card">
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 2x/2-/2+</div>
+            <div className="table-scroll">
+              <table className="sheet">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 220 }}>Boat</th>
+                    <th style={{ width: 120 }}>Loaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boatGroups[2].map((name) => (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>
+                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                      </td>
+                    </tr>
+                  ))}
+                  {boatGroups[2].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="card">
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 1x</div>
+            <div className="table-scroll">
+              <table className="sheet">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 220 }}>Boat</th>
+                    <th style={{ width: 120 }}>Loaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boatGroups[3].map((name) => (
+                    <tr key={name}>
+                      <td>{name}</td>
+                      <td>
+                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                      </td>
+                    </tr>
+                  ))}
+                  {boatGroups[3].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle: Blades */}
+        <div className="card">
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Blades</div>
+          <div className="table-scroll">
+            <table className="sheet">
+              <thead>
+                <tr>
+                  <th style={{ minWidth: 180 }}>Set</th>
+                  <th style={{ width: 120 }}>Loaded</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mapToSortedArray(overall.blades.map).map(([name]) => (
+                  <tr key={name}>
+                    <td>{name}</td>
+                    <td>
+                      <input type="checkbox" checked={!!loadedBlades[name]} onChange={(e)=> setLoadedBlades(prev => ({ ...prev, [name]: e.target.checked }))} />
+                    </td>
+                  </tr>
+                ))}
+                {overall.blades.map.size === 0 ? (
+                  <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>No blades assigned yet</td></tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right: Other equipment */}
+        <div className="card">
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Other equipment</div>
+          <div style={{ color: 'var(--muted)' }}>TBC</div>
+        </div>
       </div>
     </div>
   )
