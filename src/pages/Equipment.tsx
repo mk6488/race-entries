@@ -23,6 +23,7 @@ export function Equipment() {
     { title: 'Site setup', items: ['Gazebo', 'Tables', 'Chairs', 'Kitchen'] },
   ], [])
   const [loadedOther, setLoadedOther] = useState<Record<string, boolean>>({})
+  const [otherAmounts, setOtherAmounts] = useState<Record<string, string>>({})
   const dayOptions = useMemo(() => {
     if (!race) return [] as string[]
     return enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel)
@@ -69,6 +70,11 @@ export function Equipment() {
       const l = b ? JSON.parse(b) : {}
       setLoadedOther(l && typeof l === 'object' ? l : {})
     } catch {}
+    try {
+      const b = localStorage.getItem(`equip:${raceId}:otherAmounts`)
+      const l = b ? JSON.parse(b) : {}
+      setOtherAmounts(l && typeof l === 'object' ? l : {})
+    } catch {}
   }, [raceId])
 
   useEffect(() => {
@@ -87,6 +93,10 @@ export function Equipment() {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:other`, JSON.stringify(loadedOther)) } catch {}
   }, [loadedOther, raceId])
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`equip:${raceId}:otherAmounts`, JSON.stringify(otherAmounts)) } catch {}
+  }, [otherAmounts, raceId])
 
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
@@ -393,6 +403,7 @@ export function Equipment() {
                   <thead>
                     <tr>
                       <th style={{ minWidth: 220 }}>Item</th>
+                      <th style={{ width: 120 }}>Amount</th>
                       <th style={{ width: 120 }}>Loaded</th>
                     </tr>
                   </thead>
@@ -400,6 +411,15 @@ export function Equipment() {
                     {section.items.map((name) => (
                       <tr key={name}>
                         <td>{name}</td>
+                        <td>
+                          <input
+                            type="number"
+                            min={0}
+                            value={otherAmounts[name] ?? ''}
+                            onChange={(e)=> setOtherAmounts(prev => ({ ...prev, [name]: e.target.value }))}
+                            style={{ width: 90 }}
+                          />
+                        </td>
                         <td>
                           <input type="checkbox" checked={!!loadedOther[name]} onChange={(e)=> setLoadedOther(prev => ({ ...prev, [name]: e.target.checked }))} />
                         </td>
