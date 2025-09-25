@@ -123,6 +123,10 @@ export function Trailer() {
       const b = localStorage.getItem(`trailer:${raceId}:big`)
       setBigBoard(b ? JSON.parse(b) : {})
     } catch {}
+    try {
+      const m = localStorage.getItem(`trailer:${raceId}:mode`)
+      if (m === 'small' || m === 'big' || m === 'both') setMode(m)
+    } catch {}
   }, [raceId])
 
   useEffect(() => {
@@ -137,6 +141,11 @@ export function Trailer() {
     if (!raceId) return
     try { localStorage.setItem(`trailer:${raceId}:big`, JSON.stringify(bigBoard)) } catch {}
   }, [raceId, bigBoard])
+
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`trailer:${raceId}:mode`, mode) } catch {}
+  }, [raceId, mode])
 
   // Ensure newly entered boats appear in unassigned if not already placed
   useEffect(() => {
