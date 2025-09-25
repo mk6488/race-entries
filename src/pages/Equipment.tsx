@@ -14,7 +14,7 @@ export function Equipment() {
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
-  const [bladeAmounts, setBladeAmounts] = useState<Record<string, number>>({})
+  const [bladeAmounts, setBladeAmounts] = useState<Record<string, string>>({})
   const dayOptions = useMemo(() => {
     if (!race) return [] as string[]
     return enumerateDaysInclusive(race.startDate, race.endDate).map(formatDayLabel)
@@ -335,7 +335,7 @@ export function Equipment() {
               </thead>
               <tbody>
                 {mapToSortedArray(overall.blades.map).map(([name, counted]) => {
-                  const amount = (name in bladeAmounts) ? bladeAmounts[name] : (counted || 0)
+                  const amount = (name in bladeAmounts) ? bladeAmounts[name] : ''
                   return (
                     <tr key={name}>
                       <td>{name}</td>
@@ -344,9 +344,10 @@ export function Equipment() {
                           type="number"
                           min={0}
                           value={amount}
+                          placeholder={String(counted || '')}
                           onChange={(e)=> {
-                            const v = parseInt(e.target.value || '0', 10)
-                            setBladeAmounts(prev => ({ ...prev, [name]: Number.isFinite(v) ? v : 0 }))
+                            const v = e.target.value
+                            setBladeAmounts(prev => ({ ...prev, [name]: v }))
                           }}
                           style={{ width: 90 }}
                         />
