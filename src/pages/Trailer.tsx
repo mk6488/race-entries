@@ -77,6 +77,10 @@ export function Trailer() {
     for (const b of boatsRef) m.set((b.name||'').trim(), (b.type||'').trim())
     return m
   }, [boatsRef])
+
+  function getBaseName(name: string): string {
+    return name.replace(/\s\((?:1\/2|2\/2)\)$/,'')
+  }
   function typeGroupIndex(t: string): number {
     const type = (t || '').toLowerCase()
     if (type === '8+' || type === '8x+') return 0
@@ -88,12 +92,12 @@ export function Trailer() {
   }
   function sortBoats(list: string[]) {
     return [...list].sort((a,b) => {
-      const ta = boatNameToType.get(a) || ''
-      const tb = boatNameToType.get(b) || ''
+      const ta = boatNameToType.get(getBaseName(a)) || ''
+      const tb = boatNameToType.get(getBaseName(b)) || ''
       const ga = typeGroupIndex(ta)
       const gb = typeGroupIndex(tb)
       if (ga !== gb) return ga - gb
-      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+      return getBaseName(a).localeCompare(getBaseName(b), undefined, { numeric: true, sensitivity: 'base' })
     })
   }
 
@@ -152,8 +156,19 @@ export function Trailer() {
     const placed = new Set<string>()
     const collect = (board: BoardState) => Object.values(board).forEach(list => list.forEach(x => placed.add(x)))
     collect(smallBoard); collect(bigBoard)
-    const list = boats.filter(b => !placed.has(b) && !unassigned.includes(b))
-    if (list.length) setUnassigned(prev => sortBoats([...prev, ...list]))
+    const toAdd: string[] = []
+    for (const b of boats) {
+      if (placed.has(b)) continue
+      // Skip if either base or halves already present in unassigned
+      if (unassigned.includes(b) || unassigned.includes(`${b} (1/2)`) || unassigned.includes(`${b} (2/2)`)) continue
+      const t = boatNameToType.get(b) || ''
+      if (typeGroupIndex(t) === 0) {
+        toAdd.push(`${b} (1/2)`, `${b} (2/2)`)
+      } else {
+        toAdd.push(b)
+      }
+    }
+    if (toAdd.length) setUnassigned(prev => sortBoats([...prev, ...toAdd]))
   }, [boats])
 
   // Ensure unassigned stays sorted (after refresh or when boat types load)
@@ -203,6 +218,25 @@ export function Trailer() {
       }
     }
   }
+
+  // If legacy unassigned contains base 8+ names, expand to halves
+  useEffect(() => {
+    setUnassigned(prev => {
+      const next: string[] = []
+      let changed = false
+      for (const it of prev) {
+        const base = getBaseName(it)
+        const t = boatNameToType.get(base) || ''
+        if (it === base && typeGroupIndex(t) === 0) {
+          next.push(`${base} (1/2)`, `${base} (2/2)`)
+          changed = true
+        } else {
+          next.push(it)
+        }
+      }
+      return changed ? sortBoats(Array.from(new Set(next))) : prev
+    })
+  }, [boatNameToType])
 
   const small = createLayout('small')
   const big = createLayout('big')
