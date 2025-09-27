@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react'
-import { subscribeRaces } from '../data/races'
-import type { Race } from '../models/race'
+import { subscribeRaces, createRace } from '../data/races'
+import type { Race, NewRace } from '../models/race'
 import { Link } from 'react-router-dom'
-import { toInputDate } from '../utils/dates'
+import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal } from '../utils/dates'
+import { Modal } from '../ui/Modal'
 
 export function Home() {
   const [races, setRaces] = useState<Race[]>([])
   useEffect(() => subscribeRaces(setRaces), [])
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState<NewRace>({
+    name: '',
+    details: '',
+    startDate: new Date(),
+    endDate: null,
+    broeOpens: new Date(),
+    broeCloses: new Date(),
+  })
 
   return (
     <div>
       <div className="card" style={{ marginTop: 4 }}>
-        <h1 style={{ marginTop: 0 }}>Select a race</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
+          <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
+        </div>
         <div className="race-grid">
           {races.map((r) => {
             const start = toInputDate(r.startDate)
@@ -27,6 +40,78 @@ export function Home() {
           })}
         </div>
       </div>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Create race" footer={null}>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (!form.name.trim()) return
+            await createRace(form)
+            setForm({ ...form, name: '', details: '' })
+            setOpen(false)
+          }}
+          style={{ display: 'grid', gap: 12 }}
+        >
+          <div style={{ display: 'grid', gap: 6 }}>
+            <label>Name</label>
+            <input
+              placeholder="e.g. Head of the River"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <label>Details</label>
+            <textarea
+              placeholder="Add notes or description"
+              value={form.details}
+              onChange={(e) => setForm({ ...form, details: e.target.value })}
+              rows={4}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Start date</label>
+              <input
+                type="date"
+                value={toInputDate(form.startDate)}
+                onChange={(e) => setForm({ ...form, startDate: fromInputDate(e.target.value) })}
+              />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>End date</label>
+              <input
+                type="date"
+                value={form.endDate ? toInputDate(form.endDate) : ''}
+                onChange={(e) => setForm({ ...form, endDate: e.target.value ? fromInputDate(e.target.value) : null })}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Entries open</label>
+              <input
+                type="datetime-local"
+                value={toInputDateTimeLocal(form.broeOpens)}
+                onChange={(e) => setForm({ ...form, broeOpens: fromInputDateTimeLocal(e.target.value) })}
+              />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Entries close</label>
+              <input
+                type="datetime-local"
+                value={toInputDateTimeLocal(form.broeCloses)}
+                onChange={(e) => setForm({ ...form, broeCloses: fromInputDateTimeLocal(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+            <button type="button" className="secondary-btn" onClick={() => setOpen(false)}>Cancel</button>
+            <button type="submit" className="primary-btn">Create</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
