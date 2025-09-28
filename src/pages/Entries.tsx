@@ -396,7 +396,7 @@ export function Entries() {
             </div>
 
             {/* Mobile stacked layout (four rows) */}
-            <div className="mobile-only" style={{ display: 'grid', gap: 8 }}>
+            <div className="mobile-only entry-mobile">
               {/* Row 1: Date, Div, Event */}
               <div className="entry-row" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
                 <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
