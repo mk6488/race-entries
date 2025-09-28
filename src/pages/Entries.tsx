@@ -395,15 +395,18 @@ export function Entries() {
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
 
-            {/* Mobile stacked layout (original) */}
+            {/* Mobile layout: 4 lines */}
             <div className="mobile-only" style={{ display: 'grid', gap: 8 }}>
+              {/* Line 1: Date, Div, Event */}
               <div className="entry-top">
                 <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
                 <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
                 <span className="entry-event">{r.event || '-'}</span>
               </div>
+              {/* Line 2: Crew */}
               <div className="entry-names">{r.athleteNames || '-'}</div>
-              <div className="entry-bottom">
+              {/* Line 3: Boat, Blades */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 <span>
                   Boat: {r.boat || '-'}
                   {hasClash ? (
@@ -413,7 +416,11 @@ export function Entries() {
                   ) : null}
                 </span>
                 <span>Blades: {r.blades || '-'}</span>
-                <span className={`status ${r.status}`}
+              </div>
+              {/* Line 4: Status, Crew changed */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                <span
+                  className={`status ${r.status}`}
                   onClick={(e) => {
                     e.stopPropagation()
                     const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
@@ -421,8 +428,9 @@ export function Entries() {
                     updateCell(r.id, { status: next as any })
                   }}
                   title="Click to change status"
+                  style={{ cursor: 'pointer' }}
                 >{r.status.replace('_',' ')}</span>
-                <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                   Crew changed
                 </label>
