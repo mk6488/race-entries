@@ -14,6 +14,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 const auth = getAuth(app)
+export const authReady: Promise<void> = new Promise((resolve) => {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      signInAnonymously(auth).catch(() => {})
+      return
+    }
+    resolve()
+  })
+})
 
 // Ensure a signed-in user for Firestore rules requiring auth
 onAuthStateChanged(auth, (user) => {

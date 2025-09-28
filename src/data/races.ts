@@ -1,5 +1,5 @@
 import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, getDoc } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, authReady } from '../firebase'
 import type { NewRace, Race } from '../models/race'
 
 const racesCol = collection(db, 'races')
@@ -46,15 +46,18 @@ export async function getRaceById(id: string): Promise<Race | null> {
 }
 
 export async function createRace(data: NewRace) {
+  await authReady.catch(() => {})
   const ref = await addDoc(racesCol, fromRace(data))
   return ref.id
 }
 
 export async function updateRace(id: string, data: Partial<NewRace>) {
+  await authReady.catch(() => {})
   await updateDoc(doc(db, 'races', id), fromRacePartial(data))
 }
 
 export async function deleteRace(id: string) {
+  await authReady.catch(() => {})
   await deleteDoc(doc(db, 'races', id))
 }
 
