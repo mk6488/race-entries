@@ -271,6 +271,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .entry-mobile-grid .event { font-weight: 600; }
   .entry-mobile-grid .names { grid-column: 1 / -1; }
   .entry-mobile-grid .col-span-3 { grid-column: 1 / -1; }
+  .entry-mobile-grid .col-span-2 { grid-column: span 2; }
 }
 
 /* Print styles */

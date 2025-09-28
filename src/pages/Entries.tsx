@@ -403,8 +403,8 @@ export function Entries() {
               <div className="cell event">{r.event || '-'}</div>
               {/* Row 2: athlete names (span 3) */}
               <div className="cell names col-span-3">{r.athleteNames || '-'}</div>
-              {/* Row 3: boat | blades | EMPTY */}
-              <div className="cell boat">
+              {/* Row 3: boat (span 2) | blades */}
+              <div className="cell boat col-span-2">
                 Boat: {r.boat || '-'}
                 {hasClash ? (
                   <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
@@ -413,7 +413,6 @@ export function Entries() {
                 ) : null}
               </div>
               <div className="cell blades">Blades: {r.blades || '-'}</div>
-              <div className="cell" />
               {/* Row 4: status | EMPTY | crew changed */}
               <div className="cell">
                 <span
