@@ -269,10 +269,11 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .entry-mobile-grid .cell { min-width: 0; }
   .entry-mobile-grid .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); font-size: 12px; }
   .entry-mobile-grid .event { font-weight: 600; }
-  .entry-mobile-grid .names { grid-column: 1 / -1; }
+  .entry-mobile-grid .names { grid-column: 1 / -1; font-weight: 600; }
   .entry-mobile-grid .col-span-3 { grid-column: 1 / -1; }
   .entry-mobile-grid .col-span-2 { grid-column: span 2; }
   .entry-mobile-grid .right { justify-self: end; }
+  .entry-mobile-grid .changes { color: var(--muted); font-size: 12px; }
 }
 
 /* Print styles */

@@ -428,7 +428,7 @@ export function Entries() {
               </div>
               <div className="cell" />
               <div className="cell" onClick={(e)=>e.stopPropagation()}>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <label className="changes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   Changes
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                 </label>
