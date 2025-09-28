@@ -423,10 +423,11 @@ export function Entries() {
                 <div className="label">Blades</div>
                 <div className="value">{r.blades || '-'}</div>
               </div>
-              <div className="field">
+              <div className="field col-span-2">
                 <div className="label">Status</div>
-                <div className="value">
-                  <span className={`status ${r.status}`}
+                <div className="value" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <span
+                    className={`status ${r.status}`}
                     onClick={(e) => {
                       e.stopPropagation()
                       const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
@@ -436,13 +437,9 @@ export function Entries() {
                     title="Click to change status"
                     style={{ cursor: 'pointer' }}
                   >{r.status.replace('_',' ')}</span>
-                </div>
-              </div>
-              <div className="field">
-                <div className="label">Crew changed</div>
-                <div className="value">
                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
                     <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
+                    Crew changed
                   </label>
                 </div>
               </div>
