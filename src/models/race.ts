@@ -7,6 +7,7 @@ export type Race = {
   broeOpens: Date
   broeCloses: Date
   drawReleased?: boolean
+  archived?: boolean
 }
 
 export type NewRace = Omit<Race, 'id'>

@@ -9,7 +9,7 @@ service cloud.firestore {
     function hasOnlyFields(data, allowed) { return data.keys().hasOnly(allowed); }
 
     function validRace(data) {
-      return hasOnlyFields(data, ['name','details','startDate','endDate','broeOpens','broeCloses','drawReleased']) &&
+      return hasOnlyFields(data, ['name','details','startDate','endDate','broeOpens','broeCloses','drawReleased','archived']) &&
         isString(data.name) && data.name.size() > 0 && data.name.size() <= 200 &&
         isString(data.details) &&
         isTimestamp(data.startDate) &&
@@ -18,7 +18,8 @@ service cloud.firestore {
         isTimestamp(data.broeCloses) &&
         (!('endDate' in data) || data.endDate == null || data.endDate >= data.startDate) &&
         data.broeOpens <= data.broeCloses &&
-        (!('drawReleased' in data) || (data.drawReleased is bool));
+        (!('drawReleased' in data) || (data.drawReleased is bool)) &&
+        (!('archived' in data) || (data.archived is bool));
     }
 
     // races collection

@@ -14,6 +14,7 @@ function toRace(id: string, data: any): Race {
     broeOpens: (data.broeOpens as Timestamp).toDate(),
     broeCloses: (data.broeCloses as Timestamp).toDate(),
     drawReleased: !!data.drawReleased,
+    archived: !!data.archived,
   }
 }
 
@@ -26,6 +27,7 @@ function fromRace(r: NewRace) {
     broeOpens: Timestamp.fromDate(r.broeOpens),
     broeCloses: Timestamp.fromDate(r.broeCloses),
     drawReleased: r.drawReleased ?? false,
+    archived: r.archived ?? false,
   }
 }
 
@@ -65,6 +67,7 @@ function fromRacePartial(r: Partial<NewRace>) {
   if (r.broeOpens !== undefined) out.broeOpens = Timestamp.fromDate(r.broeOpens)
   if (r.broeCloses !== undefined) out.broeCloses = Timestamp.fromDate(r.broeCloses)
   if (r.drawReleased !== undefined) out.drawReleased = r.drawReleased
+  if (r.archived !== undefined) out.archived = r.archived
   return out
 }
 

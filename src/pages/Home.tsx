@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { subscribeRaces, createRace } from '../data/races'
+import { subscribeRaces, createRace, updateRace } from '../data/races'
 import type { Race, NewRace } from '../models/race'
 import { Link } from 'react-router-dom'
 import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal } from '../utils/dates'
@@ -18,6 +18,15 @@ export function Home() {
     broeCloses: new Date(),
   })
 
+  const now = new Date()
+  function canArchive(r: Race): boolean {
+    const d = r.endDate ?? r.startDate
+    const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
+    return now > endOfDay
+  }
+
+  const visibleRaces = races.filter(r => !r.archived)
+
   return (
     <div>
       <div className="card" style={{ marginTop: 4 }}>
@@ -26,16 +35,30 @@ export function Home() {
           <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
         </div>
         <div className="race-grid">
-          {races.map((r) => {
+          {visibleRaces.map((r) => {
             const start = toInputDate(r.startDate)
             const end = r.endDate ? toInputDate(r.endDate) : null
             const dateLabel = end && end !== start ? `${start} → ${end}` : start
             return (
-              <Link to={`/entries/${r.id}`} className="race-card" key={r.id}>
-                <div className="race-date">{dateLabel}</div>
-                <div className="race-name">{r.name}</div>
-                <div className="race-details">{r.details || 'No details'}</div>
-              </Link>
+              <div className="race-card" key={r.id}>
+                <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div className="race-date">{dateLabel}</div>
+                  <div className="race-name">{r.name}</div>
+                  <div className="race-details">{r.details || 'No details'}</div>
+                </Link>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                  <button
+                    className="secondary-btn"
+                    disabled={!canArchive(r)}
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      await updateRace(r.id, { archived: true })
+                    }}
+                  >
+                    Archive
+                  </button>
+                </div>
+              </div>
             )
           })}
         </div>
