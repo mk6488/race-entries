@@ -57,7 +57,10 @@ export function Home() {
       <div className="card" style={{ marginTop: 4 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
-          <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Link to="/archive" className="secondary-btn">Archive</Link>
+            <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
+          </div>
         </div>
         <div className="race-grid">
           {visibleRaces.map((r) => {
