@@ -426,8 +426,7 @@ export function Entries() {
                   title="Click to change status"
                 >{r.status.replace('_',' ')}</span>
               </div>
-              <div className="cell" />
-              <div className="cell" onClick={(e)=>e.stopPropagation()}>
+              <div className="cell col-span-2 right" onClick={(e)=>e.stopPropagation()}>
                 <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                   Crew changed
