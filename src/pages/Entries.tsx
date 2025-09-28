@@ -395,15 +395,13 @@ export function Entries() {
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
 
-            {/* Mobile stacked layout (original) */}
-            <div className="mobile-only" style={{ display: 'grid', gap: 8 }}>
-              <div className="entry-top">
-                <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
-                <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
-                <span className="entry-event">{r.event || '-'}</span>
-              </div>
-              <div className="entry-names">{r.athleteNames || '-'}</div>
-              <div className="entry-bottom">
+            {/* Mobile 4x3 grid layout */}
+            <div className="mobile-only entry-mobile-grid">
+              <div><span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span></div>
+              <div><span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span></div>
+              <div><span className="entry-event">{r.event || '-'}</span></div>
+              <div className="cell-span-3">{r.athleteNames || '-'}</div>
+              <div>
                 <span>
                   Boat: {r.boat || '-'}
                   {hasClash ? (
@@ -412,7 +410,10 @@ export function Entries() {
                     </span>
                   ) : null}
                 </span>
-                <span>Blades: {r.blades || '-'}</span>
+              </div>
+              <div><span>Blades: {r.blades || '-'}</span></div>
+              <div></div>
+              <div>
                 <span className={`status ${r.status}`}
                   onClick={(e) => {
                     e.stopPropagation()
@@ -422,12 +423,15 @@ export function Entries() {
                   }}
                   title="Click to change status"
                 >{r.status.replace('_',' ')}</span>
-                <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
+              </div>
+              <div></div>
+              <div>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                   Crew changed
                 </label>
               </div>
-              {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
+              {r.notes?.trim() ? <div className="cell-span-3 entry-notes">{r.notes}</div> : null}
             </div>
           </div>
           )

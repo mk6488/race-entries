@@ -207,6 +207,11 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .chip button:hover { color: #0f172a; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
+/* Mobile grid layout for entry cards */
+.entry-mobile-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 8px; align-items: center; width: 100%; }
+.entry-mobile-grid .cell-span-3 { grid-column: 1 / -1; }
+.entry-mobile-grid .label { color: var(--muted); }
+
 /* Row action (hidden on print) */
 .row-action { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; cursor: pointer; }
 .row-action:hover { background: #f3f4f6; }
