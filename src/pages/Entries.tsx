@@ -395,18 +395,18 @@ export function Entries() {
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
 
-            {/* Mobile layout: 4 lines */}
+            {/* Mobile stacked layout (four rows) */}
             <div className="mobile-only" style={{ display: 'grid', gap: 8 }}>
-              {/* Line 1: Date, Div, Event */}
-              <div className="entry-top">
+              {/* Row 1: Date, Div, Event */}
+              <div className="entry-row" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
                 <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
                 <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
                 <span className="entry-event">{r.event || '-'}</span>
               </div>
-              {/* Line 2: Crew */}
-              <div className="entry-names">{r.athleteNames || '-'}</div>
-              {/* Line 3: Boat, Blades */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {/* Row 2: Crew */}
+              <div className="entry-row entry-names">{r.athleteNames || '-'}</div>
+              {/* Row 3: Boat, Blades */}
+              <div className="entry-row" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
                 <span>
                   Boat: {r.boat || '-'}
                   {hasClash ? (
@@ -417,10 +417,9 @@ export function Entries() {
                 </span>
                 <span>Blades: {r.blades || '-'}</span>
               </div>
-              {/* Line 4: Status, Crew changed */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
-                <span
-                  className={`status ${r.status}`}
+              {/* Row 4: Status, Crew changed */}
+              <div className="entry-row" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className={`status ${r.status}`}
                   onClick={(e) => {
                     e.stopPropagation()
                     const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
@@ -428,9 +427,8 @@ export function Entries() {
                     updateCell(r.id, { status: next as any })
                   }}
                   title="Click to change status"
-                  style={{ cursor: 'pointer' }}
                 >{r.status.replace('_',' ')}</span>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
+                <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                   Crew changed
                 </label>
