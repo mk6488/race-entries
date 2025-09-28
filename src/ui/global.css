@@ -272,6 +272,10 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .entry-mobile .value { min-width: 0; white-space: normal; word-break: break-word; line-height: 1.35; }
   .entry-mobile .topline .value { display: inline-flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
   .entry-mobile .topline .entry-event { font-weight: 600; }
+  /* Make value span full width for topline and full-span rows */
+  .entry-mobile .field.topline { grid-template-columns: 1fr; }
+  .entry-mobile .field.col-span-2 { grid-template-columns: 1fr; }
+  .entry-mobile .field.col-span-2 .label { margin-bottom: 2px; }
 }
 
 /* Print styles */
