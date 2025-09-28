@@ -146,9 +146,10 @@ button:hover { background: var(--primary-600); }
 .race-card { display: grid; gap: 6px; text-decoration: none; color: inherit; border: 1px solid var(--border); background: #fff; border-radius: 12px; padding: 12px; transition: box-shadow .15s ease, transform .05s ease; }
 .race-card:hover { box-shadow: 0 6px 18px rgba(2,6,23,.08); transform: translateY(-1px); }
 .race-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.race-actions { display: none; gap: 8px; }
-@media (min-width: 900px) {
-  .race-actions { display: inline-flex; }
+.race-actions { display: inline-flex; gap: 8px; }
+@media (max-width: 900px) {
+  .race-card-header { flex-wrap: wrap; align-items: flex-start; }
+  .race-actions { width: 100%; justify-content: flex-end; margin-top: 6px; }
 }
 .race-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); font-size: 12px; }
 .race-name { font-weight: 600; }
