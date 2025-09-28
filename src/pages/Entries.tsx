@@ -399,7 +399,7 @@ export function Entries() {
             <div className="mobile-only entry-mobile-grid">
               {/* Row 1: date | div | event */}
               <div className={`mono cell`}>{r.day || '-'}</div>
-              <div className={`mono cell`}>{r.div || '-'}</div>
+              <div className={`mono cell`}>Div {r.div || '-'}</div>
               <div className="cell event">{r.event || '-'}</div>
               {/* Row 2: athlete names (span 3) */}
               <div className="cell names col-span-3">{r.athleteNames || '-'}</div>
