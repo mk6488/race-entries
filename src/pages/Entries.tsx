@@ -395,60 +395,47 @@ export function Entries() {
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
 
-            {/* Mobile improved layout */}
-            <div className="mobile-only entry-mobile">
-              <div className="field col-span-2 topline">
-                <div className="value">
-                  <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
-                  <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
-                  <span className="entry-event">{r.event || '-'}</span>
-                </div>
+            {/* Mobile 5x3 grid layout (data only) */}
+            <div className="mobile-only entry-mobile-grid">
+              {/* Row 1: date | div | event */}
+              <div className={`mono cell`}>{r.day || '-'}</div>
+              <div className={`mono cell`}>{r.div || '-'}</div>
+              <div className="cell event">{r.event || '-'}</div>
+              {/* Row 2: athlete names (span 3) */}
+              <div className="cell names col-span-3">{r.athleteNames || '-'}</div>
+              {/* Row 3: boat | blades | EMPTY */}
+              <div className="cell boat">
+                {r.boat || '-'}
+                {hasClash ? (
+                  <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
+                    {isSilenced ? '⚠️' : '🚨'}
+                  </span>
+                ) : null}
               </div>
-              <div className="field col-span-2">
-                <div className="label">Crew</div>
-                <div className="value entry-names">{r.athleteNames || '-'}</div>
+              <div className="cell blades">{r.blades || '-'}</div>
+              <div className="cell" />
+              {/* Row 4: status | EMPTY | crew changed */}
+              <div className="cell">
+                <span
+                  className={`status ${r.status}`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
+                    const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
+                    updateCell(r.id, { status: next as any })
+                  }}
+                  title="Click to change status"
+                >{r.status.replace('_',' ')}</span>
               </div>
-              <div className="field">
-                <div className="label">Boat</div>
-                <div className="value">
-                  {r.boat || '-'}
-                  {hasClash ? (
-                    <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
-                      {isSilenced ? '⚠️' : '🚨'}
-                    </span>
-                  ) : null}
-                </div>
+              <div className="cell" />
+              <div className="cell" onClick={(e)=>e.stopPropagation()}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
+                  Crew changed
+                </label>
               </div>
-              <div className="field">
-                <div className="label">Blades</div>
-                <div className="value">{r.blades || '-'}</div>
-              </div>
-              <div className="field col-span-2">
-                <div className="label">Status</div>
-                <div className="value" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                  <span
-                    className={`status ${r.status}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
-                      const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
-                      updateCell(r.id, { status: next as any })
-                    }}
-                    title="Click to change status"
-                    style={{ cursor: 'pointer' }}
-                  >{r.status.replace('_',' ')}</span>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
-                    <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
-                    Crew changed
-                  </label>
-                </div>
-              </div>
-              {r.notes?.trim() ? (
-                <div className="field col-span-2">
-                  <div className="label">Notes</div>
-                  <div className="value entry-notes">{r.notes}</div>
-                </div>
-              ) : null}
+              {/* Row 5: notes when present (span 3) */}
+              {r.notes?.trim() ? <div className="cell notes col-span-3 entry-notes">{r.notes}</div> : null}
             </div>
           </div>
           )

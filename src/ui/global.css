@@ -264,18 +264,13 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .nav-drawer a.active { background: #f8fafc; }
   .drawer-overlay.open { display: block; }
   main { overflow-x: hidden; }
-  /* Improved mobile layout for entry cards */
-  .entry-mobile { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px 12px; width: 100%; }
-  .entry-mobile .field { display: grid; grid-template-columns: 84px 1fr; gap: 8px; align-items: center; }
-  .entry-mobile .field.col-span-2 { grid-column: 1 / -1; }
-  .entry-mobile .label { color: var(--muted); font-size: 12px; }
-  .entry-mobile .value { min-width: 0; white-space: normal; word-break: break-word; line-height: 1.35; }
-  .entry-mobile .topline .value { display: inline-flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
-  .entry-mobile .topline .entry-event { font-weight: 600; }
-  /* Make value span full width for topline and full-span rows */
-  .entry-mobile .field.topline { grid-template-columns: 1fr; }
-  .entry-mobile .field.col-span-2 { grid-template-columns: 1fr; }
-  .entry-mobile .field.col-span-2 .label { margin-bottom: 2px; }
+  /* Entries mobile grid 5x3 */
+  .entry-mobile-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; align-items: center; }
+  .entry-mobile-grid .cell { min-width: 0; }
+  .entry-mobile-grid .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); font-size: 12px; }
+  .entry-mobile-grid .event { font-weight: 600; }
+  .entry-mobile-grid .names { grid-column: 1 / -1; }
+  .entry-mobile-grid .col-span-3 { grid-column: 1 / -1; }
 }
 
 /* Print styles */
