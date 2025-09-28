@@ -405,14 +405,14 @@ export function Entries() {
               <div className="cell names col-span-3">{r.athleteNames || '-'}</div>
               {/* Row 3: boat | blades | EMPTY */}
               <div className="cell boat">
-                {r.boat || '-'}
+                Boat: {r.boat || '-'}
                 {hasClash ? (
                   <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
                     {isSilenced ? '⚠️' : '🚨'}
                   </span>
                 ) : null}
               </div>
-              <div className="cell blades">{r.blades || '-'}</div>
+              <div className="cell blades">Blades: {r.blades || '-'}</div>
               <div className="cell" />
               {/* Row 4: status | EMPTY | crew changed */}
               <div className="cell">
