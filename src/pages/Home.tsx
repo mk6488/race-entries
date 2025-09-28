@@ -51,41 +51,45 @@ export function Home() {
             const dateLabel = end && end !== start ? `${start} → ${end}` : start
             return (
               <div className="race-card" key={r.id}>
+                <div className="race-card-header">
+                  <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div className="race-date">{dateLabel}</div>
+                    <div className="race-name">{r.name}</div>
+                  </Link>
+                  <div className="race-actions">
+                    <button
+                      className="secondary-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditId(r.id)
+                        setEditForm({
+                          name: r.name,
+                          details: r.details,
+                          startDate: r.startDate,
+                          endDate: r.endDate ?? null,
+                          broeOpens: r.broeOpens,
+                          broeCloses: r.broeCloses,
+                        })
+                        setEditOpen(true)
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="secondary-btn"
+                      disabled={!canArchive(r)}
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        await updateRace(r.id, { archived: true })
+                      }}
+                    >
+                      Archive
+                    </button>
+                  </div>
+                </div>
                 <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <div className="race-date">{dateLabel}</div>
-                  <div className="race-name">{r.name}</div>
                   <div className="race-details">{r.details || 'No details'}</div>
                 </Link>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-                  <button
-                    className="secondary-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditId(r.id)
-                      setEditForm({
-                        name: r.name,
-                        details: r.details,
-                        startDate: r.startDate,
-                        endDate: r.endDate ?? null,
-                        broeOpens: r.broeOpens,
-                        broeCloses: r.broeCloses,
-                      })
-                      setEditOpen(true)
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="secondary-btn"
-                    disabled={!canArchive(r)}
-                    onClick={async (e) => {
-                      e.stopPropagation()
-                      await updateRace(r.id, { archived: true })
-                    }}
-                  >
-                    Archive
-                  </button>
-                </div>
               </div>
             )
           })}
