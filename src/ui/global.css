@@ -207,11 +207,6 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .chip button:hover { color: #0f172a; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
-/* Mobile grid layout for entry cards */
-.entry-mobile-grid { display: grid !important; grid-template-columns: 1fr 1fr 1fr; gap: 6px 8px; align-items: center; width: 100%; }
-.entry-mobile-grid .cell-span-3 { grid-column: 1 / -1; }
-.entry-mobile-grid .label { color: var(--muted); }
-
 /* Row action (hidden on print) */
 .row-action { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; cursor: pointer; }
 .row-action:hover { background: #f3f4f6; }
@@ -269,6 +264,12 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .nav-drawer a.active { background: #f8fafc; }
   .drawer-overlay.open { display: block; }
   main { overflow-x: hidden; }
+  /* Improved mobile layout for entry cards */
+  .entry-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; width: 100%; }
+  .entry-mobile .field { display: grid; grid-template-columns: 84px 1fr; gap: 8px; align-items: center; }
+  .entry-mobile .field.col-span-2 { grid-column: 1 / -1; }
+  .entry-mobile .label { color: var(--muted); font-size: 12px; }
+  .entry-mobile .value { min-width: 0; }
 }
 
 /* Print styles */

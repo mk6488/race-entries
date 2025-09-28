@@ -395,43 +395,63 @@ export function Entries() {
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
 
-            {/* Mobile 4x3 grid layout */}
-            <div className="mobile-only entry-mobile-grid">
-              <div><span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span></div>
-              <div><span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span></div>
-              <div><span className="entry-event">{r.event || '-'}</span></div>
-              <div className="cell-span-3">{r.athleteNames || '-'}</div>
-              <div>
-                <span>
-                  Boat: {r.boat || '-'}
+            {/* Mobile improved layout */}
+            <div className="mobile-only entry-mobile">
+              <div className="field col-span-2">
+                <div className="value" style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
+                  <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
+                  <span className="entry-event">{r.event || '-'}</span>
+                </div>
+              </div>
+              <div className="field col-span-2">
+                <div className="label">Crew</div>
+                <div className="value entry-names">{r.athleteNames || '-'}</div>
+              </div>
+              <div className="field">
+                <div className="label">Boat</div>
+                <div className="value">
+                  {r.boat || '-'}
                   {hasClash ? (
                     <span className={`clash-icon ${isSilenced ? 'silenced' : 'active'}`} title={isSilenced ? 'Clash silenced' : 'Boat clash'} style={{ marginLeft: 6 }}>
                       {isSilenced ? '⚠️' : '🚨'}
                     </span>
                   ) : null}
-                </span>
+                </div>
               </div>
-              <div><span>Blades: {r.blades || '-'}</span></div>
-              <div></div>
-              <div>
-                <span className={`status ${r.status}`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
-                    const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
-                    updateCell(r.id, { status: next as any })
-                  }}
-                  title="Click to change status"
-                >{r.status.replace('_',' ')}</span>
+              <div className="field">
+                <div className="label">Blades</div>
+                <div className="value">{r.blades || '-'}</div>
               </div>
-              <div></div>
-              <div>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
-                  <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
-                  Crew changed
-                </label>
+              <div className="field">
+                <div className="label">Status</div>
+                <div className="value">
+                  <span className={`status ${r.status}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const cycle = ['in_progress','ready','entered','withdrawn','rejected'] as const
+                      const next = cycle[(cycle.indexOf((r.status as any)) + 1) % cycle.length]
+                      updateCell(r.id, { status: next as any })
+                    }}
+                    title="Click to change status"
+                    style={{ cursor: 'pointer' }}
+                  >{r.status.replace('_',' ')}</span>
+                </div>
               </div>
-              {r.notes?.trim() ? <div className="cell-span-3 entry-notes">{r.notes}</div> : null}
+              <div className="field">
+                <div className="label">Crew changed</div>
+                <div className="value">
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
+                    <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
+                  </label>
+                </div>
+              </div>
+              {r.notes?.trim() ? (
+                <div className="field col-span-2">
+                  <div className="label">Notes</div>
+                  <div className="value entry-notes">{r.notes}</div>
+                </div>
+              ) : null}
             </div>
           </div>
           )
