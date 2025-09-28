@@ -37,7 +37,12 @@ export function Archive() {
                       className="secondary-btn"
                       onClick={async (e) => {
                         e.stopPropagation()
-                        await updateRace(r.id, { archived: false })
+                        try {
+                          await updateRace(r.id, { archived: false })
+                        } catch (err) {
+                          alert('Failed to unarchive race. Please try again.')
+                          console.error(err)
+                        }
                       }}
                     >
                       Unarchive

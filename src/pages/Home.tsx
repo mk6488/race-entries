@@ -41,7 +41,11 @@ export function Home() {
     const toArchive = races.filter(r => !r.archived && isAutoArchive(r))
     if (toArchive.length) {
       ;(async () => {
-        await Promise.all(toArchive.map(r => updateRace(r.id, { archived: true })))
+        try {
+          await Promise.all(toArchive.map(r => updateRace(r.id, { archived: true })))
+        } catch (err) {
+          console.warn('Auto-archive failed', err)
+        }
       })()
     }
   }, [races])
@@ -90,7 +94,12 @@ export function Home() {
                       className="secondary-btn"
                       onClick={async (e) => {
                         e.stopPropagation()
-                        await updateRace(r.id, { archived: true })
+                        try {
+                          await updateRace(r.id, { archived: true })
+                        } catch (err) {
+                          alert('Failed to archive race. Please try again.')
+                          console.error(err)
+                        }
                       }}
                     >
                       Archive now
@@ -111,9 +120,14 @@ export function Home() {
           onSubmit={async (e) => {
             e.preventDefault()
             if (!form.name.trim()) return
-            await createRace(form)
-            setForm({ ...form, name: '', details: '' })
-            setOpen(false)
+            try {
+              await createRace(form)
+              setForm({ ...form, name: '', details: '' })
+              setOpen(false)
+            } catch (err) {
+              alert('Failed to create race. Please try again.')
+              console.error(err)
+            }
           }}
           style={{ display: 'grid', gap: 12 }}
         >
@@ -184,9 +198,14 @@ export function Home() {
             e.preventDefault()
             if (!editId) return
             if (!editForm.name.trim()) return
-            await updateRace(editId, editForm)
-            setEditOpen(false)
-            setEditId(null)
+            try {
+              await updateRace(editId, editForm)
+              setEditOpen(false)
+              setEditId(null)
+            } catch (err) {
+              alert('Failed to update race. Please try again.')
+              console.error(err)
+            }
           }}
           style={{ display: 'grid', gap: 12 }}
         >
