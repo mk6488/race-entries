@@ -29,13 +29,24 @@ export function Home() {
   })
 
   const now = new Date()
-  function canArchive(r: Race): boolean {
+  function isAutoArchive(r: Race): boolean {
     const d = r.endDate ?? r.startDate
-    const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
-    return now > endOfDay
+    const cutoff = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+    cutoff.setDate(cutoff.getDate() + 1) // day after the event
+    return now >= cutoff
   }
 
-  const visibleRaces = races.filter(r => !r.archived)
+  // Auto-archive races the day after the event if not archived yet
+  useEffect(() => {
+    const toArchive = races.filter(r => !r.archived && isAutoArchive(r))
+    if (toArchive.length) {
+      ;(async () => {
+        await Promise.all(toArchive.map(r => updateRace(r.id, { archived: true })))
+      })()
+    }
+  }, [races])
+
+  const visibleRaces = races.filter(r => !r.archived && !isAutoArchive(r))
 
   return (
     <div>
@@ -77,13 +88,12 @@ export function Home() {
                     </button>
                     <button
                       className="secondary-btn"
-                      disabled={!canArchive(r)}
                       onClick={async (e) => {
                         e.stopPropagation()
                         await updateRace(r.id, { archived: true })
                       }}
                     >
-                      Archive
+                      Archive now
                     </button>
                   </div>
                 </div>
