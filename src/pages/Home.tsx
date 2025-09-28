@@ -17,6 +17,16 @@ export function Home() {
     broeOpens: new Date(),
     broeCloses: new Date(),
   })
+  const [editOpen, setEditOpen] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<NewRace>({
+    name: '',
+    details: '',
+    startDate: new Date(),
+    endDate: null,
+    broeOpens: new Date(),
+    broeCloses: new Date(),
+  })
 
   const now = new Date()
   function canArchive(r: Race): boolean {
@@ -46,7 +56,25 @@ export function Home() {
                   <div className="race-name">{r.name}</div>
                   <div className="race-details">{r.details || 'No details'}</div>
                 </Link>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+                  <button
+                    className="secondary-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setEditId(r.id)
+                      setEditForm({
+                        name: r.name,
+                        details: r.details,
+                        startDate: r.startDate,
+                        endDate: r.endDate ?? null,
+                        broeOpens: r.broeOpens,
+                        broeCloses: r.broeCloses,
+                      })
+                      setEditOpen(true)
+                    }}
+                  >
+                    Edit
+                  </button>
                   <button
                     className="secondary-btn"
                     disabled={!canArchive(r)}
@@ -132,6 +160,77 @@ export function Home() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
             <button type="button" className="secondary-btn" onClick={() => setOpen(false)}>Cancel</button>
             <button type="submit" className="primary-btn">Create</button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit race" footer={null}>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (!editId) return
+            if (!editForm.name.trim()) return
+            await updateRace(editId, editForm)
+            setEditOpen(false)
+            setEditId(null)
+          }}
+          style={{ display: 'grid', gap: 12 }}
+        >
+          <div style={{ display: 'grid', gap: 6 }}>
+            <label>Name</label>
+            <input
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              required
+            />
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <label>Details</label>
+            <textarea
+              value={editForm.details}
+              onChange={(e) => setEditForm({ ...editForm, details: e.target.value })}
+              rows={4}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Start date</label>
+              <input
+                type="date"
+                value={toInputDate(editForm.startDate)}
+                onChange={(e) => setEditForm({ ...editForm, startDate: fromInputDate(e.target.value) })}
+              />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>End date</label>
+              <input
+                type="date"
+                value={editForm.endDate ? toInputDate(editForm.endDate) : ''}
+                onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value ? fromInputDate(e.target.value) : null })}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Entries open</label>
+              <input
+                type="datetime-local"
+                value={toInputDateTimeLocal(editForm.broeOpens)}
+                onChange={(e) => setEditForm({ ...editForm, broeOpens: fromInputDateTimeLocal(e.target.value) })}
+              />
+            </div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <label>Entries close</label>
+              <input
+                type="datetime-local"
+                value={toInputDateTimeLocal(editForm.broeCloses)}
+                onChange={(e) => setEditForm({ ...editForm, broeCloses: fromInputDateTimeLocal(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+            <button type="button" className="secondary-btn" onClick={() => setEditOpen(false)}>Cancel</button>
+            <button type="submit" className="primary-btn">Save</button>
           </div>
         </form>
       </Modal>
