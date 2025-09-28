@@ -69,7 +69,7 @@ export function Home() {
             return (
               <div className="race-card" key={r.id}>
                 <div className="race-card-header">
-                  <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }} className="race-title">
                     <div className="race-date">{dateLabel}</div>
                     <div className="race-name">{r.name}</div>
                   </Link>

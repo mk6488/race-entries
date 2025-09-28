@@ -395,18 +395,15 @@ export function Entries() {
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
             </div>
 
-            {/* Mobile stacked layout (four rows) */}
-            <div className="mobile-only entry-mobile">
-              {/* Row 1: Date, Div, Event */}
-              <div className="entry-row" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+            {/* Mobile stacked layout (original) */}
+            <div className="mobile-only" style={{ display: 'grid', gap: 8 }}>
+              <div className="entry-top">
                 <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
                 <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
                 <span className="entry-event">{r.event || '-'}</span>
               </div>
-              {/* Row 2: Crew */}
-              <div className="entry-row entry-names">{r.athleteNames || '-'}</div>
-              {/* Row 3: Boat, Blades */}
-              <div className="entry-row" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
+              <div className="entry-names">{r.athleteNames || '-'}</div>
+              <div className="entry-bottom">
                 <span>
                   Boat: {r.boat || '-'}
                   {hasClash ? (
@@ -416,9 +413,6 @@ export function Entries() {
                   ) : null}
                 </span>
                 <span>Blades: {r.blades || '-'}</span>
-              </div>
-              {/* Row 4: Status, Crew changed */}
-              <div className="entry-row" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span className={`status ${r.status}`}
                   onClick={(e) => {
                     e.stopPropagation()

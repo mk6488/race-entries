@@ -148,8 +148,9 @@ button:hover { background: var(--primary-600); }
 .race-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .race-actions { display: inline-flex; gap: 8px; }
 @media (max-width: 900px) {
-  .race-card-header { flex-wrap: wrap; align-items: flex-start; }
-  .race-actions { width: 100%; justify-content: flex-end; margin-top: 6px; }
+  .race-card-header { flex-wrap: nowrap; align-items: center; gap: 8px; }
+  .race-title { display: inline-flex; align-items: center; gap: 8px; }
+  .race-actions { margin-left: auto; width: auto; justify-content: flex-end; margin-top: 0; }
 }
 .race-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); font-size: 12px; }
 .race-name { font-weight: 600; }
@@ -249,8 +250,6 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 
 
 @media (max-width: 900px) {
-  .entry-mobile { display: grid; gap: 8px; }
-  .entry-mobile .entry-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .modal-overlay { padding: 0; }
   .modal-dialog { max-width: none; width: 100%; height: 100svh; max-height: 100svh; border-radius: 0; border: none; }
   .nav-links { display: none; }
