@@ -397,8 +397,8 @@ export function Entries() {
 
             {/* Mobile improved layout */}
             <div className="mobile-only entry-mobile">
-              <div className="field col-span-2">
-                <div className="value" style={{ display: 'inline-flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="field col-span-2 topline">
+                <div className="value">
                   <span className={`badge mono day-${dayIndex}`}>{r.day || '-'}</span>
                   <span className={`badge mono div-${divIndex}`}>Div {r.div || '-'}</span>
                   <span className="entry-event">{r.event || '-'}</span>
