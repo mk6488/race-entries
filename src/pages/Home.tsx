@@ -58,7 +58,7 @@ export function Home() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link to="/archive" className="secondary-btn">Archive</Link>
+            <Link to="/archive" className="text-link">go to archive</Link>
             <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
           </div>
         </div>

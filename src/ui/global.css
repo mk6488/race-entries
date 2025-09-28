@@ -216,6 +216,8 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .filter-popover .row { display: grid; grid-template-columns: 16px 1fr; gap: 8px; align-items: center; padding: 4px 0; }
 .filter-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .btn-link { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 8px; cursor: pointer; }
+.text-link { color: var(--primary); text-decoration: underline; padding: 4px 2px; border-radius: 6px; }
+.text-link:hover { color: var(--primary-600); background: #f3f4f6; }
 
 /* Entry card state backgrounds */
 .entry-card.withdrawn, .entry-card.rejected { background: #fee2e2; border-color: #fecaca; }
