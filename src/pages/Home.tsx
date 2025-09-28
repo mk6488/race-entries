@@ -116,6 +116,7 @@ export function Home() {
           })}
         </div>
         <div className="card-footer">
+          <div className="meta">© 2025 Designed by Mike Katholnig</div>
           <Link to="/archive" className="text-link">go to archive</Link>
         </div>
       </div>
