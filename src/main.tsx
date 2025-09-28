@@ -7,6 +7,7 @@ import { Race } from './pages/Race'
 import { Equipment } from './pages/Equipment'
 import { Trailer } from './pages/Trailer'
 import { Home } from './pages/Home'
+import { Archive } from './pages/Archive'
 import './ui/global.css'
 
 const router = createBrowserRouter([
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'archive', element: <Archive /> },
       { path: 'races/:raceId', element: <Race /> },
       { path: 'entries/:raceId', element: <Entries /> },
       { path: 'equipment/:raceId', element: <Equipment /> },
