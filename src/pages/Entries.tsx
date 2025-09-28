@@ -428,8 +428,8 @@ export function Entries() {
               </div>
               <div className="cell col-span-2 right" onClick={(e)=>e.stopPropagation()}>
                 <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                   Crew changed
+                  <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                 </label>
               </div>
               {/* Row 5: notes when present (span 3) */}
