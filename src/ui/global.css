@@ -147,10 +147,11 @@ button:hover { background: var(--primary-600); }
 .race-card:hover { box-shadow: 0 6px 18px rgba(2,6,23,.08); transform: translateY(-1px); }
 .race-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .race-actions { display: inline-flex; gap: 8px; }
+.race-actions-bottom { display: none; gap: 8px; margin-top: 8px; justify-content: flex-end; }
 @media (max-width: 900px) {
-  .race-card-header { flex-wrap: nowrap; align-items: center; gap: 8px; }
-  .race-title { display: inline-flex; align-items: center; gap: 8px; }
-  .race-actions { margin-left: auto; width: auto; justify-content: flex-end; margin-top: 0; }
+  .race-card-header { flex-wrap: wrap; align-items: flex-start; }
+  .race-actions { display: none; }
+  .race-actions-bottom { display: inline-flex; }
 }
 .race-date { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); font-size: 12px; }
 .race-name { font-weight: 600; }
