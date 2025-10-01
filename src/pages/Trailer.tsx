@@ -43,13 +43,17 @@ export function Trailer() {
   const { raceId } = useParams()
   const [race, setRace] = useState<Race | null>(null)
   const [rows, setRows] = useState<Entry[]>([])
+  const [entriesReady, setEntriesReady] = useState(false)
   const [mode, setMode] = useState<TrailerMode>('small')
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
 
   // Load entries
   useEffect(() => {
     if (!raceId) return
-    return subscribeEntries(raceId, setRows)
+    return subscribeEntries(raceId, (list) => {
+      setRows(list)
+      setEntriesReady(true)
+    })
   }, [raceId])
 
   // Load race
@@ -156,6 +160,7 @@ export function Trailer() {
   // Ensure newly entered boats appear in unassigned if not already placed
   // Also, remove any boats from state that are no longer present in entries
   useEffect(() => {
+    if (!entriesReady) return
     // Build a set of valid identifiers based on current entries
     // Include base and potential halves so we never accidentally remove valid 8+/8x+ halves
     const valid = new Set<string>()
@@ -187,7 +192,7 @@ export function Trailer() {
       }
       return changed ? next : prev
     })
-  }, [boats])
+  }, [boats, entriesReady])
 
   // Ensure newly entered boats appear in unassigned if not already placed
   useEffect(() => {
