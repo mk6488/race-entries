@@ -15,11 +15,12 @@ function createLayout(mode: 'small' | 'big') {
   if (mode === 'small') {
     return {
       columns: 3,
-      rows: 3,
+      rows: 4,
       cellIds: [
         's-0-0','s-1-0','s-2-0',
         's-0-1','s-1-1','s-2-1',
         's-0-2','s-1-2','s-2-2',
+        's-0-3','s-1-3','s-2-3',
         's-base',
       ],
     }
