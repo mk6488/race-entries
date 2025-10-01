@@ -81,7 +81,9 @@ export function Race() {
     })
   }, [enteredRows, daySel, divSel, eventSel])
 
-  // Auto sort by day (based on race day order), then div, then event
+  // Auto sort:
+  // - If any entry has race times, sort by fastest time (min timeMs) first.
+  // - Otherwise, sort by day (race day order) → div (with am<pm and short<long) → event.
   const sortedRows = useMemo(() => {
     const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
     const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true })
@@ -92,22 +94,26 @@ export function Race() {
       const pm = hasWord(lower, 'pm')
       const shortW = hasWord(lower, 'short')
       const longW = hasWord(lower, 'long')
-      // Only apply ordering when both sides contain an am/pm marker or short/long marker.
       return { am, pm, shortW, longW }
     }
-    return [...plainRows].sort((a, b) => {
+    const bestTime = (r: Entry): number | null => {
+      const times = (r.raceTimes || []).map(t => t.timeMs).filter((n) => Number.isFinite(n) && (n as number) > 0) as number[]
+      if (times.length === 0) return null
+      return Math.min(...times)
+    }
+    const anyTimes = plainRows.some(r => (r.raceTimes || []).some(t => Number.isFinite(t.timeMs) && (t.timeMs as number) > 0))
+
+    const fallbackCmp = (a: Entry, b: Entry) => {
       const ai = dayOrder.has(a.day) ? (dayOrder.get(a.day) as number) : 9999
       const bi = dayOrder.has(b.day) ? (dayOrder.get(b.day) as number) : 9999
       if (ai !== bi) return ai - bi
       const ar = divRank(a.div || '')
       const br = divRank(b.div || '')
-      // am before pm when both have am/pm markers
       if ((ar.am || ar.pm) && (br.am || br.pm)) {
         const aOrder = ar.am ? 0 : ar.pm ? 1 : 2
         const bOrder = br.am ? 0 : br.pm ? 1 : 2
         if (aOrder !== bOrder) return aOrder - bOrder
       }
-      // short before long when both have short/long markers
       if ((ar.shortW || ar.longW) && (br.shortW || br.longW)) {
         const aOrder = ar.shortW ? 0 : ar.longW ? 1 : 2
         const bOrder = br.shortW ? 0 : br.longW ? 1 : 2
@@ -116,6 +122,18 @@ export function Race() {
       const d = collator.compare(a.div || '', b.div || '')
       if (d !== 0) return d
       return collator.compare(a.event || '', b.event || '')
+    }
+
+    return [...plainRows].sort((a, b) => {
+      if (anyTimes) {
+        const at = bestTime(a)
+        const bt = bestTime(b)
+        const aHas = at != null
+        const bHas = bt != null
+        if (aHas && bHas && at! !== bt!) return (at as number) - (bt as number)
+        if (aHas !== bHas) return aHas ? -1 : 1 // entries with times come first
+      }
+      return fallbackCmp(a, b)
     })
   }, [plainRows, dayOptions])
 
