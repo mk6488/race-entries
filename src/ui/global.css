@@ -280,16 +280,21 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 
 /* Print styles */
 @media print {
-  @page { margin: 12mm; }
+  @page { size: A4 landscape; margin: 10mm; }
   html, body { background: #fff !important; color: #000 !important; }
   * { background: transparent !important; box-shadow: none !important; }
+  body::after { display: none !important; }
   .topbar, .nav-drawer, .drawer-overlay { display: none !important; }
   .secondary-btn { display: none !important; }
   .row-action { display: none !important; }
   main { padding: 0; }
-  table.sheet { border-radius: 0; box-shadow: none; }
+  .table-scroll { overflow: visible !important; }
+  table.sheet { width: 100% !important; table-layout: fixed; border-radius: 0; box-shadow: none; font-size: 12px; }
   table.sheet thead th { position: static !important; background: transparent !important; }
   table.sheet, table.sheet tr, table.sheet td, table.sheet th { break-inside: avoid; page-break-inside: avoid; }
+  table.sheet th, table.sheet td { min-width: 0 !important; white-space: normal !important; word-break: break-word; }
+  table.sheet thead th { padding: 6px 6px; }
+  table.sheet td { padding: 4px 6px; }
   .group-start td { border-top: 2pt solid #000 !important; }
 }
 
