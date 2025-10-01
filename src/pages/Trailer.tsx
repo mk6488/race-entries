@@ -152,6 +152,42 @@ export function Trailer() {
   }, [raceId, mode])
 
   // Ensure newly entered boats appear in unassigned if not already placed
+  // Also, remove any boats from state that are no longer present in entries
+  useEffect(() => {
+    // Build a set of valid identifiers based on current entries
+    // Include base and potential halves so we never accidentally remove valid 8+/8x+ halves
+    const valid = new Set<string>()
+    for (const b of boats) {
+      valid.add(b)
+      valid.add(`${b} (1/2)`)
+      valid.add(`${b} (2/2)`)
+    }
+    // Prune unassigned
+    setUnassigned(prev => prev.filter(x => valid.has(x)))
+    // Prune placed boats on small and big boards
+    setSmallBoard(prev => {
+      let changed = false
+      const next: BoardState = {}
+      for (const [k, v] of Object.entries(prev)) {
+        const filtered = v.filter(x => valid.has(x))
+        if (filtered.length !== v.length) changed = true
+        next[k] = filtered
+      }
+      return changed ? next : prev
+    })
+    setBigBoard(prev => {
+      let changed = false
+      const next: BoardState = {}
+      for (const [k, v] of Object.entries(prev)) {
+        const filtered = v.filter(x => valid.has(x))
+        if (filtered.length !== v.length) changed = true
+        next[k] = filtered
+      }
+      return changed ? next : prev
+    })
+  }, [boats])
+
+  // Ensure newly entered boats appear in unassigned if not already placed
   useEffect(() => {
     const placed = new Set<string>()
     const collect = (board: BoardState) => Object.values(board).forEach(list => list.forEach(x => placed.add(x)))
