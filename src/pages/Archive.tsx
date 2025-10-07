@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { subscribeRaces, updateRace } from '../data/races'
 import type { Race } from '../models/race'
 import { Link } from 'react-router-dom'
-import { toInputDate } from '../utils/dates'
+import { formatUiDate } from '../utils/dates'
 
 export function Archive() {
   const [races, setRaces] = useState<Race[]>([])
@@ -22,8 +22,8 @@ export function Archive() {
         ) : (
           <div className="race-grid">
             {archived.map((r) => {
-              const start = toInputDate(r.startDate)
-              const end = r.endDate ? toInputDate(r.endDate) : null
+              const start = formatUiDate(r.startDate)
+              const end = r.endDate ? formatUiDate(r.endDate) : null
               const dateLabel = end && end !== start ? `${start} → ${end}` : start
               return (
                 <div className="race-card" key={r.id}>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { subscribeRaces, createRace, updateRace } from '../data/races'
 import type { Race, NewRace } from '../models/race'
 import { Link } from 'react-router-dom'
-import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal } from '../utils/dates'
+import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal, formatUiDate } from '../utils/dates'
 import { Modal } from '../ui/Modal'
 
 export function Home() {
@@ -63,8 +63,8 @@ export function Home() {
         </div>
         <div className="race-grid">
           {visibleRaces.map((r) => {
-            const start = toInputDate(r.startDate)
-            const end = r.endDate ? toInputDate(r.endDate) : null
+            const start = formatUiDate(r.startDate)
+            const end = r.endDate ? formatUiDate(r.endDate) : null
             const dateLabel = end && end !== start ? `${start} → ${end}` : start
             return (
               <div className="race-card" key={r.id}>

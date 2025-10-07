@@ -54,3 +54,19 @@ export function formatRaceTime(ms: number | null | undefined): string {
 }
 
 
+export function formatUiDate(d: Date): string {
+  // Compact, user-friendly date for race cards, e.g. "Sat 7 Oct 2025"
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(d)
+  } catch {
+    // Fallback to ISO if formatter fails
+    return toInputDate(d)
+  }
+}
+
+
