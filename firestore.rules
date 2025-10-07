@@ -101,6 +101,19 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if isSignedIn();
     }
+
+    // blade clash silences (separate from boat silences)
+    function validBladeSilence(data) {
+      return data.keys().hasOnly(['raceId','day','group','blade']) &&
+        isString(data.raceId) && data.raceId.size() > 0 &&
+        isString(data.day) && isString(data.group) && isString(data.blade);
+    }
+    match /silencedBladeClashes/{silenceId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validBladeSilence(request.resource.data);
+      allow update: if isSignedIn() && validBladeSilence(request.resource.data);
+      allow delete: if isSignedIn();
+    }
   }
 }
 

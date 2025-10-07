@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { subscribeEntries } from '../data/entries'
 import { subscribeBoats, type Boat } from '../data/boats'
+import { subscribeBlades, type Blade, updateBladeAmount } from '../data/blades'
 import type { Entry } from '../models/entry'
 import { getRaceById } from '../data/races'
 import type { Race } from '../models/race'
@@ -14,7 +15,7 @@ export function Equipment() {
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
-  const [bladeAmounts, setBladeAmounts] = useState<Record<string, string>>({})
+  const [bladesRef, setBladesRef] = useState<Blade[]>([])
   const otherSections = useMemo(() => [
     { title: 'Safety', items: ['First Aid Pouch', 'Lifejacket', 'Throw Lines'] },
     { title: 'Coxing', items: ['Cox boxes', 'Cox box chargers'] },
@@ -52,6 +53,12 @@ export function Equipment() {
     return () => unsub()
   }, [])
 
+  // Subscribe to blades reference (with amounts)
+  useEffect(() => {
+    const unsub = subscribeBlades(setBladesRef)
+    return () => unsub()
+  }, [])
+
   // Persist loaded-state in localStorage per race
   useEffect(() => {
     if (!raceId) return
@@ -64,11 +71,6 @@ export function Equipment() {
       const b = localStorage.getItem(`equip:${raceId}:blades`)
       const l = b ? JSON.parse(b) : {}
       setLoadedBlades(l && typeof l === 'object' ? l : {})
-    } catch {}
-    try {
-      const b = localStorage.getItem(`equip:${raceId}:bladeAmounts`)
-      const l = b ? JSON.parse(b) : {}
-      setBladeAmounts(l && typeof l === 'object' ? l : {})
     } catch {}
     try {
       const b = localStorage.getItem(`equip:${raceId}:other`)
@@ -90,10 +92,6 @@ export function Equipment() {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:blades`, JSON.stringify(loadedBlades)) } catch {}
   }, [loadedBlades, raceId])
-  useEffect(() => {
-    if (!raceId) return
-    try { localStorage.setItem(`equip:${raceId}:bladeAmounts`, JSON.stringify(bladeAmounts)) } catch {}
-  }, [bladeAmounts, raceId])
   useEffect(() => {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:other`, JSON.stringify(loadedOther)) } catch {}
@@ -209,6 +207,12 @@ export function Equipment() {
     groups.forEach((g) => g.sort((a,b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })))
     return groups
   }, [overall.boats.map, boatNameToType])
+
+  const bladeNameToRef = useMemo(() => {
+    const m = new Map<string, Blade>()
+    for (const b of bladesRef) m.set((b.name||'').trim(), b)
+    return m
+  }, [bladesRef])
 
   return (
     <div>
@@ -367,7 +371,8 @@ export function Equipment() {
               </thead>
               <tbody>
                 {mapToSortedArray(overall.blades.map).map(([name, counted]) => {
-                  const amount = (name in bladeAmounts) ? bladeAmounts[name] : ''
+                  const ref = bladeNameToRef.get(name)
+                  const amount = ref && typeof (ref as any).amount === 'number' ? String((ref as any).amount) : ''
                   return (
                     <tr key={name}>
                       <td>{name}</td>
@@ -378,9 +383,14 @@ export function Equipment() {
                           value={amount}
                           onChange={(e)=> {
                             const v = e.target.value
-                            setBladeAmounts(prev => ({ ...prev, [name]: v }))
+                            const n = v === '' ? 0 : Math.max(0, Number(v))
+                            const b = bladeNameToRef.get(name)
+                            if (b) {
+                              updateBladeAmount(b.id, n).catch(() => {})
+                            }
                           }}
                           style={{ width: 90 }}
+                          disabled={!ref}
                         />
                       </td>
                       <td>

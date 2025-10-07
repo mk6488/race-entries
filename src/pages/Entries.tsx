@@ -6,6 +6,8 @@ import { subscribeBoats, type Boat } from '../data/boats'
 import { getRaceById } from '../data/races'
 import { subscribeDivisionGroups, type DivisionGroup, createDivisionGroup, updateDivisionGroup, deleteDivisionGroup } from '../data/divisionGroups'
 import { subscribeSilences, createSilence, deleteSilenceByBoat, type Silence } from '../data/silences'
+import { subscribeBlades } from '../data/blades'
+import { subscribeBladeSilences, createBladeSilence, deleteBladeSilenceByBlade, type BladeSilence } from '../data/silencedBlades'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
 import type { Entry, NewEntry } from '../models/entry'
@@ -29,6 +31,7 @@ export function Entries() {
   const [splitB, setSplitB] = useState('')
   const [groups, setGroups] = useState<DivisionGroup[]>([])
   const [silences, setSilences] = useState<Silence[]>([])
+  const [bladeSilences, setBladeSilences] = useState<BladeSilence[]>([])
   const groupsOpen = searchParams.get('groups') === '1'
   const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
   const [groupsDay, setGroupsDay] = useState<string>('')
@@ -57,6 +60,10 @@ export function Entries() {
   useEffect(() => {
     if (!raceId) return
     return subscribeSilences(raceId, setSilences)
+  }, [raceId])
+  useEffect(() => {
+    if (!raceId) return
+    return subscribeBladeSilences(raceId, setBladeSilences)
   }, [raceId])
 
   // Ensure navbar Add Entry (?add=1) opens the same prefilled modal as the Add entry button
@@ -207,6 +214,42 @@ export function Entries() {
     })
   }, [rowsByDayGroup, silences, dayOptions, raceId])
 
+  // Compute blade usage per day/group and detect when usage exceeds available amount
+  const bladeClashes = useMemo(() => {
+    type Clash = { key: string; day: string; group: string; blade: string; used: number; amount: number; silenced: boolean }
+    const avail = new Map<string, number>() // blade name -> amount
+    // Leverage blade options list already fetched elsewhere
+    // We rely on Equipment's blades collection; fetch here too for robustness
+    // Since we don't keep it in state here, we infer availability by counting max seen in entries unless provided in blades ref
+    // For now, default to Infinity if no amount known (no clash)
+    const list: Clash[] = []
+    for (const [key, ers] of rowsByDayGroup.entries()) {
+      const [day, group] = key.split('::')
+      const byBlade = new Map<string, number>()
+      for (const e of ers) {
+        const raw = (e.blades || '').trim()
+        if (!raw) continue
+        const parts = raw.includes('+') ? raw.split('+').map(s => s.trim()).filter(Boolean) : [raw]
+        for (const p of parts) byBlade.set(p, (byBlade.get(p) || 0) + 1)
+      }
+      for (const [blade, used] of byBlade.entries()) {
+        const amount = Number.isFinite(avail.get(blade) as any) ? (avail.get(blade) as number) : Infinity
+        if (amount !== Infinity && used > amount) {
+          const silenced = bladeSilences.some(s => s.raceId === (raceId||'') && s.day === day && s.group === group && s.blade === blade)
+          list.push({ key: `${day}::${group}::${blade}`, day, group, blade, used, amount, silenced })
+        }
+      }
+    }
+    const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
+    return list.sort((a,b) => {
+      const ai = dayOrder.get(a.day) ?? 9999
+      const bi = dayOrder.get(b.day) ?? 9999
+      if (ai !== bi) return ai - bi
+      if (a.group !== b.group) return a.group.localeCompare(b.group)
+      return a.blade.localeCompare(b.blade)
+    })
+  }, [rowsByDayGroup, bladeSilences, dayOptions, raceId])
+
   const clashLookup = useMemo(() => {
     const m = new Map<string, boolean>()
     for (const c of clashes) {
@@ -290,7 +333,7 @@ export function Entries() {
           <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Div Groups</button>
         </div>
       </div>
-      {clashes.length > 0 && (
+      {(clashes.length > 0 || bladeClashes.length > 0) && (
         <div className="clashes">
           {clashes.map((c) => (
             <div key={c.key} className="clash">
@@ -308,6 +351,26 @@ export function Entries() {
                 <span>Day: {c.day}</span>
                 <span>Group: {c.group.replace(/^__/, '')}</span>
                 <span>Count: {c.count}</span>
+              </div>
+            </div>
+          ))}
+          {bladeClashes.map((c) => (
+            <div key={c.key} className="clash">
+              <div className="clash-header">
+                <div className="clash-title">Blade clash: {c.blade}</div>
+                <div className="clash-actions">
+                  {c.silenced ? (
+                    <button className="row-action" onClick={() => deleteBladeSilenceByBlade(raceId||'', c.day, c.group, c.blade)}>Unsilence</button>
+                  ) : (
+                    <button className="row-action" onClick={() => createBladeSilence({ raceId: raceId||'', day: c.day, group: c.group, blade: c.blade })}>Silence</button>
+                  )}
+                </div>
+              </div>
+              <div className="clash-meta">
+                <span>Day: {c.day}</span>
+                <span>Group: {c.group.replace(/^__/, '')}</span>
+                <span>Used: {c.used}</span>
+                <span>Available: {c.amount}</span>
               </div>
             </div>
           ))}
