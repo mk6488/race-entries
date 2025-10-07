@@ -87,6 +87,7 @@ main { padding: 16px; }
 /* Clashes list */
 .clashes { display: grid; gap: 8px; margin-bottom: 12px; }
 .clash { display: grid; gap: 6px; border: 1px solid var(--border); border-left: 4px solid #ef4444; background: #fff; border-radius: 10px; padding: 10px 12px; }
+.clash.silenced { border-left-color: #f59e0b; }
 .clash-header { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
 .clash-title { font-weight: 600; }
 .clash-meta { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }

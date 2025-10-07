@@ -402,7 +402,7 @@ export function Entries() {
       {(clashes.length > 0 || bladeClashes.length > 0) && (
         <div className="clashes">
           {clashes.map((c) => (
-            <div key={c.key} className="clash">
+            <div key={c.key} className={`clash ${c.silenced ? 'silenced' : ''}`}>
               <div className="clash-header">
                 <div className="clash-title">Boat clash: {c.boat}</div>
                 <div className="clash-actions">
@@ -421,7 +421,7 @@ export function Entries() {
             </div>
           ))}
           {bladeClashes.map((c) => (
-            <div key={c.key} className="clash">
+            <div key={c.key} className={`clash ${c.silenced ? 'silenced' : ''}`}>
               <div className="clash-header">
                 <div className="clash-title">Blade clash: {c.blade}</div>
                 <div className="clash-actions">
