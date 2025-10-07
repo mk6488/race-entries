@@ -1,6 +1,5 @@
 import { collection, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
-import { db } from '../firebase'
-import { ensureAuth } from '../firebase'
+import { db, authReady } from '../firebase'
 
 export type Blade = { id: string; name: string; active?: boolean; amount?: number }
 
@@ -12,7 +11,7 @@ export function subscribeBlades(cb: (rows: Blade[]) => void) {
 }
 
 export async function updateBladeAmount(id: string, amount: number) {
-  await ensureAuth()
+  await authReady.catch(() => {})
   const ref = doc(db, 'blades', id)
   await updateDoc(ref, { amount })
 }
