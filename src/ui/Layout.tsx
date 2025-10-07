@@ -12,7 +12,7 @@ export function Layout() {
   const isEquipment = location.pathname.startsWith('/equipment/')
   const isTrailer = location.pathname.startsWith('/trailer/')
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${hasRace ? 'has-race' : ''}`}>
       <header className="topbar">
         <div className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
