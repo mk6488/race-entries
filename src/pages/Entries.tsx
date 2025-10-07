@@ -6,7 +6,7 @@ import { subscribeBoats, type Boat } from '../data/boats'
 import { getRaceById } from '../data/races'
 import { subscribeDivisionGroups, type DivisionGroup, createDivisionGroup, updateDivisionGroup, deleteDivisionGroup } from '../data/divisionGroups'
 import { subscribeSilences, createSilence, deleteSilenceByBoat, type Silence } from '../data/silences'
-import { subscribeBlades } from '../data/blades'
+import { subscribeBlades, type Blade } from '../data/blades'
 import { subscribeBladeSilences, createBladeSilence, deleteBladeSilenceByBlade, type BladeSilence } from '../data/silencedBlades'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
@@ -32,6 +32,7 @@ export function Entries() {
   const [groups, setGroups] = useState<DivisionGroup[]>([])
   const [silences, setSilences] = useState<Silence[]>([])
   const [bladeSilences, setBladeSilences] = useState<BladeSilence[]>([])
+  const [bladeRefs, setBladeRefs] = useState<Blade[]>([])
   const groupsOpen = searchParams.get('groups') === '1'
   const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
   const [groupsDay, setGroupsDay] = useState<string>('')
@@ -43,7 +44,10 @@ export function Entries() {
   }, [raceId])
 
   useEffect(() => {
-    const unsub = subscribeBlades(setBladeOptions)
+    const unsub = subscribeBlades((rows) => {
+      setBladeOptions(rows)
+      setBladeRefs(rows)
+    })
     return () => unsub()
   }, [])
 
@@ -214,14 +218,59 @@ export function Entries() {
     })
   }, [rowsByDayGroup, silences, dayOptions, raceId])
 
+  function inferPreciseBoatType(event: string): string | null {
+    const e = event.toLowerCase()
+    // check longer/specific tokens first
+    if (e.includes('8x+')) return '8x+'
+    if (e.includes('8+')) return '8+'
+    if (e.includes('4x+')) return '4x+'
+    if (e.includes('4x-')) return '4x-'
+    if (e.includes('4x')) return '4x'
+    if (e.includes('4+')) return '4+'
+    if (e.includes('4-')) return '4-'
+    if (e.includes('2x-')) return '2x-'
+    if (e.includes('2x')) return '2x'
+    if (e.includes('2-')) return '2-'
+    if (e.includes('1x-')) return '1x-'
+    if (e.includes('1x')) return '1x'
+    return null
+  }
+
+  function bladesRequiredFor(type: string | null): number {
+    switch (type) {
+      case '1x':
+      case '1x-':
+        return 2
+      case '2-':
+        return 2
+      case '2x':
+      case '2x-':
+        return 4
+      case '4-':
+      case '4+':
+        return 4
+      case '4x':
+      case '4x-':
+      case '4x+':
+        return 8
+      case '8+':
+        return 8
+      case '8x+':
+        return 16
+      default:
+        return 0
+    }
+  }
+
   // Compute blade usage per day/group and detect when usage exceeds available amount
   const bladeClashes = useMemo(() => {
     type Clash = { key: string; day: string; group: string; blade: string; used: number; amount: number; silenced: boolean }
     const avail = new Map<string, number>() // blade name -> amount
-    // Leverage blade options list already fetched elsewhere
-    // We rely on Equipment's blades collection; fetch here too for robustness
-    // Since we don't keep it in state here, we infer availability by counting max seen in entries unless provided in blades ref
-    // For now, default to Infinity if no amount known (no clash)
+    for (const b of bladeRefs) {
+      const name = (b.name || '').trim()
+      const amt = typeof (b as any).amount === 'number' ? (b as any).amount : NaN
+      if (name) avail.set(name, Number.isFinite(amt) ? amt : Infinity)
+    }
     const list: Clash[] = []
     for (const [key, ers] of rowsByDayGroup.entries()) {
       const [day, group] = key.split('::')
@@ -230,10 +279,20 @@ export function Entries() {
         const raw = (e.blades || '').trim()
         if (!raw) continue
         const parts = raw.includes('+') ? raw.split('+').map(s => s.trim()).filter(Boolean) : [raw]
-        for (const p of parts) byBlade.set(p, (byBlade.get(p) || 0) + 1)
+        const type = inferPreciseBoatType(e.event || '')
+        const needed = bladesRequiredFor(type)
+        if (needed <= 0) continue
+        const n = Math.max(1, parts.length)
+        const base = Math.floor(needed / n)
+        let rem = needed % n
+        for (const p of parts) {
+          const inc = base + (rem > 0 ? 1 : 0)
+          if (rem > 0) rem -= 1
+          byBlade.set(p, (byBlade.get(p) || 0) + inc)
+        }
       }
       for (const [blade, used] of byBlade.entries()) {
-        const amount = Number.isFinite(avail.get(blade) as any) ? (avail.get(blade) as number) : Infinity
+        const amount = avail.has(blade) ? (avail.get(blade) as number) : Infinity
         if (amount !== Infinity && used > amount) {
           const silenced = bladeSilences.some(s => s.raceId === (raceId||'') && s.day === day && s.group === group && s.blade === blade)
           list.push({ key: `${day}::${group}::${blade}`, day, group, blade, used, amount, silenced })
@@ -248,7 +307,15 @@ export function Entries() {
       if (a.group !== b.group) return a.group.localeCompare(b.group)
       return a.blade.localeCompare(b.blade)
     })
-  }, [rowsByDayGroup, bladeSilences, dayOptions, raceId])
+  }, [rowsByDayGroup, bladeSilences, dayOptions, raceId, bladeRefs])
+
+  const bladeClashLookup = useMemo(() => {
+    const m = new Map<string, boolean>()
+    for (const c of bladeClashes) {
+      m.set(`${c.day}::${c.group}::${c.blade}`, c.silenced)
+    }
+    return m
+  }, [bladeClashes])
 
   const clashLookup = useMemo(() => {
     const m = new Map<string, boolean>()
@@ -396,6 +463,18 @@ export function Entries() {
           const clashKey = `${gkey}::${trimmedBoat}`
           const hasClash = !!trimmedBoat && clashLookup.has(clashKey)
           const isSilenced = hasClash ? (clashLookup.get(clashKey) as boolean) : false
+          // Blade clash flags
+          const rawBlades = (r.blades || '').trim()
+          const bladeParts = rawBlades ? (rawBlades.includes('+') ? rawBlades.split('+').map(s=>s.trim()).filter(Boolean) : [rawBlades]) : []
+          let hasBladeClash = false
+          let bladeSilenced = false
+          for (const bp of bladeParts) {
+            const k = `${gkey}::${bp}`
+            if (bladeClashLookup.has(k)) {
+              hasBladeClash = true
+              if (bladeClashLookup.get(k)) bladeSilenced = true
+            }
+          }
           return (
           <div
             key={r.id}
@@ -434,7 +513,14 @@ export function Entries() {
                     </span>
                   ) : null}
                 </div>
-                <div>{r.blades || '-'}</div>
+                <div>
+                  {r.blades || '-'}
+                  {hasBladeClash ? (
+                    <span className={`clash-icon ${bladeSilenced ? 'silenced' : 'active'}`} title={bladeSilenced ? 'Blade clash silenced' : 'Blade clash'} style={{ marginLeft: 6 }}>
+                      {bladeSilenced ? '⚠️' : '🚨'}
+                    </span>
+                  ) : null}
+                </div>
                 <div>
                   <span
                     className={`status ${r.status}`}
