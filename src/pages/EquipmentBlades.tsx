@@ -61,7 +61,7 @@ export function EquipmentBlades() {
   }
 
   return (
-    <div>
+    <div className="blades-compact">
       <div className="card" style={{ marginTop: 4 }}>
         <h1 style={{ margin: 0 }}>Blades</h1>
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
@@ -87,13 +87,13 @@ export function EquipmentBlades() {
           <table className="sheet">
             <thead>
               <tr>
-                <th style={{ minWidth: 220 }}>Set</th>
-                <th style={{ width: 120 }}>Gearing</th>
-                <th style={{ width: 120 }}>Length</th>
-                <th style={{ width: 120 }}>Inboard</th>
-                <th style={{ width: 120 }}>Span</th>
-                <th style={{ width: 120 }}>Amount</th>
-                <th style={{ width: 120 }}>Active</th>
+                <th style={{ minWidth: 180 }}>Set</th>
+                <th style={{ width: 90 }}>Gearing</th>
+                <th style={{ width: 90 }}>Length</th>
+                <th style={{ width: 90 }}>Inboard</th>
+                <th style={{ width: 90 }}>Span</th>
+                <th style={{ width: 90 }}>Amount</th>
+                <th style={{ width: 90 }}>Active</th>
                 <th style={{ width: 160 }}></th>
               </tr>
             </thead>
@@ -150,11 +150,11 @@ export function EquipmentBlades() {
           <table className="sheet">
             <thead>
               <tr>
-                <th style={{ minWidth: 80 }}></th>
-                <th style={{ minWidth: 80 }}>4x-</th>
-                <th style={{ minWidth: 80 }}>4x+</th>
-                <th style={{ minWidth: 80 }}>2x</th>
-                <th style={{ minWidth: 80 }}>1x</th>
+                <th style={{ minWidth: 70 }}></th>
+                <th style={{ minWidth: 70 }}>4x-</th>
+                <th style={{ minWidth: 70 }}>4x+</th>
+                <th style={{ minWidth: 70 }}>2x</th>
+                <th style={{ minWidth: 70 }}>1x</th>
               </tr>
             </thead>
             <tbody>
