@@ -6,6 +6,7 @@ export function EquipmentBoats() {
   const [rows, setRows] = useState<Boat[]>([])
   const [name, setName] = useState('')
   const [type, setType] = useState('')
+  const [weight, setWeight] = useState('')
   const [filter, setFilter] = useState('')
 
   useEffect(() => {
@@ -32,10 +33,12 @@ export function EquipmentBoats() {
           <input placeholder="Filter" value={filter} onChange={(e)=> setFilter(e.target.value)} style={{ maxWidth: 220 }} />
           <input placeholder="Name" value={name} onChange={(e)=> setName(e.target.value)} />
           <input placeholder="Type (e.g. 4x, 2-)" value={type} onChange={(e)=> setType(e.target.value)} />
+          <input placeholder="Weight (kg)" inputMode="numeric" value={weight} onChange={(e)=> setWeight(e.target.value)} style={{ width: 120 }} />
           <button onClick={async ()=>{
             if (!name.trim() || !type.trim()) return
-            await createBoat({ name: name.trim(), type: type.trim(), active: true })
-            setName(''); setType('')
+            const w = weight.trim() === '' ? undefined : Math.max(0, Number(weight) || 0)
+            await createBoat({ name: name.trim(), type: type.trim(), active: true, weight: w })
+            setName(''); setType(''); setWeight('')
           }}>Add</button>
         </div>
         <div className="table-scroll" style={{ marginTop: 12 }}>
@@ -44,6 +47,7 @@ export function EquipmentBoats() {
               <tr>
                 <th style={{ minWidth: 220 }}>Name</th>
                 <th style={{ width: 140 }}>Type</th>
+                <th style={{ width: 120 }}>Weight</th>
                 <th style={{ width: 120 }}>Active</th>
                 <th style={{ width: 160 }}></th>
               </tr>
@@ -56,6 +60,9 @@ export function EquipmentBoats() {
                   </td>
                   <td>
                     <input value={r.type} onChange={(e)=> updateBoat(r.id, { type: e.target.value })} />
+                  </td>
+                  <td>
+                    <input type="number" min={0} value={(r as any).weight ?? ''} onChange={(e)=> updateBoat(r.id, { weight: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)||0) })} />
                   </td>
                   <td>
                     <input type="checkbox" checked={!!r.active} onChange={(e)=> updateBoat(r.id, { active: e.target.checked })} />

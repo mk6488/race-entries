@@ -1,7 +1,7 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 
-export type Boat = { id: string; name: string; type: string; active?: boolean }
+export type Boat = { id: string; name: string; type: string; active?: boolean; weight?: number }
 
 const col = collection(db, 'boats')
 
