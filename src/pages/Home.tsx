@@ -167,9 +167,9 @@ export function Home() {
           </Link>
           <Link to="/archive" className="text-link">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M4 7h16v3H4V7Zm2 4h12v6a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-6Zm1-8h10l2 3H5l2-3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M4 11h16M6 7h12M8 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
-            go to archive
+            archive
           </Link>
           </div>
         </div>
