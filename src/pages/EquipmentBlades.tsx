@@ -40,7 +40,7 @@ export function EquipmentBlades() {
       case '1': return { bladeLength: 285, inboard: 88, span: 159, color: '#bfdbfe' } // light blue
       case '2': return { bladeLength: 286, inboard: 88, span: 159, color: '#fde68a' } // yellow
       case '3': return { bladeLength: 287, inboard: 88, span: 159, color: '#86efac' } // green
-      case '4': return { bladeLength: 288, inboard: 88, span: 159, color: '#93c5fd' } // dark blue-ish
+      case '4': return { bladeLength: 288, inboard: 88, span: 159, color: '#60a5fa' } // darker blue
       case '5': return { bladeLength: 289, inboard: 88, span: 159, color: '#e5e7eb' } // gray
       case 'NA':
       default: return { bladeLength: null, inboard: null, span: null, color: '#e9d5ff' } // purple
@@ -53,7 +53,7 @@ export function EquipmentBlades() {
       case '1': return '#bfdbfe' // light blue
       case '2': return '#fde68a' // yellow
       case '3': return '#86efac' // green
-      case '4': return '#93c5fd' // dark blue-ish
+      case '4': return '#60a5fa' // darker blue
       case '5': return '#e5e7eb' // gray
       case 'NA': return '#e9d5ff' // purple
       default: return undefined
