@@ -1,4 +1,4 @@
-import { collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 
 export type GearingMatrix = Record<string, Record<string, string>> // age -> boatType -> code ('1'..'5'|'NA'|'')
@@ -38,7 +38,11 @@ export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
 export async function initGlobalGearingIfMissing(initial: GearingMatrix) {
   await authReady.catch(() => {})
   const ref = doc(col, 'default')
-  await setDoc(ref, { values: initial }, { merge: true })
+  const snap = await getDoc(ref)
+  const existing = snap.exists() ? (snap.data() as any) : null
+  if (!existing || !existing.values) {
+    await setDoc(ref, { values: initial }, { merge: false })
+  }
 }
 
 export async function updateGlobalGearingCell(age: string, boatType: string, code: string) {
