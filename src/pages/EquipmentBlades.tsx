@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { subscribeBlades, createBlade, updateBlade, deleteBlade, type Blade } from '../data/blades'
 import { subscribeGlobalGearing, initGlobalGearingIfMissing, updateGlobalGearingCell, type GearingMatrix } from '../data/gearing'
 
@@ -62,6 +63,9 @@ export function EquipmentBlades() {
 
   return (
     <div className="blades-compact">
+      <div style={{ marginBottom: 8 }}>
+        <Link to="/" className="secondary-btn">Back</Link>
+      </div>
       <div className="blades-grid">
       <div className="card" style={{ marginTop: 4 }}>
         <h1 style={{ margin: 0 }}>Blades</h1>

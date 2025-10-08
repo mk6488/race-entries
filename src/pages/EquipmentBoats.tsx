@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { subscribeBoats, createBoat, updateBoat, deleteBoat, type Boat } from '../data/boats'
 
 export function EquipmentBoats() {
@@ -20,6 +21,9 @@ export function EquipmentBoats() {
 
   return (
     <div>
+      <div style={{ marginBottom: 8 }}>
+        <Link to="/" className="secondary-btn">Back</Link>
+      </div>
       <div className="card" style={{ marginTop: 4 }}>
         <h1 style={{ margin: 0 }}>Boats</h1>
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
