@@ -64,7 +64,7 @@ export function EquipmentBlades() {
   return (
     <div className="blades-compact">
       <div style={{ marginBottom: 8 }}>
-        <Link to="/" className="secondary-btn">Back</Link>
+        <Link to="/equipment" className="secondary-btn">Back</Link>
       </div>
       <div className="blades-grid">
       <div className="card" style={{ marginTop: 4 }}>

@@ -22,7 +22,7 @@ export function EquipmentBoats() {
   return (
     <div>
       <div style={{ marginBottom: 8 }}>
-        <Link to="/" className="secondary-btn">Back</Link>
+        <Link to="/equipment" className="secondary-btn">Back</Link>
       </div>
       <div className="card" style={{ marginTop: 4 }}>
         <h1 style={{ margin: 0 }}>Boats</h1>
