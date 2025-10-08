@@ -15,7 +15,7 @@ export function EquipmentBlades() {
   }, [])
 
   useEffect(() => {
-    const ages = ['J13','WJ13','J14','WJ14','J15','WJ15','J16','WJ16','J17','WJ17','J18','WJ18']
+    const ages = ['WJ14','WJ15','WJ16','WJ18','J14','J15','J16','J18']
     const boats = ['4x-','4x+','2x','1x']
     const initial: GearingMatrix = {}
     for (const a of ages) { initial[a] = {}; for (const b of boats) initial[a][b] = '' }
@@ -145,7 +145,7 @@ export function EquipmentBlades() {
               </tr>
             </thead>
             <tbody>
-              {['J13','WJ13','J14','WJ14','J15','WJ15','J16','WJ16','J17','WJ17','J18','WJ18'].map((age) => (
+              {['WJ14','WJ15','WJ16','WJ18','J14','J15','J16','J18'].map((age) => (
                 <tr key={age}>
                   <td style={{ fontWeight: 600 }}>{age}</td>
                   {['4x-','4x+','2x','1x'].map((bt) => (
