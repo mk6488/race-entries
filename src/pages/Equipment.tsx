@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { subscribeEntries } from '../data/entries'
 import { subscribeBoats, type Boat } from '../data/boats'
-import { subscribeBlades, type Blade, updateBladeAmount } from '../data/blades'
+import { subscribeBlades, type Blade } from '../data/blades'
+import { subscribeDivisionGroups, type DivisionGroup } from '../data/divisionGroups'
 import type { Entry } from '../models/entry'
 import { getRaceById } from '../data/races'
 import type { Race } from '../models/race'
@@ -16,6 +17,7 @@ export function Equipment() {
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
   const [bladesRef, setBladesRef] = useState<Blade[]>([])
+  const [groups, setGroups] = useState<DivisionGroup[]>([])
   const otherSections = useMemo(() => [
     { title: 'Safety', items: ['First Aid Pouch', 'Lifejacket', 'Throw Lines'] },
     { title: 'Coxing', items: ['Cox boxes', 'Cox box chargers'] },
@@ -58,6 +60,12 @@ export function Equipment() {
     const unsub = subscribeBlades(setBladesRef)
     return () => unsub()
   }, [])
+
+  // Subscribe to division groups (to group simultaneous divisions)
+  useEffect(() => {
+    if (!raceId) return
+    return subscribeDivisionGroups(raceId, setGroups)
+  }, [raceId])
 
   // Persist loaded-state in localStorage per race
   useEffect(() => {
@@ -102,6 +110,106 @@ export function Equipment() {
   }, [otherAmounts, raceId])
 
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
+
+  // Group map: day -> group name -> set of divisions
+  const groupMap = useMemo(() => {
+    const m = new Map<string, Map<string, Set<string>>>()
+    for (const g of groups) {
+      if (!m.has(g.day)) m.set(g.day, new Map())
+      const gm = m.get(g.day) as Map<string, Set<string>>
+      gm.set(g.group, new Set(g.divisions || []))
+    }
+    return m
+  }, [groups])
+
+  // Assign each entered row to a day/group key. If not grouped, fallback to its own div as a pseudo-group
+  const rowsByDayGroup = useMemo(() => {
+    const out = new Map<string, Entry[]>()
+    for (const r of enteredRows) {
+      const dm = groupMap.get(r.day)
+      let key = `${r.day}::__${r.div}`
+      if (dm) {
+        for (const [gname, set] of dm.entries()) {
+          if (set.has(r.div)) { key = `${r.day}::${gname}`; break }
+        }
+      }
+      if (!out.has(key)) out.set(key, [])
+      ;(out.get(key) as Entry[]).push(r)
+    }
+    return out
+  }, [enteredRows, groupMap])
+
+  function inferPreciseBoatType(event: string): string | null {
+    const e = event.toLowerCase()
+    if (e.includes('8x+')) return '8x+'
+    if (e.includes('8+')) return '8+'
+    if (e.includes('4x+')) return '4x+'
+    if (e.includes('4x-')) return '4x-'
+    if (e.includes('4x')) return '4x'
+    if (e.includes('4+')) return '4+'
+    if (e.includes('4-')) return '4-'
+    if (e.includes('2x-')) return '2x-'
+    if (e.includes('2x')) return '2x'
+    if (e.includes('2-')) return '2-'
+    if (e.includes('1x-')) return '1x-'
+    if (e.includes('1x')) return '1x'
+    return null
+  }
+
+  function bladesRequiredFor(type: string | null): number {
+    switch (type) {
+      case '1x':
+      case '1x-':
+        return 2
+      case '2-':
+        return 2
+      case '2x':
+      case '2x-':
+        return 4
+      case '4-':
+      case '4+':
+        return 4
+      case '4x':
+      case '4x-':
+      case '4x+':
+        return 8
+      case '8+':
+        return 8
+      case '8x+':
+        return 16
+      default:
+        return 0
+    }
+  }
+
+  // Compute max needed blades per set across all simultaneous groups
+  const maxNeededByBlade = useMemo(() => {
+    const byBladeMax = new Map<string, number>()
+    for (const [, ers] of rowsByDayGroup.entries()) {
+      const byBlade = new Map<string, number>()
+      for (const e of ers) {
+        const raw = (e.blades || '').trim()
+        if (!raw) continue
+        const parts = raw.includes('+') ? raw.split('+').map(s => s.trim()).filter(Boolean) : [raw]
+        const type = inferPreciseBoatType(e.event || '')
+        const needed = bladesRequiredFor(type)
+        if (needed <= 0) continue
+        const n = Math.max(1, parts.length)
+        const base = Math.floor(needed / n)
+        let rem = needed % n
+        for (const p of parts) {
+          const inc = base + (rem > 0 ? 1 : 0)
+          if (rem > 0) rem -= 1
+          byBlade.set(p, (byBlade.get(p) || 0) + inc)
+        }
+      }
+      for (const [blade, used] of byBlade.entries()) {
+        const cur = byBladeMax.get(blade) || 0
+        if (used > cur) byBladeMax.set(blade, used)
+      }
+    }
+    return byBladeMax
+  }, [rowsByDayGroup])
 
   function countBoats(list: Entry[]) {
     const m = new Map<string, number>()
@@ -368,33 +476,18 @@ export function Equipment() {
               <thead>
                 <tr>
                   <th style={{ minWidth: 180 }}>Set</th>
-                  <th style={{ width: 120 }}>Amount</th>
+                  <th style={{ width: 120 }}>Needed</th>
                   <th style={{ width: 120 }}>Loaded</th>
                 </tr>
               </thead>
               <tbody>
                 {mapToSortedArray(overall.blades.map).map(([name, counted]) => {
-                  const ref = bladeNameToRef.get(name)
-                  const amount = ref && typeof (ref as any).amount === 'number' ? String((ref as any).amount) : ''
+                  const needed = maxNeededByBlade.get(name) || 0
                   return (
                     <tr key={name}>
                       <td>{name}</td>
                       <td>
-                        <input
-                          type="number"
-                          min={0}
-                          value={amount}
-                          onChange={(e)=> {
-                            const v = e.target.value
-                            const n = v === '' ? 0 : Math.max(0, Number(v))
-                            const b = bladeNameToRef.get(name)
-                            if (b) {
-                              updateBladeAmount(b.id, n).catch(() => {})
-                            }
-                          }}
-                          style={{ width: 90 }}
-                          disabled={!ref}
-                        />
+                        <span>{needed}</span>
                       </td>
                       <td>
                         <input type="checkbox" checked={!!loadedBlades[name]} onChange={(e)=> setLoadedBlades(prev => ({ ...prev, [name]: e.target.checked }))} />
