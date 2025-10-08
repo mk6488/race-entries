@@ -261,6 +261,19 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .blades-compact table.sheet th { padding: 6px 6px; font-size: 12px; }
 .blades-compact table.sheet td { padding: 4px 6px; font-size: 13px; }
 .blades-compact .row-action { padding: 4px 6px; }
+/* Make set cell fully colored, input transparent and borderless */
+.blades-compact .set-colored { padding: 0 !important; }
+.blades-compact .set-colored .set-input { background: transparent; border: none; width: 100%; padding: 6px 8px; }
+.blades-compact .set-colored .set-input:focus { outline: none; box-shadow: none; }
+/* Shrink numeric inputs and headers */
+.blades-compact .col-length input[type="number"],
+.blades-compact .col-inboard input[type="number"],
+.blades-compact .col-span input[type="number"],
+.blades-compact .col-amount input[type="number"] { width: 64px; padding: 4px 6px; }
+.blades-compact table.sheet th.col-length,
+.blades-compact table.sheet th.col-inboard,
+.blades-compact table.sheet th.col-span,
+.blades-compact table.sheet th.col-amount { font-size: 11px; }
 
 
 @media (max-width: 900px) {

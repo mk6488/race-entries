@@ -88,21 +88,21 @@ export function EquipmentBlades() {
           <table className="sheet blades-table">
             <thead>
               <tr>
-                <th style={{ minWidth: 150 }}>Set</th>
-                <th className="col-gearing" style={{ width: 70 }}>Gearing</th>
-                <th className="col-length" style={{ width: 70 }}>Length</th>
-                <th className="col-inboard" style={{ width: 70 }}>Inboard</th>
-                <th className="col-span" style={{ width: 70 }}>Span</th>
-                <th className="col-amount" style={{ width: 70 }}>Amount</th>
-                <th className="col-active" style={{ width: 70 }}>Active</th>
-                <th className="col-actions" style={{ width: 120 }}></th>
+                <th style={{ minWidth: 130 }}>Set</th>
+                <th className="col-gearing" style={{ width: 64 }}>Gearing</th>
+                <th className="col-length" style={{ width: 64 }}>Length</th>
+                <th className="col-inboard" style={{ width: 64 }}>Inboard</th>
+                <th className="col-span" style={{ width: 64 }}>Span</th>
+                <th className="col-amount" style={{ width: 64 }}>Amount</th>
+                <th className="col-active" style={{ width: 64 }}>Active</th>
+                <th className="col-actions" style={{ width: 110 }}></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((r) => (
                 <tr key={r.id}>
-                  <td style={{ background: codeToPreset(r.lengthCode as any).color }}>
-                    <input value={r.name} onChange={(e)=> updateBlade(r.id, { name: e.target.value })} />
+                  <td className="set-colored" style={{ background: codeToPreset(r.lengthCode as any).color }}>
+                    <input className="set-input" value={r.name} onChange={(e)=> updateBlade(r.id, { name: e.target.value })} />
                   </td>
                   <td className="col-gearing">
                     <select value={r.lengthCode || 'NA'} onChange={(e)=> {
