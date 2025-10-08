@@ -314,6 +314,13 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .entry-mobile-grid .changes input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--muted); }
 }
 
+@media (min-width: 980px) {
+  .blades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+}
+@media (max-width: 979px) {
+  .blades-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+}
+
 /* Print styles */
 @media print {
   @page { size: A4 landscape; margin: 10mm; }

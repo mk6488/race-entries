@@ -62,6 +62,7 @@ export function EquipmentBlades() {
 
   return (
     <div className="blades-compact">
+      <div className="blades-grid">
       <div className="card" style={{ marginTop: 4 }}>
         <h1 style={{ margin: 0 }}>Blades</h1>
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
@@ -143,7 +144,6 @@ export function EquipmentBlades() {
           </table>
         </div>
       </div>
-
       <div className="card" style={{ marginTop: 12 }}>
         <div style={{ fontWeight: 700, marginBottom: 8 }}>Recommended gearing by age group</div>
         <div className="table-scroll">
@@ -181,6 +181,7 @@ export function EquipmentBlades() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   )
