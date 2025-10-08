@@ -1,7 +1,16 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 
-export type Blade = { id: string; name: string; active?: boolean; amount?: number }
+export type Blade = {
+  id: string;
+  name: string;
+  active?: boolean;
+  amount?: number;
+  lengthCode?: '1' | '2' | '3' | '4' | '5' | 'NA';
+  bladeLength?: number | null;
+  inboard?: number | null;
+  span?: number | null;
+}
 
 const col = collection(db, 'blades')
 
