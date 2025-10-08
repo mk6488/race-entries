@@ -26,4 +26,26 @@ export async function updateGearingCell(raceId: string, age: string, boatType: s
   await updateDoc(ref, { [path]: code })
 }
 
+// Global (non-race) gearing defaults stored under doc id 'default'
+export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
+  const ref = doc(col, 'default')
+  return onSnapshot(ref, (snap) => {
+    const data = (snap.exists() ? (snap.data() as any) : {})
+    cb((data.values as GearingMatrix) || {})
+  })
+}
+
+export async function initGlobalGearingIfMissing(initial: GearingMatrix) {
+  await authReady.catch(() => {})
+  const ref = doc(col, 'default')
+  await setDoc(ref, { values: initial }, { merge: true })
+}
+
+export async function updateGlobalGearingCell(age: string, boatType: string, code: string) {
+  await authReady.catch(() => {})
+  const ref = doc(col, 'default')
+  const path = `values.${age}.${boatType}`
+  await updateDoc(ref, { [path]: code })
+}
+
 

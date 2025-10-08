@@ -8,7 +8,7 @@ import { updateEntry } from '../data/entries'
 import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import { subscribeDivisionGroups, type DivisionGroup } from '../data/divisionGroups'
-import { subscribeGearing, initGearingIfMissing, updateGearingCell, type GearingMatrix } from '../data/gearing'
+ 
  
 
 export function Race() {
@@ -17,7 +17,6 @@ export function Race() {
   const [rows, setRows] = useState<Entry[]>([])
   const [groups, setGroups] = useState<DivisionGroup[]>([])
   const [searchParams, setSearchParams] = useSearchParams()
-  const [gearing, setGearing] = useState<GearingMatrix>({})
 
   // Filter modal state via URL (?filter=1)
   const filterOpen = searchParams.get('filter') === '1'
@@ -42,16 +41,6 @@ export function Race() {
     return subscribeDivisionGroups(raceId, setGroups)
   }, [raceId])
 
-  // Gearing matrix subscription
-  useEffect(() => {
-    if (!raceId) return
-    const ages = ['J13','WJ13','J14','WJ14','J15','WJ15','J16','WJ16','J17','WJ17','J18','WJ18']
-    const boats = ['4x-','4x+','2x','1x']
-    const initial: GearingMatrix = {}
-    for (const a of ages) { initial[a] = {}; for (const b of boats) initial[a][b] = '' }
-    initGearingIfMissing(raceId, initial).catch(()=>{})
-    return subscribeGearing(raceId, setGearing)
-  }, [raceId])
 
   
 
@@ -273,43 +262,7 @@ export function Race() {
         </table>
       </div>
 
-      {/* Gearing matrix */}
-      <div className="card" style={{ marginTop: 12 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>Recommended gearing by age group</div>
-        <div className="table-scroll">
-          <table className="sheet">
-            <thead>
-              <tr>
-                <th style={{ minWidth: 80 }}></th>
-                <th style={{ minWidth: 80 }}>4x-</th>
-                <th style={{ minWidth: 80 }}>4x+</th>
-                <th style={{ minWidth: 80 }}>2x</th>
-                <th style={{ minWidth: 80 }}>1x</th>
-              </tr>
-            </thead>
-            <tbody>
-              {['J13','WJ13','J14','WJ14','J15','WJ15','J16','WJ16','J17','WJ17','J18','WJ18'].map((age) => (
-                <tr key={age}>
-                  <td style={{ fontWeight: 600 }}>{age}</td>
-                  {['4x-','4x+','2x','1x'].map((bt) => (
-                    <td key={bt}>
-                      <select value={(gearing[age]?.[bt] ?? '')} onChange={(e)=> raceId && updateGearingCell(raceId, age, bt, e.target.value)}>
-                        <option value=""></option>
-                        <option value="NA">N/A</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                      </select>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      
 
       {filterOpen && (
         <div className="modal-overlay" onClick={closeFilter}>

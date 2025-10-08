@@ -1,14 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
 import { subscribeBlades, createBlade, updateBlade, deleteBlade, type Blade } from '../data/blades'
+import { subscribeGlobalGearing, initGlobalGearingIfMissing, updateGlobalGearingCell, type GearingMatrix } from '../data/gearing'
 
 export function EquipmentBlades() {
   const [rows, setRows] = useState<Blade[]>([])
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
   const [filter, setFilter] = useState('')
+  const [gearing, setGearing] = useState<GearingMatrix>({})
 
   useEffect(() => {
     const unsub = subscribeBlades(setRows)
+    return () => unsub()
+  }, [])
+
+  useEffect(() => {
+    const ages = ['J13','WJ13','J14','WJ14','J15','WJ15','J16','WJ16','J17','WJ17','J18','WJ18']
+    const boats = ['4x-','4x+','2x','1x']
+    const initial: GearingMatrix = {}
+    for (const a of ages) { initial[a] = {}; for (const b of boats) initial[a][b] = '' }
+    initGlobalGearingIfMissing(initial).catch(()=>{})
+    const unsub = subscribeGlobalGearing(setGearing)
     return () => unsub()
   }, [])
 
@@ -114,6 +126,43 @@ export function EquipmentBlades() {
                 </tr>
               ))}
               {filtered.length === 0 ? <tr><td colSpan={4} style={{ color: 'var(--muted)' }}>No blades</td></tr> : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 12 }}>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Recommended gearing by age group</div>
+        <div className="table-scroll">
+          <table className="sheet">
+            <thead>
+              <tr>
+                <th style={{ minWidth: 80 }}></th>
+                <th style={{ minWidth: 80 }}>4x-</th>
+                <th style={{ minWidth: 80 }}>4x+</th>
+                <th style={{ minWidth: 80 }}>2x</th>
+                <th style={{ minWidth: 80 }}>1x</th>
+              </tr>
+            </thead>
+            <tbody>
+              {['J13','WJ13','J14','WJ14','J15','WJ15','J16','WJ16','J17','WJ17','J18','WJ18'].map((age) => (
+                <tr key={age}>
+                  <td style={{ fontWeight: 600 }}>{age}</td>
+                  {['4x-','4x+','2x','1x'].map((bt) => (
+                    <td key={bt}>
+                      <select value={(gearing[age]?.[bt] ?? '')} onChange={(e)=> updateGlobalGearingCell(age, bt, e.target.value)}>
+                        <option value=""></option>
+                        <option value="NA">N/A</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                      </select>
+                    </td>
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
