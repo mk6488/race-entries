@@ -63,6 +63,7 @@ export function EquipmentBlades() {
             <thead>
               <tr>
                 <th style={{ minWidth: 220 }}>Set</th>
+                <th style={{ width: 120 }}>Gearing</th>
                 <th style={{ width: 120 }}>Length</th>
                 <th style={{ width: 120 }}>Inboard</th>
                 <th style={{ width: 120 }}>Span</th>
@@ -90,6 +91,9 @@ export function EquipmentBlades() {
                       <option value="4">4</option>
                       <option value="5">5</option>
                     </select>
+                  </td>
+                  <td>
+                    <input type="number" min={0} value={(r as any).bladeLength ?? ''} onChange={(e)=> updateBlade(r.id, { bladeLength: e.target.value === '' ? null : Math.max(0, Number(e.target.value)||0) })} />
                   </td>
                   <td>
                     <input type="number" min={0} value={(r as any).inboard ?? ''} onChange={(e)=> updateBlade(r.id, { inboard: e.target.value === '' ? null : Math.max(0, Number(e.target.value)||0) })} />
