@@ -84,17 +84,17 @@ export function EquipmentBlades() {
           }}>Add</button>
         </div>
         <div className="table-scroll" style={{ marginTop: 12 }}>
-          <table className="sheet">
+          <table className="sheet blades-table">
             <thead>
               <tr>
                 <th style={{ minWidth: 180 }}>Set</th>
-                <th style={{ width: 90 }}>Gearing</th>
-                <th style={{ width: 90 }}>Length</th>
-                <th style={{ width: 90 }}>Inboard</th>
-                <th style={{ width: 90 }}>Span</th>
-                <th style={{ width: 90 }}>Amount</th>
-                <th style={{ width: 90 }}>Active</th>
-                <th style={{ width: 160 }}></th>
+                <th className="col-gearing" style={{ width: 90 }}>Gearing</th>
+                <th className="col-length" style={{ width: 90 }}>Length</th>
+                <th className="col-inboard" style={{ width: 90 }}>Inboard</th>
+                <th className="col-span" style={{ width: 90 }}>Span</th>
+                <th className="col-amount" style={{ width: 90 }}>Amount</th>
+                <th className="col-active" style={{ width: 90 }}>Active</th>
+                <th className="col-actions" style={{ width: 160 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -103,7 +103,7 @@ export function EquipmentBlades() {
                   <td style={{ background: codeToPreset(r.lengthCode as any).color }}>
                     <input value={r.name} onChange={(e)=> updateBlade(r.id, { name: e.target.value })} />
                   </td>
-                  <td>
+                  <td className="col-gearing">
                     <select value={r.lengthCode || 'NA'} onChange={(e)=> {
                       const code = (e.target.value || 'NA') as Blade['lengthCode']
                       const p = codeToPreset(code)
@@ -117,23 +117,23 @@ export function EquipmentBlades() {
                       <option value="5">5</option>
                     </select>
                   </td>
-                  <td>
+                  <td className="col-length">
                     <input type="number" min={0} value={(r as any).bladeLength ?? ''} onChange={(e)=> updateBlade(r.id, { bladeLength: e.target.value === '' ? null : Math.max(0, Number(e.target.value)||0) })} />
                   </td>
-                  <td>
+                  <td className="col-inboard">
                     <input type="number" min={0} value={(r as any).inboard ?? ''} onChange={(e)=> updateBlade(r.id, { inboard: e.target.value === '' ? null : Math.max(0, Number(e.target.value)||0) })} />
                   </td>
-                  <td>
+                  <td className="col-span">
                     <input type="number" min={0} value={(r as any).span ?? ''} onChange={(e)=> updateBlade(r.id, { span: e.target.value === '' ? null : Math.max(0, Number(e.target.value)||0) })} />
                   </td>
-                  <td>
+                  <td className="col-amount">
                     <input type="number" min={0} value={(r as any).amount ?? 0}
                       onChange={(e)=> updateBlade(r.id, { amount: Math.max(0, Number(e.target.value)||0) })} />
                   </td>
-                  <td>
+                  <td className="col-active">
                     <input type="checkbox" checked={!!r.active} onChange={(e)=> updateBlade(r.id, { active: e.target.checked })} />
                   </td>
-                  <td>
+                  <td className="col-actions">
                     <button className="row-action" onClick={async ()=> { if (confirm('Delete blades set?')) await deleteBlade(r.id) }}>Delete</button>
                   </td>
                 </tr>

@@ -264,6 +264,29 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 
 
 @media (max-width: 900px) {
+  /* Blades table: hide less critical columns on small screens */
+  .blades-table th.col-inboard,
+  .blades-table td.col-inboard,
+  .blades-table th.col-span,
+  .blades-table td.col-span,
+  .blades-table th.col-active,
+  .blades-table td.col-active,
+  .blades-table th.col-actions,
+  .blades-table td.col-actions { display: none; }
+
+  /* Make inputs a bit narrower for mobile */
+  .blades-compact table.sheet th[style],
+  .blades-compact table.sheet td[style] { width: auto !important; min-width: 0 !important; }
+  .blades-compact table.sheet input[type="number"] { width: 80px; }
+  .blades-compact table.sheet input[type="text"],
+  .blades-compact table.sheet select { font-size: 12px; padding: 6px 6px; }
+
+  /* Ensure horizontal scroll available if needed */
+  .blades-compact .table-scroll { overflow-x: auto; }
+
+  /* Slightly reduce heading and paddings */
+  .blades-compact h1 { font-size: 18px; }
+  .blades-compact .card { padding: 10px; }
   .modal-overlay { padding: 0; }
   .modal-dialog { max-width: none; width: 100%; height: 100svh; max-height: 100svh; border-radius: 0; border: none; }
   .nav-links { display: none; }
