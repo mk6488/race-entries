@@ -88,14 +88,14 @@ export function EquipmentBlades() {
           <table className="sheet blades-table">
             <thead>
               <tr>
-                <th style={{ minWidth: 180 }}>Set</th>
-                <th className="col-gearing" style={{ width: 90 }}>Gearing</th>
-                <th className="col-length" style={{ width: 90 }}>Length</th>
-                <th className="col-inboard" style={{ width: 90 }}>Inboard</th>
-                <th className="col-span" style={{ width: 90 }}>Span</th>
-                <th className="col-amount" style={{ width: 90 }}>Amount</th>
-                <th className="col-active" style={{ width: 90 }}>Active</th>
-                <th className="col-actions" style={{ width: 160 }}></th>
+                <th style={{ minWidth: 150 }}>Set</th>
+                <th className="col-gearing" style={{ width: 70 }}>Gearing</th>
+                <th className="col-length" style={{ width: 70 }}>Length</th>
+                <th className="col-inboard" style={{ width: 70 }}>Inboard</th>
+                <th className="col-span" style={{ width: 70 }}>Span</th>
+                <th className="col-amount" style={{ width: 70 }}>Amount</th>
+                <th className="col-active" style={{ width: 70 }}>Active</th>
+                <th className="col-actions" style={{ width: 120 }}></th>
               </tr>
             </thead>
             <tbody>
