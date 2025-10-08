@@ -16,6 +16,7 @@ export function Equipment() {
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
   const [loadedBoats, setLoadedBoats] = useState<Record<string, boolean>>({})
   const [loadedBlades, setLoadedBlades] = useState<Record<string, boolean>>({})
+  const [bladeNeededOverrides, setBladeNeededOverrides] = useState<Record<string, string>>({})
   const [bladesRef, setBladesRef] = useState<Blade[]>([])
   const [groups, setGroups] = useState<DivisionGroup[]>([])
   const otherSections = useMemo(() => [
@@ -81,6 +82,11 @@ export function Equipment() {
       setLoadedBlades(l && typeof l === 'object' ? l : {})
     } catch {}
     try {
+      const b = localStorage.getItem(`equip:${raceId}:bladeNeededOverrides`)
+      const l = b ? JSON.parse(b) : {}
+      setBladeNeededOverrides(l && typeof l === 'object' ? l : {})
+    } catch {}
+    try {
       const b = localStorage.getItem(`equip:${raceId}:other`)
       const l = b ? JSON.parse(b) : {}
       setLoadedOther(l && typeof l === 'object' ? l : {})
@@ -100,6 +106,10 @@ export function Equipment() {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:blades`, JSON.stringify(loadedBlades)) } catch {}
   }, [loadedBlades, raceId])
+  useEffect(() => {
+    if (!raceId) return
+    try { localStorage.setItem(`equip:${raceId}:bladeNeededOverrides`, JSON.stringify(bladeNeededOverrides)) } catch {}
+  }, [bladeNeededOverrides, raceId])
   useEffect(() => {
     if (!raceId) return
     try { localStorage.setItem(`equip:${raceId}:other`, JSON.stringify(loadedOther)) } catch {}
@@ -483,11 +493,31 @@ export function Equipment() {
               <tbody>
                 {mapToSortedArray(overall.blades.map).map(([name, counted]) => {
                   const needed = maxNeededByBlade.get(name) || 0
+                  const override = bladeNeededOverrides[name]
+                  const display = override !== undefined ? override : String(needed)
                   return (
                     <tr key={name}>
                       <td>{name}</td>
                       <td>
-                        <span>{needed}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={display}
+                          onChange={(e)=> {
+                            const v = e.target.value
+                            setBladeNeededOverrides(prev => {
+                              const next = { ...prev }
+                              const n = Number(v)
+                              if (v === '' || !Number.isFinite(n)) {
+                                delete next[name]
+                              } else {
+                                next[name] = String(Math.max(0, n))
+                              }
+                              return next
+                            })
+                          }}
+                          style={{ width: 90 }}
+                        />
                       </td>
                       <td>
                         <input type="checkbox" checked={!!loadedBlades[name]} onChange={(e)=> setLoadedBlades(prev => ({ ...prev, [name]: e.target.checked }))} />
@@ -514,7 +544,7 @@ export function Equipment() {
                   <thead>
                     <tr>
                       <th style={{ minWidth: 220 }}>Item</th>
-                      <th style={{ width: 120 }}>Amount</th>
+                      <th style={{ width: 120 }}>Needed</th>
                       <th style={{ width: 120 }}>Loaded</th>
                     </tr>
                   </thead>
