@@ -102,6 +102,16 @@ service cloud.firestore {
       allow create, update, delete: if isSignedIn();
     }
 
+    // race-specific gearing matrix for age group x boat type
+    function validGearing(data) {
+      return data.keys().hasOnly(['values']) && (data.values is map);
+    }
+    match /gearing/{raceId} {
+      allow read: if true;
+      allow create: if isSignedIn() && validGearing(request.resource.data);
+      allow update: if isSignedIn();
+    }
+
     // blade clash silences (separate from boat silences)
     function validBladeSilence(data) {
       return data.keys().hasOnly(['raceId','day','group','blade']) &&
