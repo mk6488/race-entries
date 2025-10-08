@@ -47,6 +47,19 @@ export function EquipmentBlades() {
     }
   }
 
+  function gearCodeToColor(code: string | undefined) {
+    if (!code) return undefined
+    switch (code) {
+      case '1': return '#bfdbfe' // light blue
+      case '2': return '#fde68a' // yellow
+      case '3': return '#86efac' // green
+      case '4': return '#93c5fd' // dark blue-ish
+      case '5': return '#e5e7eb' // gray
+      case 'NA': return '#e9d5ff' // purple
+      default: return undefined
+    }
+  }
+
   return (
     <div>
       <div className="card" style={{ marginTop: 4 }}>
@@ -148,9 +161,11 @@ export function EquipmentBlades() {
               {['WJ14','WJ15','WJ16','WJ18','J14','J15','J16','J18'].map((age) => (
                 <tr key={age}>
                   <td style={{ fontWeight: 600 }}>{age}</td>
-                  {['4x-','4x+','2x','1x'].map((bt) => (
+                  {['4x-','4x+','2x','1x'].map((bt) => {
+                    const val = (gearing[age]?.[bt] ?? '')
+                    return (
                     <td key={bt}>
-                      <select value={(gearing[age]?.[bt] ?? '')} onChange={(e)=> updateGlobalGearingCell(age, bt, e.target.value)}>
+                      <select value={val} onChange={(e)=> updateGlobalGearingCell(age, bt, e.target.value)} style={{ background: gearCodeToColor(val) }}>
                         <option value=""></option>
                         <option value="NA">N/A</option>
                         <option value="1">1</option>
@@ -160,7 +175,7 @@ export function EquipmentBlades() {
                         <option value="5">5</option>
                       </select>
                     </td>
-                  ))}
+                  )})}
                 </tr>
               ))}
             </tbody>
