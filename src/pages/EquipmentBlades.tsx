@@ -148,7 +148,7 @@ export function EquipmentBlades() {
           </table>
         </div>
       </div>
-      <div className="card" style={{ marginTop: 12 }}>
+      <div className="card" style={{ marginTop: 4 }}>
         <div style={{ fontWeight: 700, marginBottom: 8 }}>Recommended gearing by age group</div>
         <div className="table-scroll">
           <table className="sheet">
