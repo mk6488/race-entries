@@ -261,6 +261,11 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .blades-compact table.sheet th { padding: 6px 6px; font-size: 12px; }
 .blades-compact table.sheet td { padding: 4px 6px; font-size: 13px; }
 .blades-compact .row-action { padding: 4px 6px; }
+/* Boats type grid (desktop) */
+.boats-type-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.boats-type-grid .type-list { display: grid; gap: 6px; border: 1px dashed var(--border); padding: 8px; border-radius: 8px; background: #fff; min-height: 60px; }
+.boats-type-grid .type-item { padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; background: #f8fafc; }
+.boats-type-grid .type-empty { color: var(--muted); font-size: 12px; }
 /* Make set cell fully colored, input transparent and borderless */
 .blades-compact .set-colored { padding: 4px 6px !important; }
 .blades-compact .set-colored .set-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; }

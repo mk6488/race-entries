@@ -19,6 +19,20 @@ export function EquipmentBoats() {
     return rows.filter(r => (r.name||'').toLowerCase().includes(q) || (r.type||'').toLowerCase().includes(q))
   }, [rows, filter])
 
+  const typeBuckets = useMemo(() => {
+    const buckets: Record<string, string[]> = { '1x': [], '2x/-': [], '4x/-': [], '4+': [], '8+': [] }
+    for (const r of filtered) {
+      const t = (r.type || '').toLowerCase()
+      if (t === '1x') buckets['1x'].push(r.name || '')
+      else if (t === '2x' || t === '2-') buckets['2x/-'].push(r.name || '')
+      else if (t === '4x' || t === '4-') buckets['4x/-'].push(r.name || '')
+      else if (t === '4+') buckets['4+'].push(r.name || '')
+      else if (t === '8x+' || t === '8+') buckets['8+'].push(r.name || '')
+    }
+    for (const k of Object.keys(buckets)) buckets[k].sort((a,b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }))
+    return buckets
+  }, [filtered])
+
   return (
     <div>
       <div style={{ marginBottom: 8 }}>
@@ -26,6 +40,18 @@ export function EquipmentBoats() {
       </div>
       <div className="card" style={{ marginTop: 4 }}>
         <h1 style={{ margin: 0 }}>Boats</h1>
+        <div className="boats-type-grid desktop-only" style={{ marginTop: 12 }}>
+          {['1x','2x/-','4x/-','4+','8+'].map((label) => (
+            <div key={label} className="type-col">
+              <div className="section-title" style={{ marginBottom: 6 }}>{label}</div>
+              <div className="type-list">
+                {typeBuckets[label].length ? typeBuckets[label].map((n) => (
+                  <div key={n} className="type-item">{n}</div>
+                )) : <div className="type-empty">None</div>}
+              </div>
+            </div>
+          ))}
+        </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
           <input placeholder="Filter" value={filter} onChange={(e)=> setFilter(e.target.value)} style={{ maxWidth: 220 }} />
           <input placeholder="Name" value={name} onChange={(e)=> setName(e.target.value)} />
