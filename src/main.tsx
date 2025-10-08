@@ -8,7 +8,7 @@ import { Equipment } from './pages/Equipment'
 import { Trailer } from './pages/Trailer'
 import { Home } from './pages/Home'
 import { Archive } from './pages/Archive'
-import { EquipmentOverview } from './pages/EquipmentOverview'
+// removed EquipmentOverview
 import { EquipmentBoats } from './pages/EquipmentBoats'
 import { EquipmentBlades } from './pages/EquipmentBlades'
 import './ui/global.css'
@@ -20,9 +20,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'archive', element: <Archive /> },
-      { path: 'equipment', element: <EquipmentOverview /> },
-      { path: 'equipment/boats', element: <EquipmentBoats /> },
-      { path: 'equipment/blades', element: <EquipmentBlades /> },
+      { path: 'boats', element: <EquipmentBoats /> },
+      { path: 'blades', element: <EquipmentBlades /> },
       { path: 'races/:raceId', element: <Race /> },
       { path: 'entries/:raceId', element: <Entries /> },
       { path: 'equipment/:raceId', element: <Equipment /> },

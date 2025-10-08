@@ -153,11 +153,17 @@ export function Home() {
         <div className="card-footer">
           <div className="meta">© 2025 Designed by Mike Katholnig</div>
           <div style={{ display: 'inline-flex', gap: 12, alignItems: 'center' }}>
-          <Link to="/equipment" className="text-link">
+          <Link to="/boats" className="text-link">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M4 11h16M6 7h12M8 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
-            equipment
+            boats
+          </Link>
+          <Link to="/blades" className="text-link">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M4 11h16M6 7h12M8 15h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            blades
           </Link>
           <Link to="/archive" className="text-link">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
