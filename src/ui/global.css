@@ -328,7 +328,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 }
 
 @media (min-width: 980px) {
-  .blades-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
+  .blades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 }
 @media (max-width: 979px) {
   .blades-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
