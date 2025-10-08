@@ -262,9 +262,9 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 .blades-compact table.sheet td { padding: 4px 6px; font-size: 13px; }
 .blades-compact .row-action { padding: 4px 6px; }
 /* Make set cell fully colored, input transparent and borderless */
-.blades-compact .set-colored { padding: 0 !important; }
-.blades-compact .set-colored .set-input { background: transparent; border: none; width: 100%; padding: 6px 8px; }
-.blades-compact .set-colored .set-input:focus { outline: none; box-shadow: none; }
+.blades-compact .set-colored { padding: 4px 6px !important; }
+.blades-compact .set-colored .set-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; }
+.blades-compact .set-colored .set-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,73,30,.15); outline: none; }
 /* Shrink numeric inputs and headers */
 .blades-compact .col-length input[type="number"],
 .blades-compact .col-inboard input[type="number"],
@@ -328,7 +328,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 }
 
 @media (min-width: 980px) {
-  .blades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+  .blades-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: start; }
 }
 @media (max-width: 979px) {
   .blades-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }

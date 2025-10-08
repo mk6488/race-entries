@@ -101,8 +101,8 @@ export function EquipmentBlades() {
             <tbody>
               {filtered.map((r) => (
                 <tr key={r.id}>
-                  <td className="set-colored" style={{ background: codeToPreset(r.lengthCode as any).color }}>
-                    <input className="set-input" value={r.name} onChange={(e)=> updateBlade(r.id, { name: e.target.value })} />
+                  <td className="set-colored">
+                    <input className="set-input" style={{ background: codeToPreset(r.lengthCode as any).color }} value={r.name} onChange={(e)=> updateBlade(r.id, { name: e.target.value })} />
                   </td>
                   <td className="col-gearing">
                     <select value={r.lengthCode || 'NA'} onChange={(e)=> {
