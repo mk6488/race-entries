@@ -160,6 +160,12 @@ button:hover { background: var(--primary-600); }
 .race-name { font-weight: 600; }
 .race-details { color: var(--muted); font-size: 14px; }
 
+/* Race status chip */
+.race-status { display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--neutral-border); background: var(--neutral-bg); color: var(--neutral-text); }
+.race-status .countdown { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+.race-status.open, .race-status.opening { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+.race-status.closing, .race-status.closed { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+
 /* Spreadsheet-like table */
 table.sheet { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: visible; }
 table.sheet thead th { position: sticky; top: 0; background: #f8fafc; text-align: left; font-weight: 600; border-bottom: 1px solid var(--border); padding: 10px; }

@@ -52,6 +52,36 @@ export function Home() {
 
   const visibleRaces = races.filter(r => !r.archived && !isAutoArchive(r))
 
+  function getRaceStatus(r: Race, now: Date) {
+    const opens = r.broeOpens
+    const closes = r.broeCloses
+    const msInDay = 24 * 60 * 60 * 1000
+    const openingSoonStart = new Date(opens.getTime() - 3 * msInDay)
+    const closingSoonStart = new Date(closes.getTime() - 3 * msInDay)
+    if (now < openingSoonStart) return { kind: 'opening_later' as const }
+    if (now >= openingSoonStart && now < opens) return { kind: 'opening_soon' as const, target: opens }
+    if (now >= opens && now < closingSoonStart) return { kind: 'open' as const }
+    if (now >= closingSoonStart && now < closes) return { kind: 'closing_soon' as const, target: closes }
+    return { kind: 'closed' as const }
+  }
+
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  function fmtCountdown(target: Date, now: Date) {
+    const diff = Math.max(0, target.getTime() - now.getTime())
+    const s = Math.floor(diff / 1000)
+    const days = Math.floor(s / 86400)
+    const hrs = Math.floor((s % 86400) / 3600)
+    const mins = Math.floor((s % 3600) / 60)
+    const secs = s % 60
+    if (days > 0) return `${days}d ${hrs}h ${mins}m`
+    return `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`
+  }
+
   return (
     <div>
       <div className="card" style={{ marginTop: 4 }}>
@@ -66,6 +96,7 @@ export function Home() {
             const start = formatUiDate(r.startDate)
             const end = r.endDate ? formatUiDate(r.endDate) : null
             const dateLabel = end && end !== start ? `${start} → ${end}` : start
+            const status = getRaceStatus(r, new Date())
             return (
               <div className="race-card" key={r.id}>
                 <div className="race-card-header">
@@ -111,6 +142,20 @@ export function Home() {
                 <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="race-details">{r.details || 'No details'}</div>
                 </Link>
+                <div>
+                  {status.kind === 'open' && (
+                    <span className="race-status open">OPEN</span>
+                  )}
+                  {status.kind === 'closed' && (
+                    <span className="race-status closed">CLOSED</span>
+                  )}
+                  {status.kind === 'opening_soon' && (
+                    <span className="race-status opening">OPENING SOON <span className="countdown">{fmtCountdown(status.target, new Date())}</span></span>
+                  )}
+                  {status.kind === 'closing_soon' && (
+                    <span className="race-status closing">CLOSING SOON <span className="countdown">{fmtCountdown(status.target, new Date())}</span></span>
+                  )}
+                </div>
                 {/* Mobile-bottom actions */}
                 <div className="race-actions-bottom">
                   <button
