@@ -324,19 +324,6 @@ export function Entries() {
     return m
   }, [clashes])
 
-  // Deterministic color for a given key (div group or div)
-  function simpleHash(str: string): number {
-    let h = 0
-    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0
-    return Math.abs(h)
-  }
-  function colorForKey(key: string): { border: string; bg: string } {
-    const hue = (simpleHash(key) % 12) * 30 // 12 distinct hues
-    const border = `hsl(${hue}, 70%, 32%)`
-    const bg = `hsla(${hue}, 85%, 45%, 0.08)`
-    return { border, bg }
-  }
-
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   const uniqueDivsByDay = useMemo(() => {
     const m = new Map<string, string[]>()
@@ -360,6 +347,28 @@ export function Entries() {
       setDayOptions(days.map(formatDayLabel))
     })()
   }, [raceId])
+
+  // Assign a stable color per day+group (or day+div fallback) for visual separation
+  const groupColors = useMemo(() => {
+    const palette = ['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed','#0ea5e9','#ea580c','#059669','#e11d48','#22c55e','#ef4444','#9333ea']
+    const map = new Map<string, string>()
+    let i = 0
+    for (const r of sortedRows) {
+      if (r.status === 'withdrawn' || r.status === 'rejected') continue
+      let gkey = `${r.day}::__${r.div}`
+      const dm = groupMap.get(r.day)
+      if (dm) {
+        for (const [gname, set] of dm.entries()) {
+          if (set.has(r.div)) { gkey = `${r.day}::${gname}`; break }
+        }
+      }
+      if (!map.has(gkey)) {
+        map.set(gkey, palette[i % palette.length])
+        i++
+      }
+    }
+    return map
+  }, [sortedRows, groupMap])
 
   async function addRow() {
     if (!raceId) return
@@ -487,19 +496,23 @@ export function Entries() {
               if (bladeClashLookup.get(k)) bladeSilenced = true
             }
           }
-          // Determine color key: prefer group if div is in a group; else use div. No color if no div.
-          const hasDiv = !!(r.div && r.div.trim())
-          const groupPart = gkey.split('::')[1] || ''
-          const isGrouped = groupPart && !groupPart.startsWith('__')
-          const colorKey = isGrouped ? `${r.day}::${groupPart}` : (hasDiv ? `${r.day}::div-${r.div}` : '')
-          const colors = hasDiv && colorKey ? colorForKey(colorKey) : null
-          const useBg = !(r.status === 'withdrawn' || r.status === 'rejected')
-          const colorStyle = colors ? { borderLeft: `6px solid ${colors.border}`, ...(useBg ? { backgroundColor: colors.bg } : {}) } : undefined
           return (
           <div
             key={r.id}
             className={`entry-card ${r.status === 'withdrawn' || r.status === 'rejected' ? r.status : ''} ${r.crewChanged ? 'changed' : ''}`}
-            style={colorStyle}
+            style={(() => {
+              if (r.status === 'withdrawn' || r.status === 'rejected') return undefined
+              // compute group key again to fetch assigned color
+              let gkey2 = `${r.day}::__${r.div}`
+              const dm2 = groupMap.get(r.day)
+              if (dm2) {
+                for (const [gname, set] of dm2.entries()) {
+                  if (set.has(r.div)) { gkey2 = `${r.day}::${gname}`; break }
+                }
+              }
+              const c = groupColors.get(gkey2)
+              return c ? { borderLeft: `4px solid ${c}` } : undefined
+            })()}
             onClick={() => {
               if (!raceId) return
               const initial: NewEntry = {
