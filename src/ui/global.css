@@ -390,6 +390,13 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   input, select, textarea { padding: 6px 8px !important; font-size: 11px !important; }
   table.sheet th[style], table.sheet td[style] { width: auto !important; min-width: 0 !important; }
   table.sheet input[type="number"] { width: 60px !important; }
+
+  /* Trailer print: show only trailer grids (no titles, no unassigned) */
+  .trailer-page > :not(.trailer-layout) { display: none !important; }
+  .trailer-layout { grid-template-columns: 1fr !important; gap: 8px !important; }
+  .trailer-layout > .card:first-child { display: none !important; } /* hide Unassigned */
+  .trailer-layout .card { border: 0 !important; background: transparent !important; padding: 0 !important; }
+  .trailer-layout .card > :not(.trailer-grid) { display: none !important; }
 }
 
 

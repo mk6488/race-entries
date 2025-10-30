@@ -285,7 +285,7 @@ export function Trailer() {
   const big = createLayout('big')
 
   return (
-    <div>
+    <div className="trailer-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
           <h1 style={{ margin: 0 }}>{race?.name ?? 'Trailer'}</h1>
