@@ -383,6 +383,8 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .equipment-print .col { display: grid; gap: 4px; align-content: start; }
   .equipment-print .col h3 { margin: 0 0 4px 0; font-size: 12px; }
   .equipment-print .item { font-size: 11px; }
+  .equipment-print .item label { display: inline-flex; align-items: center; gap: 6px; }
+  .equipment-print input[type="checkbox"] { width: 14px; height: 14px; accent-color: #000; }
   .card { padding: 8px !important; border-radius: 6px !important; }
   .section-title { font-size: 11px !important; margin: 2px 0 4px !important; }
   input, select, textarea { padding: 6px 8px !important; font-size: 11px !important; }

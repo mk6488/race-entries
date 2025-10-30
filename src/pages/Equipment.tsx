@@ -587,13 +587,13 @@ export function Equipment() {
         <div className="col">
           <h3>Boats</h3>
           {Array.from(overall.boats.map.keys()).sort((a,b)=>a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((name) => (
-            <div key={name} className="item">{name}</div>
+            <div key={name} className="item"><label><input type="checkbox" /> {name}</label></div>
           ))}
         </div>
         <div className="col">
           <h3>Blades</h3>
           {Array.from(overall.blades.map.keys()).sort((a,b)=>a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((name) => (
-            <div key={name} className="item">{name}</div>
+            <div key={name} className="item"><label><input type="checkbox" /> {name}</label></div>
           ))}
         </div>
         <div className="col">
@@ -608,7 +608,7 @@ export function Equipment() {
               }
             }
             items.sort((a,b)=>a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
-            return items.map((it) => <div key={it} className="item">{it}</div>)
+            return items.map((it) => <div key={it} className="item"><label><input type="checkbox" /> {it}</label></div>)
           })()}
         </div>
       </div>
