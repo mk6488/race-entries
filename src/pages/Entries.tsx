@@ -331,9 +331,9 @@ export function Entries() {
     return Math.abs(h)
   }
   function colorForKey(key: string): { border: string; bg: string } {
-    const hue = simpleHash(key) % 12 * 30 // 12 distinct hues
-    const border = `hsl(${hue} 70% 32%)`
-    const bg = `hsl(${hue} 85% 45% / 0.08)`
+    const hue = (simpleHash(key) % 12) * 30 // 12 distinct hues
+    const border = `hsl(${hue}, 70%, 32%)`
+    const bg = `hsla(${hue}, 85%, 45%, 0.08)`
     return { border, bg }
   }
 
@@ -491,7 +491,7 @@ export function Entries() {
           const hasDiv = !!(r.div && r.div.trim())
           const groupPart = gkey.split('::')[1] || ''
           const isGrouped = groupPart && !groupPart.startsWith('__')
-          const colorKey = isGrouped ? groupPart : (r.div || '')
+          const colorKey = isGrouped ? `${r.day}::${groupPart}` : (hasDiv ? `${r.day}::div-${r.div}` : '')
           const colors = hasDiv && colorKey ? colorForKey(colorKey) : null
           const useBg = !(r.status === 'withdrawn' || r.status === 'rejected')
           const colorStyle = colors ? { borderLeft: `6px solid ${colors.border}`, ...(useBg ? { backgroundColor: colors.bg } : {}) } : undefined
