@@ -356,126 +356,131 @@ export function Equipment() {
       <div className="equipment-grid">
         {/* Left: Boats */}
         <div style={{ display: 'grid', gap: 12 }}>
-          <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 8+/8x+</div>
-            <div className="table-scroll">
-              <table className="sheet">
-                <thead>
-                  <tr>
-                    <th style={{ minWidth: 220 }}>Boat</th>
-                    <th style={{ width: 120 }}>Loaded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {boatGroups[0].map((name) => (
-                    <tr key={name}>
-                      <td>{name}</td>
-                      <td>
-                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
-                      </td>
+          {boatGroups[0].length > 0 && (
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 8+/8x+</div>
+              <div className="table-scroll">
+                <table className="sheet">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 220 }}>Boat</th>
+                      <th style={{ width: 120 }}>Loaded</th>
                     </tr>
-                  ))}
-                  {boatGroups[0].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {boatGroups[0].map((name) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>
+                          <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x/4- (coxless)</div>
-            <div className="table-scroll">
-              <table className="sheet">
-                <thead>
-                  <tr>
-                    <th style={{ minWidth: 220 }}>Boat</th>
-                    <th style={{ width: 120 }}>Loaded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {boatGroups[1].map((name) => (
-                    <tr key={name}>
-                      <td>{name}</td>
-                      <td>
-                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
-                      </td>
+          )}
+          {boatGroups[1].length > 0 && (
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x/4- (coxless)</div>
+              <div className="table-scroll">
+                <table className="sheet">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 220 }}>Boat</th>
+                      <th style={{ width: 120 }}>Loaded</th>
                     </tr>
-                  ))}
-                  {boatGroups[1].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {boatGroups[1].map((name) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>
+                          <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x+/4+ (coxed)</div>
-            <div className="table-scroll">
-              <table className="sheet">
-                <thead>
-                  <tr>
-                    <th style={{ minWidth: 220 }}>Boat</th>
-                    <th style={{ width: 120 }}>Loaded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {boatGroups[2].map((name) => (
-                    <tr key={name}>
-                      <td>{name}</td>
-                      <td>
-                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
-                      </td>
+          )}
+          {boatGroups[2].length > 0 && (
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 4x+/4+ (coxed)</div>
+              <div className="table-scroll">
+                <table className="sheet">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 220 }}>Boat</th>
+                      <th style={{ width: 120 }}>Loaded</th>
                     </tr>
-                  ))}
-                  {boatGroups[2].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {boatGroups[2].map((name) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>
+                          <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 2x/2-</div>
-            <div className="table-scroll">
-              <table className="sheet">
-                <thead>
-                  <tr>
-                    <th style={{ minWidth: 220 }}>Boat</th>
-                    <th style={{ width: 120 }}>Loaded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {boatGroups[3].map((name) => (
-                    <tr key={name}>
-                      <td>{name}</td>
-                      <td>
-                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
-                      </td>
+          )}
+          {boatGroups[3].length > 0 && (
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 2x/2-</div>
+              <div className="table-scroll">
+                <table className="sheet">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 220 }}>Boat</th>
+                      <th style={{ width: 120 }}>Loaded</th>
                     </tr>
-                  ))}
-                  {boatGroups[3].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {boatGroups[3].map((name) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>
+                          <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          <div className="card">
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 1x</div>
-            <div className="table-scroll">
-              <table className="sheet">
-                <thead>
-                  <tr>
-                    <th style={{ minWidth: 220 }}>Boat</th>
-                    <th style={{ width: 120 }}>Loaded</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {boatGroups[4].map((name) => (
-                    <tr key={name}>
-                      <td>{name}</td>
-                      <td>
-                        <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
-                      </td>
+          )}
+          {boatGroups[4].length > 0 && (
+            <div className="card">
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Boats: 1x</div>
+              <div className="table-scroll">
+                <table className="sheet">
+                  <thead>
+                    <tr>
+                      <th style={{ minWidth: 220 }}>Boat</th>
+                      <th style={{ width: 120 }}>Loaded</th>
                     </tr>
-                  ))}
-                  {boatGroups[4].length === 0 ? <tr><td colSpan={2} style={{ color: 'var(--muted)' }}>None</td></tr> : null}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {boatGroups[4].map((name) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>
+                          <input type="checkbox" checked={!!loadedBoats[name]} onChange={(e)=> setLoadedBoats(prev => ({ ...prev, [name]: e.target.checked }))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Middle: Blades */}
