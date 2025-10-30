@@ -581,6 +581,37 @@ export function Equipment() {
           ))}
         </div>
       </div>
+
+      {/* Print-only simple 3-column list: Boats | Blades | Other */}
+      <div className="equipment-print">
+        <div className="col">
+          <h3>Boats</h3>
+          {Array.from(overall.boats.map.keys()).sort((a,b)=>a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((name) => (
+            <div key={name} className="item">{name}</div>
+          ))}
+        </div>
+        <div className="col">
+          <h3>Blades</h3>
+          {Array.from(overall.blades.map.keys()).sort((a,b)=>a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((name) => (
+            <div key={name} className="item">{name}</div>
+          ))}
+        </div>
+        <div className="col">
+          <h3>Other</h3>
+          {(() => {
+            const items: string[] = []
+            for (const section of otherSections) {
+              for (const it of section.items) {
+                const raw = (it in otherAmounts) ? otherAmounts[it] : (otherDefaultAmounts[it] ?? '')
+                const n = Number(raw)
+                if (Number.isFinite(n) ? n > 0 : !!raw) items.push(it)
+              }
+            }
+            items.sort((a,b)=>a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+            return items.map((it) => <div key={it} className="item">{it}</div>)
+          })()}
+        </div>
+      </div>
     </div>
   )
 }

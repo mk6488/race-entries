@@ -245,6 +245,8 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
 @media (min-width: 980px) {
   .equipment-grid { grid-template-columns: 1.2fr 1fr 1fr; align-items: start; }
 }
+/* Print-only Equipment layout (hidden on screen) */
+.equipment-print { display: none; }
 
 /* Trailer planner */
 .trailer-layout { display: grid; gap: 12px; grid-template-columns: 1fr; }
@@ -375,8 +377,12 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   table.sheet td { padding: 4px 6px; }
   .group-start td { border-top: 2pt solid #000 !important; }
 
-  /* Equipment page compaction */
-  .equipment-grid { grid-template-columns: 1fr 1fr 1fr !important; gap: 6px !important; }
+  /* Equipment print: hide normal layout, show 3 simple columns */
+  .equipment-grid { display: none !important; }
+  .equipment-print { display: grid !important; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .equipment-print .col { display: grid; gap: 4px; align-content: start; }
+  .equipment-print .col h3 { margin: 0 0 4px 0; font-size: 12px; }
+  .equipment-print .item { font-size: 11px; }
   .card { padding: 8px !important; border-radius: 6px !important; }
   .section-title { font-size: 11px !important; margin: 2px 0 4px !important; }
   input, select, textarea { padding: 6px 8px !important; font-size: 11px !important; }
