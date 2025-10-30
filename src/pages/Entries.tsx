@@ -324,6 +324,19 @@ export function Entries() {
     return m
   }, [clashes])
 
+  // Deterministic color for a given key (div group or div)
+  function simpleHash(str: string): number {
+    let h = 0
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0
+    return Math.abs(h)
+  }
+  function colorForKey(key: string): { border: string; bg: string } {
+    const hue = simpleHash(key) % 12 * 30 // 12 distinct hues
+    const border = `hsl(${hue} 70% 32%)`
+    const bg = `hsl(${hue} 85% 45% / 0.08)`
+    return { border, bg }
+  }
+
   const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   const uniqueDivsByDay = useMemo(() => {
     const m = new Map<string, string[]>()
@@ -474,10 +487,19 @@ export function Entries() {
               if (bladeClashLookup.get(k)) bladeSilenced = true
             }
           }
+          // Determine color key: prefer group if div is in a group; else use div. No color if no div.
+          const hasDiv = !!(r.div && r.div.trim())
+          const groupPart = gkey.split('::')[1] || ''
+          const isGrouped = groupPart && !groupPart.startsWith('__')
+          const colorKey = isGrouped ? groupPart : (r.div || '')
+          const colors = hasDiv && colorKey ? colorForKey(colorKey) : null
+          const useBg = !(r.status === 'withdrawn' || r.status === 'rejected')
+          const colorStyle = colors ? { borderLeft: `6px solid ${colors.border}`, ...(useBg ? { backgroundColor: colors.bg } : {}) } : undefined
           return (
           <div
             key={r.id}
             className={`entry-card ${r.status === 'withdrawn' || r.status === 'rejected' ? r.status : ''} ${r.crewChanged ? 'changed' : ''}`}
+            style={colorStyle}
             onClick={() => {
               if (!raceId) return
               const initial: NewEntry = {
