@@ -20,7 +20,7 @@ function typeGroupIndex(t: string): number {
 }
 
 function getBaseName(name: string): string {
-  return (name || '').trim().replace(/\\s\\((?:1\\/2|2\\/2)\\)$/, '')
+  return (name || '').trim().replace(/\s\((?:1\/2|2\/2)\)$/, '')
 }
 
 export function Matrix() {
@@ -126,39 +126,39 @@ export function Matrix() {
   }, [boatsOrdered, typeFilter])
 
   return (
-    <div className=\"matrix-page\">
+    <div className="matrix-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
           <h1 style={{ margin: 0 }}>{race?.name ?? 'Matrix'}</h1>
           {race ? <div style={{ color: 'var(--muted)', fontSize: 14 }}>Boat usage by division</div> : null}
         </div>
-        <div className=\"type-filters\" style={{ display: 'inline-flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="type-filters" style={{ display: 'inline-flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           {typesOrdered.map((t) => (
             <label key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <input type=\"checkbox\" checked={!!typeFilter[t]} onChange={() => toggleType(t)} />
+              <input type="checkbox" checked={!!typeFilter[t]} onChange={() => toggleType(t)} />
               <span>{t}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className=\"card\" style={{ overflow: 'auto' }}>
-        <div className=\"matrix-table\">
-          <div className=\"matrix-header matrix-cell boat-col\">Boat</div>
+      <div className="card" style={{ overflow: 'auto' }}>
+        <div className="matrix-table" style={{ gridTemplateColumns: `200px repeat(${columns.length}, 1fr)` }}>
+          <div className="matrix-header matrix-cell boat-col">Boat</div>
           {columns.map((c) => (
-            <div key={c.key} className=\"matrix-header matrix-cell col-header\">{c.label}</div>
+            <div key={c.key} className="matrix-header matrix-cell col-header">{c.label}</div>
           ))}
           {visibleBoats.map((b) => {
             const name = (b.name || '').trim()
             const base = getBaseName(name)
             return (
-              <div key={name} className=\"matrix-row\">
-                <div className=\"matrix-cell boat-col\" title={b.type}>{name}</div>
+              <div key={name} className="matrix-row">
+                <div className="matrix-cell boat-col" title={b.type}>{name}</div>
                 {columns.map((c) => {
                   const k = `${base}||${c.day}||${c.div}`
                   const used = usage.has(k)
                   return (
-                    <div key={c.key} className=\"matrix-cell usage-cell\" data-used={used ? '1' : '0'}>
+                    <div key={c.key} className="matrix-cell usage-cell" data-used={used ? '1' : '0'}>
                       {used ? '✓' : ''}
                     </div>
                   )
