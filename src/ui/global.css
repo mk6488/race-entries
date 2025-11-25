@@ -433,8 +433,7 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   left: 0;
   background: var(--card);
   z-index: 2;
-  min-width: 200px;
-  width: 200px;
+  min-width: 0; /* follow grid track width */
   box-shadow: inset -1px 0 0 var(--border);
 }
 .matrix-table .col-header {

@@ -29,6 +29,7 @@ export function Matrix() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [boatsRef, setBoatsRef] = useState<Boat[]>([])
   const [typeFilter, setTypeFilter] = useState<TypeFilter>({})
+  const [colWidth, setColWidth] = useState<number>(200)
 
   useEffect(() => {
     if (!raceId) return
@@ -85,6 +86,24 @@ export function Matrix() {
     })
     return cols
   }, [entries, dayOrder])
+
+  // Responsive column width so all columns fit within viewport on smaller screens
+  useEffect(() => {
+    function compute() {
+      const totalCols = (columns.length || 0) + 1 // +1 for boat name column
+      if (totalCols <= 0) return
+      const vw = window.innerWidth || 1024
+      // Estimate paddings/margins: main (32), card (32), some gap (16)
+      const gutters = 80
+      const available = Math.max(320, vw - gutters)
+      const per = Math.floor(available / totalCols)
+      const next = Math.max(90, Math.min(200, per))
+      setColWidth(next)
+    }
+    compute()
+    window.addEventListener('resize', compute)
+    return () => window.removeEventListener('resize', compute)
+  }, [columns.length])
 
   // Build usage set: base boat name x (day,div)
   const usage = useMemo(() => {
@@ -143,7 +162,7 @@ export function Matrix() {
       </div>
 
       <div className="card" style={{ overflow: 'auto' }}>
-        <div className="matrix-table" style={{ gridTemplateColumns: `repeat(${columns.length + 1}, 200px)` }}>
+        <div className="matrix-table" style={{ gridTemplateColumns: `repeat(${columns.length + 1}, ${colWidth}px)` }}>
           <div className="matrix-header matrix-cell boat-col">Boat</div>
           {columns.map((c) => (
             <div key={c.key} className="matrix-header matrix-cell col-header">{c.label}</div>
