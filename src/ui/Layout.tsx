@@ -38,8 +38,8 @@ export function Layout() {
         {hasRace ? (
           <nav className="nav-links">
             <NavLink to={`/entries/${raceId}`}>Entries</NavLink>
-            <NavLink to={`/races/${raceId}`}>Races</NavLink>
             <NavLink to={`/matrix/${raceId}`}>Matrix</NavLink>
+            <NavLink to={`/races/${raceId}`}>Races</NavLink>
             <NavLink to={`/equipment/${raceId}`}>Equipment</NavLink>
             <NavLink to={`/trailer/${raceId}`}>Trailer</NavLink>
           </nav>
@@ -62,8 +62,8 @@ export function Layout() {
           {hasRace ? (
             <>
               <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
-              <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
               <NavLink to={`/matrix/${raceId}`} onClick={() => setOpen(false)}>Matrix</NavLink>
+              <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
               <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
               <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
             </>
