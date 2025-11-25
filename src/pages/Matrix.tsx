@@ -143,7 +143,7 @@ export function Matrix() {
       </div>
 
       <div className="card" style={{ overflow: 'auto' }}>
-        <div className="matrix-table" style={{ gridTemplateColumns: `200px repeat(${columns.length}, 1fr)` }}>
+        <div className="matrix-table" style={{ gridTemplateColumns: `repeat(${columns.length + 1}, 200px)` }}>
           <div className="matrix-header matrix-cell boat-col">Boat</div>
           {columns.map((c) => (
             <div key={c.key} className="matrix-header matrix-cell col-header">{c.label}</div>
