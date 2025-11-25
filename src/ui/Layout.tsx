@@ -10,6 +10,7 @@ export function Layout() {
   const isEntries = location.pathname.startsWith('/entries/')
   const isRaces = location.pathname.startsWith('/races/')
   const isEquipment = location.pathname.startsWith('/equipment/')
+  const isMatrix = location.pathname.startsWith('/matrix/')
   const isTrailer = location.pathname.startsWith('/trailer/')
   return (
     <div className={`app-shell ${hasRace ? 'has-race' : ''}`}>
@@ -38,6 +39,7 @@ export function Layout() {
           <nav className="nav-links">
             <NavLink to={`/entries/${raceId}`}>Entries</NavLink>
             <NavLink to={`/races/${raceId}`}>Races</NavLink>
+            <NavLink to={`/matrix/${raceId}`}>Matrix</NavLink>
             <NavLink to={`/equipment/${raceId}`}>Equipment</NavLink>
             <NavLink to={`/trailer/${raceId}`}>Trailer</NavLink>
           </nav>
@@ -48,7 +50,7 @@ export function Layout() {
           {isEntries && hasRace ? (
             <NavLink className="primary-btn" to={`/entries/${raceId}?add=1`}>Add Entry</NavLink>
           ) : null}
-          {(hasRace && (isRaces || isEquipment || isTrailer)) ? (
+          {(hasRace && (isRaces || isEquipment || isTrailer || isMatrix)) ? (
             <button className="primary-btn" onClick={() => window.print()} aria-label="Print races table">Print</button>
           ) : null}
         </div>
@@ -61,6 +63,7 @@ export function Layout() {
             <>
               <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
               <NavLink to={`/races/${raceId}`} onClick={() => setOpen(false)}>Races</NavLink>
+              <NavLink to={`/matrix/${raceId}`} onClick={() => setOpen(false)}>Matrix</NavLink>
               <NavLink to={`/equipment/${raceId}`} onClick={() => setOpen(false)}>Equipment</NavLink>
               <NavLink to={`/trailer/${raceId}`} onClick={() => setOpen(false)}>Trailer</NavLink>
             </>
