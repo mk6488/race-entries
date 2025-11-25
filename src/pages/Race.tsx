@@ -123,6 +123,15 @@ export function Race() {
       }
       const d = collator.compare(a.div || '', b.div || '')
       if (d !== 0) return d
+      // Within the same division (and day), if race times are not yet present,
+      // order by crew number ascending (entries with a crew number first).
+      const ac = a.crewNumber ?? null
+      const bc = b.crewNumber ?? null
+      const aHasCrew = ac != null
+      const bHasCrew = bc != null
+      if (aHasCrew && bHasCrew && ac! !== bc!) return (ac as number) - (bc as number)
+      if (aHasCrew !== bHasCrew) return aHasCrew ? -1 : 1
+      // Fallback to event name
       return collator.compare(a.event || '', b.event || '')
     }
 
