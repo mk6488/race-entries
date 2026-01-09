@@ -1,25 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from '../firebase'
 import { buildInfo } from '../utils/buildInfo'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getActiveSubscriptions } from '../data/subscriptionCache'
 import { getTrace, clearTrace } from '../utils/trace'
 import { buildDiagnosticsBundle } from '../utils/buildDiagnosticsBundle'
 import type { ValidationResult } from '../data/scanCollections'
 import type { RepairPlaybook } from '../models/repair'
 import { ValidatorPanel } from '../ui/components/ValidatorPanel'
+import { Button } from '../ui/components/Button'
 
 type Info = {
   uid?: string
   isAnonymous?: boolean
   loading: boolean
+  email?: string
 }
 
 export function Diagnostics() {
   const [info, setInfo] = useState<Info>({ loading: true })
   const isDev = import.meta.env.DEV
   const location = useLocation()
+  const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
   const [subs, setSubs] = useState<{ key: string; listeners: number }[]>([])
   const [traceView, setTraceView] = useState(getTrace())
@@ -30,7 +33,7 @@ export function Diagnostics() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      setInfo({ loading: false, uid: user?.uid, isAnonymous: user?.isAnonymous })
+      setInfo({ loading: false, uid: user?.uid, isAnonymous: user?.isAnonymous, email: user?.email || undefined })
     })
     return unsub
   }, [])
@@ -171,12 +174,19 @@ export function Diagnostics() {
   return (
     <div style={{ padding: 16, display: 'grid', gap: 12 }}>
       {isDev ? <div style={{ padding: 8, borderRadius: 8, background: '#e0f2fe', color: '#0b4f71' }}>Diagnostics (dev mode)</div> : null}
-      <h1>Diagnostics</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <h1 style={{ margin: 0 }}>Diagnostics</h1>
+        {!info.isAnonymous && !info.loading ? (
+          <Button variant="secondary" onClick={async () => { await signOut(auth); navigate('/admin/login') }}>
+            Log out
+          </Button>
+        ) : null}
+      </div>
       <div><strong>Version:</strong> {buildInfo.version}</div>
       <div><strong>Build time:</strong> {buildInfo.buildTime}</div>
       <div><strong>Env:</strong> {isDev ? 'dev' : 'prod'}</div>
       <div><strong>Route:</strong> {location.pathname}</div>
-      <div><strong>Auth:</strong> {info.loading ? 'Loading...' : info.uid ? `Anon UID: ${info.uid}` : 'No user'}</div>
+      <div><strong>Auth:</strong> {info.loading ? 'Loading...' : info.email ? `Admin: ${info.email}` : info.uid ? `Anon UID: ${info.uid}` : 'No user'}</div>
       <div>Diagnostics active</div>
       <div className="print-hide" style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
         <button onClick={copyDiagnostics}>Copy diagnostics</button>

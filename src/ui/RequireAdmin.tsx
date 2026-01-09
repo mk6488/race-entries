@@ -1,10 +1,10 @@
 import { ReactNode } from 'react'
-import { useIsAdmin } from '../auth/admin'
+import { useAdminStatus } from '../auth/adminAuth'
 import { LoadingState } from './components/LoadingState'
 import { Link } from 'react-router-dom'
 
 export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { status, isAdmin } = useIsAdmin()
+  const { status, isAdmin } = useAdminStatus()
 
   if (status === 'loading') {
     return <LoadingState label="Checking access..." />
@@ -15,7 +15,10 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
       <div style={{ padding: 24 }}>
         <h2>Not authorised</h2>
         <p>This area is for admins only.</p>
-        <Link to="/">Go home</Link>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Link to="/">Go home</Link>
+          <Link to="/admin/login">Sign in as admin</Link>
+        </div>
       </div>
     )
   }

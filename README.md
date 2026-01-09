@@ -27,6 +27,7 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 - `VITE_FIREBASE_STORAGE_BUCKET`
 - `VITE_FIREBASE_MESSAGING_SENDER_ID`
 - `VITE_FIREBASE_APP_ID`
+- `VITE_ADMIN_EMAILS` (comma-separated allowlist for admin access)
 
 ## Roadmap & processes
 - Roadmap: `docs/ROADMAP.md`

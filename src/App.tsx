@@ -11,6 +11,7 @@ import { Archive } from './pages/Archive'
 import { EquipmentBoats } from './pages/EquipmentBoats'
 import { EquipmentBlades } from './pages/EquipmentBlades'
 import { Diagnostics } from './pages/Diagnostics'
+import { AdminLogin } from './pages/AdminLogin'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { RequireAdmin } from './ui/RequireAdmin'
 
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <Home /> },
+          { path: 'admin/login', element: <AdminLogin /> },
       { path: 'archive', element: <Archive /> },
       { path: 'boats', element: <EquipmentBoats /> },
       { path: 'blades', element: <EquipmentBlades /> },
