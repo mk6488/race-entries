@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase'
 import { buildInfo } from '../utils/buildInfo'
 import { useLocation } from 'react-router-dom'
 import { getActiveSubscriptions } from '../data/subscriptionCache'
-import { getTrace, clearTrace, trace } from '../utils/trace'
+import { getTrace, clearTrace } from '../utils/trace'
 
 type Info = {
   uid?: string
@@ -18,6 +18,7 @@ export function Diagnostics() {
   const [copied, setCopied] = useState(false)
   const [subs, setSubs] = useState<{ key: string; listeners: number }[]>([])
   const [traceView, setTraceView] = useState(getTrace())
+  const devLogSentRef = useRef(false)
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -27,11 +28,47 @@ export function Diagnostics() {
   }, [])
 
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d642789e-3b70-4e47-8ce4-aeffdaf4e848', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'debug-session',
+        runId: 'pre-fix',
+        hypothesisId: 'H1',
+        location: 'Diagnostics.tsx:mount',
+        message: 'Diagnostics mounted',
+        data: { isDev, initialTraceLen: getTrace().length },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+    // #endregion
+  }, [isDev])
+
+  useEffect(() => {
     if (!isDev) return
     const id = setInterval(() => {
       setSubs(getActiveSubscriptions())
       setTraceView(getTrace().slice(-30))
     }, 1000)
+    if (!devLogSentRef.current) {
+      devLogSentRef.current = true
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/d642789e-3b70-4e47-8ce4-aeffdaf4e848', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: 'debug-session',
+          runId: 'pre-fix',
+          hypothesisId: 'H2',
+          location: 'Diagnostics.tsx:devEffect',
+          message: 'Dev diagnostics interval armed',
+          data: { traceLen: getTrace().length, subsCount: getActiveSubscriptions().length },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {})
+      // #endregion
+    }
     return () => clearInterval(id)
   }, [isDev])
 
@@ -55,6 +92,21 @@ export function Diagnostics() {
 
   const copyTrace = async () => {
     const last = getTrace().slice(-30)
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/d642789e-3b70-4e47-8ce4-aeffdaf4e848', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'debug-session',
+        runId: 'pre-fix',
+        hypothesisId: 'H3',
+        location: 'Diagnostics.tsx:copyTrace',
+        message: 'Copy trace invoked',
+        data: { items: last.length },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+    // #endregion
     const payload = last.map((t) => `${new Date(t.ts).toISOString()} ${t.type} ${t.scope || ''} ${t.meta ? JSON.stringify(t.meta) : ''}`).join('\n')
     try {
       await navigator.clipboard.writeText(payload)
