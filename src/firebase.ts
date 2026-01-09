@@ -17,21 +17,19 @@ export const auth = getAuth(app)
 // Persist auth across reloads when supported
 setPersistence(auth, browserLocalPersistence).catch(() => {})
 
-let authResolved = false
 export const authReady: Promise<void> = new Promise((resolve) => {
-  onAuthStateChanged(auth, async (user) => {
-    if (authResolved) return
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (user) {
-      authResolved = true
+      unsubscribe()
       resolve()
       return
     }
     try {
       await signInAnonymously(auth)
     } catch {
-      // Ignore; still resolve to avoid hanging
+      // Swallow errors to match previous behaviour
     } finally {
-      authResolved = true
+      unsubscribe()
       resolve()
     }
   })
