@@ -1,4 +1,5 @@
 import React from 'react'
+import { trace } from '../utils/trace'
 
 type ErrorBoundaryProps = {
   children: React.ReactNode
@@ -13,6 +14,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   state: ErrorBoundaryState = { hasError: false }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    trace({ type: 'ui:errorBoundary', meta: { message: error.message } })
     return { hasError: true, error }
   }
 

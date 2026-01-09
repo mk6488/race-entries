@@ -4,6 +4,7 @@ import { auth } from '../firebase'
 import { buildInfo } from '../utils/buildInfo'
 import { useLocation } from 'react-router-dom'
 import { getActiveSubscriptions } from '../data/subscriptionCache'
+import { getTrace, clearTrace, trace } from '../utils/trace'
 
 type Info = {
   uid?: string
@@ -16,6 +17,7 @@ export function Diagnostics() {
   const location = useLocation()
   const [copied, setCopied] = useState(false)
   const [subs, setSubs] = useState<{ key: string; listeners: number }[]>([])
+  const [traceView, setTraceView] = useState(getTrace())
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -28,6 +30,7 @@ export function Diagnostics() {
     if (!isDev) return
     const id = setInterval(() => {
       setSubs(getActiveSubscriptions())
+      setTraceView(getTrace().slice(-30))
     }, 1000)
     return () => clearInterval(id)
   }, [isDev])
@@ -46,6 +49,16 @@ export function Diagnostics() {
       setTimeout(() => setCopied(false), 1500)
     } catch {
       setCopied(false)
+      alert('Clipboard unavailable')
+    }
+  }
+
+  const copyTrace = async () => {
+    const last = getTrace().slice(-30)
+    const payload = last.map((t) => `${new Date(t.ts).toISOString()} ${t.type} ${t.scope || ''} ${t.meta ? JSON.stringify(t.meta) : ''}`).join('\n')
+    try {
+      await navigator.clipboard.writeText(payload)
+    } catch {
       alert('Clipboard unavailable')
     }
   }
@@ -74,6 +87,22 @@ export function Diagnostics() {
               </li>
             ))}
           </ul>
+        </div>
+      ) : null}
+      {isDev && traceView.length ? (
+        <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <strong>Recent trace</strong>
+            <button className="row-action" onClick={copyTrace}>Copy last 30</button>
+            <button className="row-action" onClick={() => { clearTrace(); setTraceView([]); }}>Clear</button>
+          </div>
+          <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid var(--border)', borderRadius: 8, padding: 8, background: '#fff' }}>
+            {traceView.slice(-30).map((t, i) => (
+              <div key={`${t.ts}-${i}`} style={{ fontSize: 12, color: '#0f172a', marginBottom: 4 }}>
+                <span style={{ color: '#64748b' }}>{new Date(t.ts).toISOString()}</span> — <strong>{t.type}</strong> {t.scope ? `(${t.scope})` : ''} {t.meta ? JSON.stringify(t.meta) : ''}
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
     </div>
