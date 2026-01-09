@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement safely
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / user story
+      description: What user need or problem are we solving?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the idea; avoid sensitive data.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Bullet points of what must be true to call this done.
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks / live-impact notes
+      description: Call out any production risk or safeguards needed.

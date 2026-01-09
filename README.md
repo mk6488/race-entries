@@ -28,6 +28,13 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 - `VITE_FIREBASE_MESSAGING_SENDER_ID`
 - `VITE_FIREBASE_APP_ID`
 
+## Roadmap & processes
+- Roadmap: `docs/ROADMAP.md`
+- Deploy: `docs/DEPLOYMENT.md`
+- Admin access: `docs/ADMIN.md`
+- Diagnostics: `docs/DIAGNOSTICS.md`
+- Printing: `docs/PRINTING.md`
+
 ## Firebase assumptions
 - Anonymous auth is enabled.
 - Collections in use: `races`, `entries`, `boats`, `blades`, `divisionGroups`, `silencedClashes`, `silencedBladeClashes`, `gearing`, `admins`.

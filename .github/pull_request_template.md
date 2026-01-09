@@ -1,0 +1,7 @@
+- [ ] Build passes (`npm run build`)
+- [ ] Typecheck passes
+- [ ] Lint passes
+- [ ] Smoke-tested key flows (Home / Entries / Race)
+- [ ] No Firestore rule/shape changes (or explicitly documented)
+- [ ] If UI change: print output checked (where relevant)
+- [ ] If bug fix: diagnostics bundle attached (from `/diagnostics`)

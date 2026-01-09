@@ -1,0 +1,34 @@
+name: Tech debt / refactor
+description: Track refactors or clean-up safely
+title: "[Tech Debt] "
+labels: ["tech-debt"]
+body:
+  - type: textarea
+    id: debt
+    attributes:
+      label: What is the debt?
+      description: Describe the code/area to refactor.
+    validations:
+      required: true
+  - type: textarea
+    id: why-now
+    attributes:
+      label: Why now?
+      description: Impact, risk, or upcoming dependency.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: What is in/out to keep this contained.
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of done
+      description: Observable outcomes (tests, metrics, lint noise reduced).
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk / rollback note
+      description: How to mitigate and how to revert if needed.
