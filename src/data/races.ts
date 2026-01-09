@@ -1,21 +1,22 @@
 import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, getDoc } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
-import type { NewRace, Race } from '../models/race'
+import type { NewRace, Race } from '../models/firestore'
+import { asBool, asDateFromTimestampLike, asRecord, asString, withId } from './firestoreMapping'
 
 const racesCol = collection(db, 'races')
 
-function toRace(id: string, data: any): Race {
-  return {
-    id,
-    name: data.name as string,
-    details: data.details as string,
-    startDate: (data.startDate as Timestamp).toDate(),
-    endDate: data.endDate ? (data.endDate as Timestamp).toDate() : null,
-    broeOpens: (data.broeOpens as Timestamp).toDate(),
-    broeCloses: (data.broeCloses as Timestamp).toDate(),
-    drawReleased: !!data.drawReleased,
-    archived: !!data.archived,
-  }
+function toRace(id: string, data: unknown): Race {
+  const record = asRecord(data)
+  return withId(id, {
+    name: asString(record.name),
+    details: asString(record.details),
+    startDate: asDateFromTimestampLike(record.startDate) ?? new Date(0),
+    endDate: asDateFromTimestampLike(record.endDate),
+    broeOpens: asDateFromTimestampLike(record.broeOpens) ?? new Date(0),
+    broeCloses: asDateFromTimestampLike(record.broeCloses) ?? new Date(0),
+    drawReleased: asBool(record.drawReleased),
+    archived: asBool(record.archived),
+  })
 }
 
 function fromRace(r: NewRace) {
@@ -62,7 +63,7 @@ export async function deleteRace(id: string) {
 }
 
 function fromRacePartial(r: Partial<NewRace>) {
-  const out: any = {}
+  const out: Record<string, unknown> = {}
   if (r.name !== undefined) out.name = r.name
   if (r.details !== undefined) out.details = r.details
   if (r.startDate !== undefined) out.startDate = Timestamp.fromDate(r.startDate)

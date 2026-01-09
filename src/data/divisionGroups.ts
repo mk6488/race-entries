@@ -1,24 +1,19 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
 import { db } from '../firebase'
-
-export type DivisionGroup = {
-  id: string
-  raceId: string
-  day: string
-  group: string
-  divisions: string[]
-}
+import type { DivisionGroup } from '../models/firestore'
+import { asRecord, asString, asStringArray, withId } from './firestoreMapping'
+export type { DivisionGroup }
 
 const col = collection(db, 'divisionGroups')
 
-function toModel(id: string, data: any): DivisionGroup {
-  return {
-    id,
-    raceId: String(data.raceId || ''),
-    day: String(data.day || ''),
-    group: String(data.group || ''),
-    divisions: Array.isArray(data.divisions) ? data.divisions.map(String) : [],
-  }
+function toModel(id: string, data: unknown): DivisionGroup {
+  const record = asRecord(data)
+  return withId(id, {
+    raceId: asString(record.raceId),
+    day: asString(record.day),
+    group: asString(record.group),
+    divisions: asStringArray(record.divisions),
+  })
 }
 
 export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup[]) => void) {

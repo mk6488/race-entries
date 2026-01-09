@@ -1,25 +1,48 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, where } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { Entry, NewEntry } from '../models/entry'
+import type { Entry, NewEntry } from '../models/firestore'
+import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 
 const col = collection(db, 'entries')
 
-function toEntry(id: string, data: any): Entry {
+const entryStatuses: Entry['status'][] = ['in_progress', 'ready', 'entered', 'withdrawn', 'rejected']
+const entryResults: NonNullable<Entry['result']>[] = ['OK', 'DNS', 'DNF', 'DQ']
+
+function toEntry(id: string, data: unknown): Entry {
+  const record = asRecord(data)
+  const statusValue = asString(record.status)
+  const computedStatus = entryStatuses.includes(statusValue as Entry['status'])
+    ? (statusValue as Entry['status'])
+    : (asBool(record.withdrawn) ? 'withdrawn' : asBool(record.rejected) ? 'rejected' : 'ready')
+  const raceTimesRaw = Array.isArray(record.raceTimes) ? record.raceTimes : []
+  const raceTimes = raceTimesRaw.map((t) => {
+    const rt = asRecord(t)
+    return {
+      round: asString(rt.round),
+      timeMs: asNumber(rt.timeMs, 0) ?? 0,
+    }
+  })
+  const resultValue = asString(record.result, 'OK')
+  const result = entryResults.includes(resultValue as NonNullable<Entry['result']>)
+    ? (resultValue as NonNullable<Entry['result']>)
+    : 'OK'
+
   return {
-    id,
-    raceId: data.raceId || '',
-    day: data.day || '',
-    div: data.div || '',
-    event: data.event || '',
-    athleteNames: data.athleteNames || '',
-    boat: data.boat || '',
-    blades: data.blades || '',
-    notes: data.notes || '',
-    status: (data.status as Entry['status']) || (data.withdrawn ? 'withdrawn' : data.rejected ? 'rejected' : 'ready'),
-    crewChanged: !!data.crewChanged,
-    crewNumber: typeof data.crewNumber === 'number' ? data.crewNumber : null,
-    raceTimes: Array.isArray(data.raceTimes) ? data.raceTimes.map((t: any) => ({ round: String(t.round||''), timeMs: Number(t.timeMs||0) })) : [],
-    result: data.result || 'OK',
+    ...withId(id, {
+      raceId: asString(record.raceId),
+      day: asString(record.day),
+      div: asString(record.div),
+      event: asString(record.event),
+      athleteNames: asString(record.athleteNames),
+      boat: asString(record.boat),
+      blades: asString(record.blades),
+      notes: asString(record.notes),
+      status: computedStatus,
+      crewChanged: asBool(record.crewChanged),
+      crewNumber: asNumber(record.crewNumber, null),
+      raceTimes,
+      result,
+    }),
   }
 }
 

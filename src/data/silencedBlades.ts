@@ -1,32 +1,27 @@
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../firebase'
-
-export type BladeSilence = {
-  id: string
-  raceId: string
-  day: string
-  group: string
-  blade: string
-}
+import type { SilencedBladeClash } from '../models/firestore'
+import { asRecord, asString, withId } from './firestoreMapping'
+export type { SilencedBladeClash as BladeSilence }
 
 const col = collection(db, 'silencedBladeClashes')
 
-function toModel(id: string, data: any): BladeSilence {
-  return {
-    id,
-    raceId: String(data.raceId || ''),
-    day: String(data.day || ''),
-    group: String(data.group || ''),
-    blade: String(data.blade || ''),
-  }
+function toModel(id: string, data: unknown): SilencedBladeClash {
+  const record = asRecord(data)
+  return withId(id, {
+    raceId: asString(record.raceId),
+    day: asString(record.day),
+    group: asString(record.group),
+    blade: asString(record.blade),
+  })
 }
 
-export function subscribeBladeSilences(raceId: string, cb: (rows: BladeSilence[]) => void) {
+export function subscribeBladeSilences(raceId: string, cb: (rows: SilencedBladeClash[]) => void) {
   const q = query(col, where('raceId', '==', raceId))
   return onSnapshot(q, (snap) => cb(snap.docs.map((d) => toModel(d.id, d.data()))))
 }
 
-export async function createBladeSilence(data: Omit<BladeSilence, 'id'>) {
+export async function createBladeSilence(data: Omit<SilencedBladeClash, 'id'>) {
   await addDoc(col, data)
 }
 

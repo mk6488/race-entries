@@ -1,15 +1,16 @@
 import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
-
-export type GearingMatrix = Record<string, Record<string, string>> // age -> boatType -> code ('1'..'5'|'NA'|'')
+import type { GearingMatrix } from '../models/firestore'
+import { asRecord, asString } from './firestoreMapping'
+export type { GearingMatrix }
 
 const col = collection(db, 'gearing')
 
 export function subscribeGearing(raceId: string, cb: (values: GearingMatrix) => void) {
   const ref = doc(col, raceId)
   return onSnapshot(ref, (snap) => {
-    const data = (snap.exists() ? (snap.data() as any) : {})
-    cb((data.values as GearingMatrix) || {})
+    const data = snap.exists() ? snap.data() : {}
+    cb(toGearingMatrix(asRecord(data).values))
   })
 }
 
@@ -30,8 +31,8 @@ export async function updateGearingCell(raceId: string, age: string, boatType: s
 export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
   const ref = doc(col, 'default')
   return onSnapshot(ref, (snap) => {
-    const data = (snap.exists() ? (snap.data() as any) : {})
-    cb((data.values as GearingMatrix) || {})
+    const data = snap.exists() ? snap.data() : {}
+    cb(toGearingMatrix(asRecord(data).values))
   })
 }
 
@@ -50,6 +51,19 @@ export async function updateGlobalGearingCell(age: string, boatType: string, cod
   const ref = doc(col, 'default')
   const path = `values.${age}.${boatType}`
   await updateDoc(ref, { [path]: code })
+}
+
+function toGearingMatrix(value: unknown): GearingMatrix {
+  const root = asRecord(value)
+  const result: GearingMatrix = {}
+  Object.entries(root).forEach(([age, boats]) => {
+    const boatMap = asRecord(boats)
+    result[age] = {}
+    Object.entries(boatMap).forEach(([boatType, code]) => {
+      result[age][boatType] = asString(code)
+    })
+  })
+  return result
 }
 
 

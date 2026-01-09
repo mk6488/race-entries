@@ -1,32 +1,27 @@
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../firebase'
-
-export type Silence = {
-  id: string
-  raceId: string
-  day: string
-  group: string
-  boat: string
-}
+import type { SilencedClash } from '../models/firestore'
+import { asRecord, asString, withId } from './firestoreMapping'
+export type { SilencedClash as Silence }
 
 const col = collection(db, 'silencedClashes')
 
-function toModel(id: string, data: any): Silence {
-  return {
-    id,
-    raceId: String(data.raceId || ''),
-    day: String(data.day || ''),
-    group: String(data.group || ''),
-    boat: String(data.boat || ''),
-  }
+function toModel(id: string, data: unknown): SilencedClash {
+  const record = asRecord(data)
+  return withId(id, {
+    raceId: asString(record.raceId),
+    day: asString(record.day),
+    group: asString(record.group),
+    boat: asString(record.boat),
+  })
 }
 
-export function subscribeSilences(raceId: string, cb: (rows: Silence[]) => void) {
+export function subscribeSilences(raceId: string, cb: (rows: SilencedClash[]) => void) {
   const q = query(col, where('raceId', '==', raceId))
   return onSnapshot(q, (snap) => cb(snap.docs.map((d) => toModel(d.id, d.data()))))
 }
 
-export async function createSilence(data: Omit<Silence, 'id'>) {
+export async function createSilence(data: Omit<SilencedClash, 'id'>) {
   await addDoc(col, data)
 }
 
