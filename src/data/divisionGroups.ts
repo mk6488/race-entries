@@ -10,13 +10,14 @@ export type { DivisionGroup }
 
 const col = collection(db, 'divisionGroups')
 
-function toModel(id: string, data: unknown): DivisionGroup {
-  const record = asRecord(data)
+export function toModel(id: string, data: unknown, ctx?: { issues?: any; collection?: string; docId?: string }): DivisionGroup {
+  const baseCtx = ctx ? { ...ctx, collection: ctx.collection ?? 'divisionGroups', docId: ctx.docId ?? id } : undefined
+  const record = asRecord(data, false, baseCtx, undefined)
   return withId(id, {
-    raceId: asString(record.raceId),
-    day: asString(record.day),
-    group: asString(record.group),
-    divisions: asStringArray(record.divisions),
+    raceId: asString(record.raceId, '', false, baseCtx, 'raceId'),
+    day: asString(record.day, '', false, baseCtx, 'day'),
+    group: asString(record.group, '', false, baseCtx, 'group'),
+    divisions: asStringArray(record.divisions, [], false, baseCtx, 'divisions'),
   })
 }
 

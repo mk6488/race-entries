@@ -5,6 +5,7 @@ import { buildInfo } from '../utils/buildInfo'
 import { useLocation } from 'react-router-dom'
 import { getActiveSubscriptions } from '../data/subscriptionCache'
 import { getTrace, clearTrace } from '../utils/trace'
+import { ValidatorPanel } from '../ui/components/ValidatorPanel'
 
 type Info = {
   uid?: string
@@ -157,6 +158,7 @@ export function Diagnostics() {
           </div>
         </div>
       ) : null}
+      {isDev ? <ValidatorPanel /> : null}
     </div>
   )
 }

@@ -6,17 +6,18 @@ import { logWarn } from '../utils/log'
 
 const racesCol = collection(db, 'races')
 
-function toRace(id: string, data: unknown): Race {
-  const record = asRecord(data)
+export function toRace(id: string, data: unknown, ctx?: { issues?: any; collection?: string; docId?: string }): Race {
+  const baseCtx = ctx ? { ...ctx, collection: ctx.collection ?? 'races', docId: ctx.docId ?? id } : undefined
+  const record = asRecord(data, false, baseCtx, undefined)
   return withId(id, {
-    name: asString(record.name),
-    details: asString(record.details),
-    startDate: asDateFromTimestampLike(record.startDate) ?? new Date(0),
-    endDate: asDateFromTimestampLike(record.endDate),
-    broeOpens: asDateFromTimestampLike(record.broeOpens) ?? new Date(0),
-    broeCloses: asDateFromTimestampLike(record.broeCloses) ?? new Date(0),
-    drawReleased: asBool(record.drawReleased),
-    archived: asBool(record.archived),
+    name: asString(record.name, '', false, baseCtx, 'name'),
+    details: asString(record.details, '', false, baseCtx, 'details'),
+    startDate: asDateFromTimestampLike(record.startDate, false, baseCtx, 'startDate') ?? new Date(0),
+    endDate: asDateFromTimestampLike(record.endDate, false, baseCtx, 'endDate'),
+    broeOpens: asDateFromTimestampLike(record.broeOpens, false, baseCtx, 'broeOpens') ?? new Date(0),
+    broeCloses: asDateFromTimestampLike(record.broeCloses, false, baseCtx, 'broeCloses') ?? new Date(0),
+    drawReleased: asBool(record.drawReleased, false, false, baseCtx, 'drawReleased'),
+    archived: asBool(record.archived, false, false, baseCtx, 'archived'),
   })
 }
 

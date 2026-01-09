@@ -7,13 +7,14 @@ export type { SilencedBladeClash as BladeSilence }
 
 const col = collection(db, 'silencedBladeClashes')
 
-function toModel(id: string, data: unknown): SilencedBladeClash {
-  const record = asRecord(data)
+export function toModel(id: string, data: unknown, ctx?: { issues?: any; collection?: string; docId?: string }): SilencedBladeClash {
+  const baseCtx = ctx ? { ...ctx, collection: ctx.collection ?? 'silencedBladeClashes', docId: ctx.docId ?? id } : undefined
+  const record = asRecord(data, false, baseCtx)
   return withId(id, {
-    raceId: asString(record.raceId),
-    day: asString(record.day),
-    group: asString(record.group),
-    blade: asString(record.blade),
+    raceId: asString(record.raceId, '', false, baseCtx, 'raceId'),
+    day: asString(record.day, '', false, baseCtx, 'day'),
+    group: asString(record.group, '', false, baseCtx, 'group'),
+    blade: asString(record.blade, '', false, baseCtx, 'blade'),
   })
 }
 

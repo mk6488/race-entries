@@ -12,38 +12,39 @@ const col = collection(db, 'entries')
 const entryStatuses: Entry['status'][] = ['in_progress', 'ready', 'entered', 'withdrawn', 'rejected']
 const entryResults: NonNullable<Entry['result']>[] = ['OK', 'DNS', 'DNF', 'DQ']
 
-function toEntry(id: string, data: unknown): Entry {
-  const record = asRecord(data)
+export function toEntry(id: string, data: unknown, ctx?: { issues?: any; collection?: string; docId?: string }): Entry {
+  const baseCtx = ctx ? { ...ctx, collection: ctx.collection ?? 'entries', docId: ctx.docId ?? id } : undefined
+  const record = asRecord(data, false, baseCtx, undefined)
   const statusValue = asString(record.status)
   const computedStatus = entryStatuses.includes(statusValue as Entry['status'])
     ? (statusValue as Entry['status'])
-    : (asBool(record.withdrawn) ? 'withdrawn' : asBool(record.rejected) ? 'rejected' : 'ready')
+    : (asBool(record.withdrawn, false, false, baseCtx, 'withdrawn') ? 'withdrawn' : asBool(record.rejected, false, false, baseCtx, 'rejected') ? 'rejected' : 'ready')
   const raceTimesRaw = Array.isArray(record.raceTimes) ? record.raceTimes : []
   const raceTimes = raceTimesRaw.map((t) => {
     const rt = asRecord(t)
     return {
-      round: asString(rt.round),
-      timeMs: asNumber(rt.timeMs, 0) ?? 0,
+      round: asString(rt.round, '', false, baseCtx, 'raceTimes.round'),
+      timeMs: asNumber(rt.timeMs, 0, false, baseCtx, 'raceTimes.timeMs') ?? 0,
     }
   })
-  const resultValue = asString(record.result, 'OK')
+  const resultValue = asString(record.result, 'OK', false, baseCtx, 'result')
   const result = entryResults.includes(resultValue as NonNullable<Entry['result']>)
     ? (resultValue as NonNullable<Entry['result']>)
     : 'OK'
 
   return {
     ...withId(id, {
-      raceId: asString(record.raceId),
-      day: asString(record.day),
-      div: asString(record.div),
-      event: asString(record.event),
-      athleteNames: asString(record.athleteNames),
-      boat: asString(record.boat),
-      blades: asString(record.blades),
-      notes: asString(record.notes),
+      raceId: asString(record.raceId, '', false, baseCtx, 'raceId'),
+      day: asString(record.day, '', false, baseCtx, 'day'),
+      div: asString(record.div, '', false, baseCtx, 'div'),
+      event: asString(record.event, '', false, baseCtx, 'event'),
+      athleteNames: asString(record.athleteNames, '', false, baseCtx, 'athleteNames'),
+      boat: asString(record.boat, '', false, baseCtx, 'boat'),
+      blades: asString(record.blades, '', false, baseCtx, 'blades'),
+      notes: asString(record.notes, '', false, baseCtx, 'notes'),
       status: computedStatus,
-      crewChanged: asBool(record.crewChanged),
-      crewNumber: asNumber(record.crewNumber, null),
+      crewChanged: asBool(record.crewChanged, false, false, baseCtx, 'crewChanged'),
+      crewNumber: asNumber(record.crewNumber, null, false, baseCtx, 'crewNumber'),
       raceTimes,
       result,
     }),

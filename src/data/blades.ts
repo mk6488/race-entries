@@ -28,19 +28,20 @@ export function subscribeBlades(cb: (rows: Blade[]) => void, onError?: (error: u
   })
 }
 
-function toBlade(id: string, data: unknown): Blade {
-  const record = asRecord(data)
+export function toBlade(id: string, data: unknown, ctx?: { issues?: any; collection?: string; docId?: string }): Blade {
+  const baseCtx = ctx ? { ...ctx, collection: ctx.collection ?? 'blades', docId: ctx.docId ?? id } : undefined
+  const record = asRecord(data, false, baseCtx)
   const lengthCode = asString(record.lengthCode)
   const validLengthCodes: Blade['lengthCode'][] = ['1', '2', '3', '4', '5', 'NA']
   const amount = asNumber(record.amount, undefined)
   return withId(id, {
-    name: asString(record.name),
-    active: asBool(record.active, undefined),
+    name: asString(record.name, '', false, baseCtx, 'name'),
+    active: asBool(record.active, undefined, false, baseCtx, 'active'),
     amount: amount === null ? undefined : amount,
     lengthCode: (validLengthCodes.includes(lengthCode as Blade['lengthCode']) ? lengthCode : undefined) as Blade['lengthCode'],
-    bladeLength: asNumber(record.bladeLength, null),
-    inboard: asNumber(record.inboard, null),
-    span: asNumber(record.span, null),
+    bladeLength: asNumber(record.bladeLength, null, false, baseCtx, 'bladeLength'),
+    inboard: asNumber(record.inboard, null, false, baseCtx, 'inboard'),
+    span: asNumber(record.span, null, false, baseCtx, 'span'),
   })
 }
 

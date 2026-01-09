@@ -28,13 +28,14 @@ export function subscribeBoats(cb: (rows: Boat[]) => void, onError?: (error: unk
   })
 }
 
-function toBoat(id: string, data: unknown): Boat {
-  const record = asRecord(data)
+export function toBoat(id: string, data: unknown, ctx?: { issues?: any; collection?: string; docId?: string }): Boat {
+  const baseCtx = ctx ? { ...ctx, collection: ctx.collection ?? 'boats', docId: ctx.docId ?? id } : undefined
+  const record = asRecord(data, false, baseCtx)
   const weight = asNumber(record.weight, undefined)
   return withId(id, {
-    name: asString(record.name),
-    type: asString(record.type),
-    active: asBool(record.active, undefined),
+    name: asString(record.name, '', false, baseCtx, 'name'),
+    type: asString(record.type, '', false, baseCtx, 'type'),
+    active: asBool(record.active, undefined, false, baseCtx, 'active'),
     weight: weight === null ? undefined : weight,
   })
 }
