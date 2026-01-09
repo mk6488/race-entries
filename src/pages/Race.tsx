@@ -11,6 +11,8 @@ import type { Loadable } from '../models/ui'
 import { LoadingState } from '../ui/components/LoadingState'
 import { EmptyState } from '../ui/components/EmptyState'
 import { ErrorBanner } from '../ui/components/ErrorBanner'
+import { Button } from '../ui/components/Button'
+import { Field } from '../ui/components/Field'
 import { toErrorMessage } from '../utils/errors'
  
  
@@ -226,10 +228,10 @@ export function Race() {
       ) : (
         <>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-        <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</button>
+        <Button variant="secondary" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</Button>
         
-        <button
-          className="row-action"
+        <Button
+          variant="secondary"
           disabled={!raceId || savingDraw}
           onClick={async () => {
             if (!raceId) return
@@ -248,7 +250,7 @@ export function Race() {
           title={drawReleased ? 'Disable times editing' : 'Enable times editing'}
         >
           {drawReleased ? 'Draw released ✓' : 'Release draw'}
-        </button>
+        </Button>
       </div>
 
       
@@ -369,8 +371,14 @@ export function Race() {
             <div className="modal-body">
               <div className="form-grid">
                 <div className="form-row">
-                  <label className="section-title">Crew number</label>
-                  <input type="number" min={0} placeholder="e.g. 152" value={crewInput} onChange={(e)=> setCrewInput(e.target.value)} />
+                  <Field
+                    id="crew-number"
+                    label="Crew number"
+                    type="number"
+                    value={crewInput}
+                    onChange={(v) => setCrewInput(v)}
+                    placeholder="e.g. 152"
+                  />
                 </div>
 
                 <div className="form-row form-span-2">
@@ -378,21 +386,33 @@ export function Race() {
                   <div style={{ display: 'grid', gap: 8 }}>
                     {times.map((t, idx) => (
                       <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'center' }}>
-                        <input type="text" placeholder="Round (Heat / Semi / Final)" value={t.round} onChange={(e)=> setTimes(prev => prev.map((x,i)=> i===idx? { ...x, round: e.target.value }: x))} />
-                        <input type="text" placeholder="mm:ss(.SS)" value={t.time} onChange={(e)=> setTimes(prev => prev.map((x,i)=> i===idx? { ...x, time: e.target.value }: x))} />
-                        <button type="button" className="row-action" onClick={() => removeTimeRow(idx)}>Remove</button>
+                        <Field
+                          id={`time-round-${idx}`}
+                          label="Round"
+                          value={t.round}
+                          onChange={(v) => setTimes(prev => prev.map((x,i)=> i===idx? { ...x, round: v }: x))}
+                          placeholder="Round (Heat / Semi / Final)"
+                        />
+                        <Field
+                          id={`time-value-${idx}`}
+                          label="Time"
+                          value={t.time}
+                          onChange={(v) => setTimes(prev => prev.map((x,i)=> i===idx? { ...x, time: v }: x))}
+                          placeholder="mm:ss(.SS)"
+                        />
+                        <Button type="button" variant="secondary" onClick={() => removeTimeRow(idx)}>Remove</Button>
                       </div>
                     ))}
                     <div>
-                      <button type="button" className="row-action" onClick={addTimeRow}>Add time</button>
+                      <Button type="button" variant="secondary" onClick={addTimeRow}>Add time</Button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn-link" onClick={() => setEditing(null)}>Cancel</button>
-              <button className="primary-btn" onClick={saveTimes}>Save</button>
+              <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+              <Button onClick={saveTimes}>Save</Button>
             </div>
           </div>
         </div>

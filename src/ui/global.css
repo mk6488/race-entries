@@ -42,6 +42,24 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .empty-title { font-weight: 600; color: var(--text); }
 .empty-description { color: var(--muted); }
 .error-banner { border: 1px solid var(--danger-border); background: var(--danger-bg); color: var(--danger-text); padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; padding: 10px 14px; font-size: 14px; border: 1px solid transparent; cursor: pointer; height: 36px; line-height: 1; text-decoration: none; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover:not(:disabled) { background: var(--primary-600); }
+.btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
+.btn-secondary:hover:not(:disabled) { background: #f3f4f6; }
+.btn-danger { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+.btn-danger:hover:not(:disabled) { background: #fca5a5; }
+.btn-ghost { background: transparent; color: var(--text); border-color: transparent; }
+.btn-ghost:hover:not(:disabled) { background: #f3f4f6; }
+.field { display: grid; gap: 6px; }
+.field-label { font-weight: 600; color: var(--text); }
+.field-control { border: 1px solid var(--border); background: #fff; color: var(--text); border-radius: 10px; padding: 10px 12px; outline: none; }
+.field-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,73,30,.15); }
+.field-hint { color: var(--muted); font-size: 12px; }
+.field-error { color: var(--danger-text); font-size: 12px; }
+.form-row-1 { display: grid; gap: 8px; }
+.form-row-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 

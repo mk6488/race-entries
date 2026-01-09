@@ -4,6 +4,9 @@ import type { Race, NewRace } from '../models/race'
 import { Link } from 'react-router-dom'
 import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal, formatUiDate } from '../utils/dates'
 import { Modal } from '../ui/Modal'
+import { Button } from '../ui/components/Button'
+import { Field } from '../ui/components/Field'
+import { FormRow } from '../ui/components/FormRow'
 import type { Loadable } from '../models/ui'
 import { LoadingState } from '../ui/components/LoadingState'
 import { EmptyState } from '../ui/components/EmptyState'
@@ -97,12 +100,12 @@ export function Home() {
   return (
     <div>
       <div className="card" style={{ marginTop: 4 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-          <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Button onClick={() => setOpen(true)}>New race</Button>
+            </div>
           </div>
-        </div>
         {racesState.status === 'error' ? <ErrorBanner message={racesState.message} /> : null}
         {racesState.status === 'loading' ? (
           <LoadingState label="Loading races..." />
@@ -127,8 +130,8 @@ export function Home() {
                       <div className="race-name">{r.name}</div>
                     </Link>
                     <div className="race-actions">
-                      <button
-                        className="secondary-btn"
+                      <Button
+                        variant="secondary"
                         onClick={(e) => {
                           e.stopPropagation()
                           setEditId(r.id)
@@ -144,9 +147,9 @@ export function Home() {
                         }}
                       >
                         Edit
-                      </button>
-                      <button
-                        className="secondary-btn"
+                      </Button>
+                      <Button
+                        variant="secondary"
                         onClick={async (e) => {
                           e.stopPropagation()
                           try {
@@ -158,7 +161,7 @@ export function Home() {
                         }}
                       >
                         Archive now
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -180,8 +183,8 @@ export function Home() {
                   </div>
                   {/* Mobile-bottom actions */}
                   <div className="race-actions-bottom">
-                    <button
-                      className="secondary-btn"
+                    <Button
+                      variant="secondary"
                       onClick={(e) => {
                         e.stopPropagation()
                         setEditId(r.id)
@@ -197,9 +200,9 @@ export function Home() {
                       }}
                     >
                       Edit
-                    </button>
-                    <button
-                      className="secondary-btn"
+                    </Button>
+                    <Button
+                      variant="secondary"
                       onClick={async (e) => {
                         e.stopPropagation()
                         try {
@@ -211,7 +214,7 @@ export function Home() {
                       }}
                     >
                       Archive now
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )
@@ -259,63 +262,57 @@ export function Home() {
           }}
           style={{ display: 'grid', gap: 12 }}
         >
-          <div style={{ display: 'grid', gap: 6 }}>
-            <label>Name</label>
-            <input
-              placeholder="e.g. Head of the River"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
+          <Field
+            id="race-name"
+            label="Name"
+            placeholder="e.g. Head of the River"
+            value={form.name}
+            onChange={(v) => setForm({ ...form, name: v })}
+            required
+          />
+          <Field
+            id="race-details"
+            label="Details"
+            as="textarea"
+            placeholder="Add notes or description"
+            value={form.details}
+            onChange={(v) => setForm({ ...form, details: v })}
+          />
+          <FormRow columns={2}>
+            <Field
+              id="race-start"
+              label="Start date"
+              type="date"
+              value={toInputDate(form.startDate)}
+              onChange={(v) => setForm({ ...form, startDate: fromInputDate(v) })}
             />
-          </div>
-          <div style={{ display: 'grid', gap: 6 }}>
-            <label>Details</label>
-            <textarea
-              placeholder="Add notes or description"
-              value={form.details}
-              onChange={(e) => setForm({ ...form, details: e.target.value })}
-              rows={4}
+            <Field
+              id="race-end"
+              label="End date"
+              type="date"
+              value={form.endDate ? toInputDate(form.endDate) : ''}
+              onChange={(v) => setForm({ ...form, endDate: v ? fromInputDate(v) : null })}
             />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>Start date</label>
-              <input
-                type="date"
-                value={toInputDate(form.startDate)}
-                onChange={(e) => setForm({ ...form, startDate: fromInputDate(e.target.value) })}
-              />
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>End date</label>
-              <input
-                type="date"
-                value={form.endDate ? toInputDate(form.endDate) : ''}
-                onChange={(e) => setForm({ ...form, endDate: e.target.value ? fromInputDate(e.target.value) : null })}
-              />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>Entries open</label>
-              <input
-                type="datetime-local"
-                value={toInputDateTimeLocal(form.broeOpens)}
-                onChange={(e) => setForm({ ...form, broeOpens: fromInputDateTimeLocal(e.target.value) })}
-              />
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>Entries close</label>
-              <input
-                type="datetime-local"
-                value={toInputDateTimeLocal(form.broeCloses)}
-                onChange={(e) => setForm({ ...form, broeCloses: fromInputDateTimeLocal(e.target.value) })}
-              />
-            </div>
-          </div>
+          </FormRow>
+          <FormRow columns={2}>
+            <Field
+              id="race-opens"
+              label="Entries open"
+              type="datetime-local"
+              value={toInputDateTimeLocal(form.broeOpens)}
+              onChange={(v) => setForm({ ...form, broeOpens: fromInputDateTimeLocal(v) })}
+            />
+            <Field
+              id="race-closes"
+              label="Entries close"
+              type="datetime-local"
+              value={toInputDateTimeLocal(form.broeCloses)}
+              onChange={(v) => setForm({ ...form, broeCloses: fromInputDateTimeLocal(v) })}
+            />
+          </FormRow>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
-            <button type="button" className="secondary-btn" onClick={() => setOpen(false)}>Cancel</button>
-            <button type="submit" className="primary-btn">Create</button>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit">Create</Button>
           </div>
         </form>
       </Modal>
@@ -337,61 +334,55 @@ export function Home() {
           }}
           style={{ display: 'grid', gap: 12 }}
         >
-          <div style={{ display: 'grid', gap: 6 }}>
-            <label>Name</label>
-            <input
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              required
+          <Field
+            id="edit-race-name"
+            label="Name"
+            value={editForm.name}
+            onChange={(v) => setEditForm({ ...editForm, name: v })}
+            required
+          />
+          <Field
+            id="edit-race-details"
+            label="Details"
+            as="textarea"
+            value={editForm.details}
+            onChange={(v) => setEditForm({ ...editForm, details: v })}
+          />
+          <FormRow columns={2}>
+            <Field
+              id="edit-race-start"
+              label="Start date"
+              type="date"
+              value={toInputDate(editForm.startDate)}
+              onChange={(v) => setEditForm({ ...editForm, startDate: fromInputDate(v) })}
             />
-          </div>
-          <div style={{ display: 'grid', gap: 6 }}>
-            <label>Details</label>
-            <textarea
-              value={editForm.details}
-              onChange={(e) => setEditForm({ ...editForm, details: e.target.value })}
-              rows={4}
+            <Field
+              id="edit-race-end"
+              label="End date"
+              type="date"
+              value={editForm.endDate ? toInputDate(editForm.endDate) : ''}
+              onChange={(v) => setEditForm({ ...editForm, endDate: v ? fromInputDate(v) : null })}
             />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>Start date</label>
-              <input
-                type="date"
-                value={toInputDate(editForm.startDate)}
-                onChange={(e) => setEditForm({ ...editForm, startDate: fromInputDate(e.target.value) })}
-              />
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>End date</label>
-              <input
-                type="date"
-                value={editForm.endDate ? toInputDate(editForm.endDate) : ''}
-                onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value ? fromInputDate(e.target.value) : null })}
-              />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>Entries open</label>
-              <input
-                type="datetime-local"
-                value={toInputDateTimeLocal(editForm.broeOpens)}
-                onChange={(e) => setEditForm({ ...editForm, broeOpens: fromInputDateTimeLocal(e.target.value) })}
-              />
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              <label>Entries close</label>
-              <input
-                type="datetime-local"
-                value={toInputDateTimeLocal(editForm.broeCloses)}
-                onChange={(e) => setEditForm({ ...editForm, broeCloses: fromInputDateTimeLocal(e.target.value) })}
-              />
-            </div>
-          </div>
+          </FormRow>
+          <FormRow columns={2}>
+            <Field
+              id="edit-race-opens"
+              label="Entries open"
+              type="datetime-local"
+              value={toInputDateTimeLocal(editForm.broeOpens)}
+              onChange={(v) => setEditForm({ ...editForm, broeOpens: fromInputDateTimeLocal(v) })}
+            />
+            <Field
+              id="edit-race-closes"
+              label="Entries close"
+              type="datetime-local"
+              value={toInputDateTimeLocal(editForm.broeCloses)}
+              onChange={(v) => setEditForm({ ...editForm, broeCloses: fromInputDateTimeLocal(v) })}
+            />
+          </FormRow>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
-            <button type="button" className="secondary-btn" onClick={() => setEditOpen(false)}>Cancel</button>
-            <button type="submit" className="primary-btn">Save</button>
+            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button type="submit">Save</Button>
           </div>
         </form>
       </Modal>

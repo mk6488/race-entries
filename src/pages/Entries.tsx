@@ -15,6 +15,9 @@ import { Modal } from '../ui/Modal'
 import { LoadingState } from '../ui/components/LoadingState'
 import { EmptyState } from '../ui/components/EmptyState'
 import { ErrorBanner } from '../ui/components/ErrorBanner'
+import { Button } from '../ui/components/Button'
+import { Field } from '../ui/components/Field'
+import { FormRow } from '../ui/components/FormRow'
 import { toErrorMessage } from '../utils/errors'
 
 export function Entries() {
@@ -442,7 +445,12 @@ export function Entries() {
         </div>
         {/* Add Entry button moved to navbar */}
         <div style={{ display: 'inline-flex', gap: 8 }}>
-          <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Div Groups</button>
+          <Button
+            variant="secondary"
+            onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}
+          >
+            Div Groups
+          </Button>
         </div>
       </div>
       {raceState.status === 'error' ? <ErrorBanner message={`Race: ${raceState.message}`} /> : null}
@@ -698,15 +706,20 @@ export function Entries() {
               </select>
             </div>
             <div className="form-row">
-              <label>Div</label>
-              <input value={form.div} onChange={(e) => setForm({ ...form, div: e.target.value })} />
+              <Field
+                id="entry-div"
+                label="Div"
+                value={form.div}
+                onChange={(v) => setForm({ ...form, div: v })}
+              />
             </div>
             <div className="form-row">
-              <label>Event</label>
-              <input
+              <Field
+                id="entry-event"
+                label="Event"
                 value={form.event}
-                onChange={(e) => {
-                  const next = e.target.value
+                onChange={(v) => {
+                  const next = v
                   const type = inferBoatType(next.trim())
                   const options = type && next.trim() ? allBoats.filter((b) => b.type === type) : []
                   const valid = options.some((b) => b.name === form.boat)
@@ -801,24 +814,39 @@ export function Entries() {
               )}
             </div>
             <div className="form-row form-span-2">
-              <label>Notes</label>
-              <input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <Field
+                id="entry-notes"
+                label="Notes"
+                value={form.notes}
+                onChange={(v) => setForm({ ...form, notes: v })}
+              />
             </div>
             <div className="form-span-2" style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               {!editingId ? <span style={{ color: 'var(--muted)', fontSize: 12 }}>Tip: Shift+Enter to "Add & add another"</span> : <span />}
               <span style={{ display: 'inline-flex', gap: 8 }}>
-                <button type="button" onClick={() => { setOpen(false); searchParams.delete('add'); setSearchParams(searchParams); setForm(null); setEditingId(null) }} style={{ background: 'transparent', color: 'var(--text)', border: '1px solid var(--border)' }}>Cancel</button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => { setOpen(false); searchParams.delete('add'); setSearchParams(searchParams); setForm(null); setEditingId(null) }}
+                >
+                  Cancel
+                </Button>
                 {!editingId && (
-                  <button type="button" onClick={async () => {
-                    if (!form) return
-                    await createEntry(form)
-                    const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
-                    setLastDefaults(nextDefaults)
-                    setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
-                    requestAnimationFrame(() => athleteInputRef.current?.focus())
-                  }}>Add & add another</button>
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      if (!form) return
+                      await createEntry(form)
+                      const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
+                      setLastDefaults(nextDefaults)
+                      setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
+                      requestAnimationFrame(() => athleteInputRef.current?.focus())
+                    }}
+                  >
+                    Add & add another
+                  </Button>
                 )}
-                <button type="submit">{editingId ? 'Save' : 'Add'}</button>
+                <Button type="submit">{editingId ? 'Save' : 'Add'}</Button>
               </span>
             </div>
           </form>
@@ -876,7 +904,7 @@ export function Entries() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="primary-btn" onClick={closeGroups}>Done</button>
+              <Button onClick={closeGroups}>Done</Button>
             </div>
           </div>
         </div>
