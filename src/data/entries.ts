@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import type { Entry, NewEntry } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
+import { subscribeCached } from './subscriptionCache'
 
 const col = collection(db, 'entries')
 
@@ -52,23 +53,36 @@ function fromPartial(e: Partial<NewEntry>) { return { ...e } }
 
 export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void, onError?: (error: unknown) => void) {
   const q = query(col, where('raceId', '==', raceId), orderBy('event'))
-  return onSnapshot(q, (snap) => {
-    let skipped = 0
-    const rows = snap.docs.map((d) => {
-      try {
-        return toEntry(d.id, d.data())
-      } catch (err) {
-        skipped += 1
-        logWarn('entries.toEntry', err)
-        return null
-      }
-    }).filter(Boolean) as Entry[]
-    if (skipped) logWarn('entries.subscribe', { skipped, total: snap.size })
-    cb(rows)
-  }, (err) => {
-    logWarn('entries.subscribe.error', err)
-    onError?.(err)
-  })
+  const key = `entries:raceId=${raceId}`
+  return subscribeCached(
+    key,
+    (emit, emitError) =>
+      onSnapshot(
+        q,
+        (snap) => {
+          let skipped = 0
+          const rows = snap.docs
+            .map((d) => {
+              try {
+                return toEntry(d.id, d.data())
+              } catch (err) {
+                skipped += 1
+                logWarn('entries.toEntry', err)
+                return null
+              }
+            })
+            .filter(Boolean) as Entry[]
+          if (skipped) logWarn('entries.subscribe', { skipped, total: snap.size })
+          emit(rows)
+        },
+        (err) => {
+          logWarn('entries.subscribe.error', err)
+          emitError(err)
+        },
+      ),
+    cb,
+    onError,
+  )
 }
 
 export async function createEntry(data: NewEntry) { const ref = await addDoc(col, fromEntry(data)); return ref.id }

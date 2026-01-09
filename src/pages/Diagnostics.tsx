@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase'
 import { buildInfo } from '../utils/buildInfo'
 import { useLocation } from 'react-router-dom'
+import { getActiveSubscriptions } from '../data/subscriptionCache'
 
 type Info = {
   uid?: string
@@ -14,6 +15,7 @@ export function Diagnostics() {
   const isDev = import.meta.env.DEV
   const location = useLocation()
   const [copied, setCopied] = useState(false)
+  const [subs, setSubs] = useState<{ key: string; listeners: number }[]>([])
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -21,6 +23,14 @@ export function Diagnostics() {
     })
     return unsub
   }, [])
+
+  useEffect(() => {
+    if (!isDev) return
+    const id = setInterval(() => {
+      setSubs(getActiveSubscriptions())
+    }, 1000)
+    return () => clearInterval(id)
+  }, [isDev])
 
   const copyDiagnostics = async () => {
     const payload = [
@@ -54,6 +64,18 @@ export function Diagnostics() {
         <button onClick={copyDiagnostics}>Copy diagnostics</button>
         {copied ? <span style={{ color: 'var(--muted)', fontSize: 12 }}>Copied</span> : null}
       </div>
+      {isDev && subs.length ? (
+        <div style={{ marginTop: 8 }}>
+          <div><strong>Active subscriptions:</strong> {subs.reduce((sum, s) => sum + s.listeners, 0)}</div>
+          <ul style={{ margin: '6px 0 0 16px', padding: 0 }}>
+            {subs.map((s) => (
+              <li key={s.key} style={{ listStyle: 'disc' }}>
+                {s.key} ({s.listeners})
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   )
 }
