@@ -1,10 +1,10 @@
-import { NavLink, Outlet, useMatches, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import { useRaceId } from '../hooks/useRaceId'
 
 export function Layout() {
   const [open, setOpen] = useState(false)
-  const matches = useMatches()
-  const raceId = (matches[matches.length - 1]?.params as { raceId?: string } | undefined)?.raceId
+  const raceId = useRaceId()
   const hasRace = !!raceId
   const location = useLocation()
   const isEntries = location.pathname.startsWith('/entries/')
@@ -15,7 +15,7 @@ export function Layout() {
   return (
     <div className={`app-shell ${hasRace ? 'has-race' : ''}`}>
       <header className="topbar">
-        <div className="brand" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+        <div className="brand">
           <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
           {/* Logo moved to watermark in background */}
           {hasRace ? (

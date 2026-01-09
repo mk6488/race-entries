@@ -31,7 +31,7 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 
 .app-shell { display: grid; grid-template-rows: auto 1fr; height: 100%; }
 
-.brand { font-weight: 700; }
+.brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
 .nav-links { display: flex; gap: 10px; justify-content: center; }
 .nav-links a { color: #111827; text-decoration: none; padding: 8px 10px; border-radius: 8px; }
 .nav-links a.active { background: #f3f4f6; }
