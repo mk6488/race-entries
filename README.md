@@ -34,6 +34,7 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 - Admin access: `docs/ADMIN.md`
 - Diagnostics: `docs/DIAGNOSTICS.md`
 - Printing: `docs/PRINTING.md`
+- Backups & recovery: `docs/BACKUP_RECOVERY.md`
 
 ## Firebase assumptions
 - Anonymous auth is enabled.
