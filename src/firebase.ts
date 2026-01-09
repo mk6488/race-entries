@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth'
+import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,21 +14,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
+// Persist auth across reloads when supported
+setPersistence(auth, browserLocalPersistence).catch(() => {})
+
+let authResolved = false
 export const authReady: Promise<void> = new Promise((resolve) => {
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      signInAnonymously(auth).catch(() => {})
+  onAuthStateChanged(auth, async (user) => {
+    if (authResolved) return
+    if (user) {
+      authResolved = true
+      resolve()
       return
     }
-    resolve()
+    try {
+      await signInAnonymously(auth)
+    } catch {
+      // Ignore; still resolve to avoid hanging
+    } finally {
+      authResolved = true
+      resolve()
+    }
   })
-})
-
-// Ensure a signed-in user for Firestore rules requiring auth
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    signInAnonymously(auth).catch(() => {})
-  }
 })
 
 
