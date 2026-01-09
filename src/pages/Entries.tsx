@@ -364,11 +364,11 @@ export function Entries() {
     setRaceState({ status: 'loading' })
     ;(async () => {
       try {
-        const r = await getRaceById(raceId)
+      const r = await getRaceById(raceId)
         setRaceState({ status: 'ready', data: r })
-        if (!r) { setDayOptions([]); return }
-        const days = enumerateDaysInclusive(r.startDate, r.endDate)
-        setDayOptions(days.map(formatDayLabel))
+      if (!r) { setDayOptions([]); return }
+      const days = enumerateDaysInclusive(r.startDate, r.endDate)
+      setDayOptions(days.map(formatDayLabel))
       } catch (err) {
         setRaceState({ status: 'error', message: toErrorMessage(err) })
       }
@@ -451,7 +451,7 @@ export function Entries() {
             >
               Div groups
             </Button>
-          </div>
+            </div>
         }
       />
       {raceState.status === 'error' ? <ErrorBanner message={`Race: ${raceState.message}`} /> : null}
@@ -634,7 +634,19 @@ export function Entries() {
                   </span>
                 ) : null}
               </div>
-              <div className="cell blades"><span className="muted-label">Blades:</span> {r.blades || '-'}</div>
+              <div className="cell blades">
+                <span className="muted-label">Blades:</span> {r.blades || '-'}
+                {hasBladeClash ? (
+                  <span
+                    className={`clash-icon ${bladeSilenced ? 'silenced' : 'active'}`}
+                    title={bladeSilenced ? 'Blade clash silenced' : 'Blade clash'}
+                    aria-label={bladeSilenced ? 'Blade clash silenced' : 'Blade clash'}
+                    style={{ marginLeft: 6 }}
+                  >
+                    {bladeSilenced ? '⚠️' : '🚨'}
+                  </span>
+                ) : null}
+              </div>
               {/* Row 4: status | EMPTY | crew changed */}
               <div className="cell">
                 <span
@@ -672,16 +684,16 @@ export function Entries() {
               if (!form || savingEntry) return
               try {
                 setSavingEntry(true)
-                if (editingId) {
-                  await updateEntry(editingId, form)
-                } else {
-                  await createEntry(form)
-                }
-                setOpen(false)
-                searchParams.delete('add')
-                setSearchParams(searchParams)
-                setForm(null)
-                setEditingId(null)
+              if (editingId) {
+                await updateEntry(editingId, form)
+              } else {
+                await createEntry(form)
+              }
+              setOpen(false)
+              searchParams.delete('add')
+              setSearchParams(searchParams)
+              setForm(null)
+              setEditingId(null)
               } catch (err) {
                 alert('Failed to save entry. Please try again.')
                 console.error(err)
@@ -696,11 +708,11 @@ export function Entries() {
                 ;(async () => {
                   try {
                     setSavingEntry(true)
-                    await createEntry(form)
-                    const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
-                    setLastDefaults(nextDefaults)
-                    setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
-                    requestAnimationFrame(() => athleteInputRef.current?.focus())
+                  await createEntry(form)
+                  const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
+                  setLastDefaults(nextDefaults)
+                  setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
+                  requestAnimationFrame(() => athleteInputRef.current?.focus())
                   } catch (err) {
                     alert('Failed to add entry. Please try again.')
                     console.error(err)
@@ -849,13 +861,13 @@ export function Entries() {
                     type="button"
                     disabled={savingEntry}
                     onClick={async () => {
-                      if (!form) return
+                    if (!form) return
                       setSavingEntry(true)
-                      await createEntry(form)
-                      const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
-                      setLastDefaults(nextDefaults)
-                      setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
-                      requestAnimationFrame(() => athleteInputRef.current?.focus())
+                    await createEntry(form)
+                    const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
+                    setLastDefaults(nextDefaults)
+                    setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
+                    requestAnimationFrame(() => athleteInputRef.current?.focus())
                       setSavingEntry(false)
                     }}
                   >
