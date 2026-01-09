@@ -269,17 +269,18 @@ export function Race() {
         <>
       <div className="table-scroll">
         <table className="sheet">
+          <caption className="sr-only">Race entries table</caption>
           <thead>
             <tr>
-              <th style={{ minWidth: 90 }}>Day</th>
-              <th style={{ minWidth: 70 }}>Div</th>
-              <th style={{ minWidth: 140 }}>Event</th>
-              <th style={{ minWidth: 320 }}>Athlete Names</th>
-              <th style={{ minWidth: 160 }}>Boat</th>
-              <th style={{ minWidth: 160 }}>Blades</th>
-              <th style={{ minWidth: 100 }}>Crew #</th>
-              <th style={{ minWidth: 160 }}>Times</th>
-              <th style={{ width: 1 }} />
+              <th scope="col" style={{ minWidth: 90 }}>Day</th>
+              <th scope="col" style={{ minWidth: 70 }}>Div</th>
+              <th scope="col" style={{ minWidth: 140 }}>Event</th>
+              <th scope="col" style={{ minWidth: 320 }}>Athlete Names</th>
+              <th scope="col" style={{ minWidth: 160 }}>Boat</th>
+              <th scope="col" style={{ minWidth: 160 }}>Blades</th>
+              <th scope="col" style={{ minWidth: 100 }}>Crew #</th>
+              <th scope="col" style={{ minWidth: 160 }}>Times</th>
+              <th scope="col" style={{ width: 1 }} />
             </tr>
           </thead>
           <tbody>

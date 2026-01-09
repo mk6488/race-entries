@@ -446,6 +446,8 @@ export function Entries() {
             <Button
               variant="secondary"
               onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}
+              title="Open division groups"
+              aria-label="Open division groups"
             >
               Div groups
             </Button>

@@ -14,7 +14,8 @@ export function Layout() {
   const isTrailer = location.pathname.startsWith('/trailer/')
   return (
     <div className={`app-shell ${hasRace ? 'has-race' : ''}`}>
-      <header className="topbar">
+      <a href="#main-content" className="sr-only">Skip to content</a>
+      <header className="topbar" role="banner">
         <div className="brand">
           <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
           {/* Logo moved to watermark in background */}
@@ -58,7 +59,7 @@ export function Layout() {
 
       <>
         <div className={`drawer-overlay ${open ? 'open' : ''}`} onClick={() => setOpen(false)} />
-        <div className={`nav-drawer ${open ? 'open' : ''}`}>
+        <div className={`nav-drawer ${open ? 'open' : ''}`} role="navigation" aria-label="Mobile navigation">
           {hasRace ? (
             <>
               <NavLink to={`/entries/${raceId}`} onClick={() => setOpen(false)}>Entries</NavLink>
@@ -73,7 +74,7 @@ export function Layout() {
         </div>
       </>
 
-      <main>
+      <main id="main-content">
         <Outlet />
       </main>
     </div>
