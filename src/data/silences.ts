@@ -2,6 +2,7 @@ import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, where }
 import { db } from '../firebase'
 import type { SilencedClash } from '../models/firestore'
 import { asRecord, asString, withId } from './firestoreMapping'
+import { logWarn } from '../utils/log'
 export type { SilencedClash as Silence }
 
 const col = collection(db, 'silencedClashes')
@@ -18,7 +19,20 @@ function toModel(id: string, data: unknown): SilencedClash {
 
 export function subscribeSilences(raceId: string, cb: (rows: SilencedClash[]) => void) {
   const q = query(col, where('raceId', '==', raceId))
-  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => toModel(d.id, d.data()))))
+  return onSnapshot(q, (snap) => {
+    let skipped = 0
+    const rows = snap.docs.map((d) => {
+      try {
+        return toModel(d.id, d.data())
+      } catch (err) {
+        skipped += 1
+        logWarn('silences.toModel', err)
+        return null
+      }
+    }).filter(Boolean) as SilencedClash[]
+    if (skipped) logWarn('silences.subscribe', { skipped, total: snap.size })
+    cb(rows)
+  })
 }
 
 export async function createSilence(data: Omit<SilencedClash, 'id'>) {

@@ -10,6 +10,8 @@ import { Archive } from './pages/Archive'
 // removed EquipmentOverview
 import { EquipmentBoats } from './pages/EquipmentBoats'
 import { EquipmentBlades } from './pages/EquipmentBlades'
+import { Diagnostics } from './pages/Diagnostics'
+import { ErrorBoundary } from './ui/ErrorBoundary'
 
 export const router = createBrowserRouter([
   {
@@ -25,12 +27,17 @@ export const router = createBrowserRouter([
       { path: 'entries/:raceId', element: <Entries /> },
       { path: 'equipment/:raceId', element: <Equipment /> },
       { path: 'trailer/:raceId', element: <Trailer /> },
+      { path: 'diagnostics', element: <Diagnostics /> },
     ],
   },
 ])
 
 export function App() {
-  return <RouterProvider router={router} />
+  return (
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
+  )
 }
 
 

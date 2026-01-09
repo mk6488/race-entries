@@ -2,6 +2,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateD
 import { db } from '../firebase'
 import type { Entry, NewEntry } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
+import { logWarn } from '../utils/log'
 
 const col = collection(db, 'entries')
 
@@ -51,7 +52,20 @@ function fromPartial(e: Partial<NewEntry>) { return { ...e } }
 
 export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void) {
   const q = query(col, where('raceId', '==', raceId), orderBy('event'))
-  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => toEntry(d.id, d.data()))))
+  return onSnapshot(q, (snap) => {
+    let skipped = 0
+    const rows = snap.docs.map((d) => {
+      try {
+        return toEntry(d.id, d.data())
+      } catch (err) {
+        skipped += 1
+        logWarn('entries.toEntry', err)
+        return null
+      }
+    }).filter(Boolean) as Entry[]
+    if (skipped) logWarn('entries.subscribe', { skipped, total: snap.size })
+    cb(rows)
+  })
 }
 
 export async function createEntry(data: NewEntry) { const ref = await addDoc(col, fromEntry(data)); return ref.id }

@@ -2,6 +2,7 @@ import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase
 import { db, authReady } from '../firebase'
 import type { GearingMatrix } from '../models/firestore'
 import { asRecord, asString } from './firestoreMapping'
+import { logWarn } from '../utils/log'
 export type { GearingMatrix }
 
 const col = collection(db, 'gearing')
@@ -9,8 +10,13 @@ const col = collection(db, 'gearing')
 export function subscribeGearing(raceId: string, cb: (values: GearingMatrix) => void) {
   const ref = doc(col, raceId)
   return onSnapshot(ref, (snap) => {
-    const data = snap.exists() ? snap.data() : {}
-    cb(toGearingMatrix(asRecord(data).values))
+    try {
+      const data = snap.exists() ? snap.data() : {}
+      cb(toGearingMatrix(asRecord(data).values))
+    } catch (err) {
+      logWarn('gearing.toGearingMatrix', err)
+      cb({})
+    }
   })
 }
 
@@ -31,8 +37,13 @@ export async function updateGearingCell(raceId: string, age: string, boatType: s
 export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
   const ref = doc(col, 'default')
   return onSnapshot(ref, (snap) => {
-    const data = snap.exists() ? snap.data() : {}
-    cb(toGearingMatrix(asRecord(data).values))
+    try {
+      const data = snap.exists() ? snap.data() : {}
+      cb(toGearingMatrix(asRecord(data).values))
+    } catch (err) {
+      logWarn('gearing.global.toGearingMatrix', err)
+      cb({})
+    }
   })
 }
 

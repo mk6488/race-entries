@@ -2,6 +2,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, query, updateDoc, where
 import { db } from '../firebase'
 import type { DivisionGroup } from '../models/firestore'
 import { asRecord, asString, asStringArray, withId } from './firestoreMapping'
+import { logWarn } from '../utils/log'
 export type { DivisionGroup }
 
 const col = collection(db, 'divisionGroups')
@@ -18,7 +19,20 @@ function toModel(id: string, data: unknown): DivisionGroup {
 
 export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup[]) => void) {
   const q = query(col, where('raceId', '==', raceId))
-  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => toModel(d.id, d.data()))))
+  return onSnapshot(q, (snap) => {
+    let skipped = 0
+    const rows = snap.docs.map((d) => {
+      try {
+        return toModel(d.id, d.data())
+      } catch (err) {
+        skipped += 1
+        logWarn('divisionGroups.toModel', err)
+        return null
+      }
+    }).filter(Boolean) as DivisionGroup[]
+    if (skipped) logWarn('divisionGroups.subscribe', { skipped, total: snap.size })
+    cb(rows)
+  })
 }
 
 export async function createDivisionGroup(data: Omit<DivisionGroup, 'id'>) {

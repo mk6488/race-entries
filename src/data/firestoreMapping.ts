@@ -1,36 +1,54 @@
 import { Timestamp } from 'firebase/firestore'
+import { logWarn } from '../utils/log'
 
-export function asRecord(value: unknown): Record<string, unknown> {
+function maybeWarn(warnOnInvalid: boolean, scope: string, value: unknown) {
+  if (!warnOnInvalid) return
+  logWarn(scope, { value })
+}
+
+export function asRecord(value: unknown, warnOnInvalid = false): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value as Record<string, unknown>
   }
+  maybeWarn(warnOnInvalid, 'asRecord', value)
   return {}
 }
 
-export function asString(value: unknown, fallback = ''): string {
+export function asString(value: unknown, fallback = '', warnOnInvalid = false): string {
   if (value === undefined || value === null) return fallback
   if (typeof value === 'string') return value
-  return String(value)
+  try {
+    return String(value)
+  } catch (err) {
+    maybeWarn(warnOnInvalid, 'asString', value)
+    return fallback
+  }
 }
 
-export function asNumber(value: unknown, fallback: number | null | undefined = null): number | null | undefined {
+export function asNumber(value: unknown, fallback: number | null | undefined = null, warnOnInvalid = false): number | null | undefined {
   if (value === undefined || value === null) return fallback
   if (typeof value === 'number' && Number.isFinite(value)) return value
   const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : fallback
-}
-
-export function asBool<T extends boolean | undefined = boolean>(value: unknown, fallback: T = false as T): boolean | T {
-  if (typeof value === 'boolean') return value
+  if (Number.isFinite(parsed)) return parsed
+  maybeWarn(warnOnInvalid, 'asNumber', value)
   return fallback
 }
 
-export function asStringArray(value: unknown, fallback: string[] = []): string[] {
-  if (!Array.isArray(value)) return fallback
-  return value.map((v) => asString(v))
+export function asBool<T extends boolean | undefined = boolean>(value: unknown, fallback: T = false as T, warnOnInvalid = false): boolean | T {
+  if (typeof value === 'boolean') return value
+  maybeWarn(warnOnInvalid, 'asBool', value)
+  return fallback
 }
 
-export function asDateFromTimestampLike(value: unknown): Date | null {
+export function asStringArray(value: unknown, fallback: string[] = [], warnOnInvalid = false): string[] {
+  if (!Array.isArray(value)) {
+    maybeWarn(warnOnInvalid, 'asStringArray', value)
+    return fallback
+  }
+  return value.map((v) => asString(v, '', warnOnInvalid))
+}
+
+export function asDateFromTimestampLike(value: unknown, warnOnInvalid = false): Date | null {
   if (!value) return null
   if (value instanceof Date) return value
   if (value instanceof Timestamp) return value.toDate()
@@ -43,6 +61,7 @@ export function asDateFromTimestampLike(value: unknown): Date | null {
     const date = new Date(value)
     return Number.isNaN(date.getTime()) ? null : date
   }
+  maybeWarn(warnOnInvalid, 'asDateFromTimestampLike', value)
   return null
 }
 

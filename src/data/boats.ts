@@ -2,13 +2,27 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateD
 import { db, authReady } from '../firebase'
 import type { Boat } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
+import { logWarn } from '../utils/log'
 export type { Boat }
 
 const col = collection(db, 'boats')
 
 export function subscribeBoats(cb: (rows: Boat[]) => void) {
   const q = query(col, orderBy('name'))
-  return onSnapshot(q, (snap) => cb(snap.docs.map((d) => toBoat(d.id, d.data()))))
+  return onSnapshot(q, (snap) => {
+    let skipped = 0
+    const rows = snap.docs.map((d) => {
+      try {
+        return toBoat(d.id, d.data())
+      } catch (err) {
+        skipped += 1
+        logWarn('boats.toBoat', err)
+        return null
+      }
+    }).filter(Boolean) as Boat[]
+    if (skipped) logWarn('boats.subscribe', { skipped, total: snap.size })
+    cb(rows)
+  })
 }
 
 function toBoat(id: string, data: unknown): Boat {

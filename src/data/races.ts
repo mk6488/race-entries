@@ -2,6 +2,7 @@ import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, que
 import { db, authReady } from '../firebase'
 import type { NewRace, Race } from '../models/firestore'
 import { asBool, asDateFromTimestampLike, asRecord, asString, withId } from './firestoreMapping'
+import { logWarn } from '../utils/log'
 
 const racesCol = collection(db, 'races')
 
@@ -35,7 +36,20 @@ function fromRace(r: NewRace) {
 export function subscribeRaces(cb: (races: Race[]) => void) {
   const q = query(racesCol, orderBy('startDate'))
   return onSnapshot(q, (snap) => {
-    cb(snap.docs.map((d) => toRace(d.id, d.data())))
+    let skipped = 0
+    const races = snap.docs.map((d) => {
+      try {
+        return toRace(d.id, d.data())
+      } catch (err) {
+        skipped += 1
+        logWarn('races.toRace', err)
+        return null
+      }
+    }).filter(Boolean) as Race[]
+    if (skipped) {
+      logWarn('races.subscribe', { skipped, total: snap.size })
+    }
+    cb(races)
   })
 }
 
