@@ -1,4 +1,4 @@
-type TraceEvent = {
+export type TraceEvent = {
   type: string
   scope?: string
   meta?: Record<string, string | number | boolean>

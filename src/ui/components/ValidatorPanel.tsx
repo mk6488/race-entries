@@ -16,7 +16,12 @@ const collectionsList = [
   'silencedBladeClashes',
 ]
 
-export function ValidatorPanel() {
+type Props = {
+  onResult?: (result: ValidationResult | null) => void
+  onPlaybook?: (playbook: RepairPlaybook | null) => void
+}
+
+export function ValidatorPanel({ onResult, onPlaybook }: Props) {
   const [limit, setLimit] = useState(50)
   const [maxIssues, setMaxIssues] = useState(100)
   const [selected, setSelected] = useState<string[]>(['races', 'entries'])
@@ -37,6 +42,7 @@ export function ValidatorPanel() {
     try {
       const res = await runValidation({ limitPerCollection: limit, maxIssues, collections: selected })
       setResult(res)
+      onResult?.(res)
     } catch (err) {
       const msg = toErrorMessage(err)
       setError(msg)
@@ -60,7 +66,9 @@ export function ValidatorPanel() {
 
   const buildPlaybook = () => {
     if (!result) return
-    setPlaybook(generateRepairPlaybook(result.issues))
+    const pb = generateRepairPlaybook(result.issues)
+    setPlaybook(pb)
+    onPlaybook?.(pb)
   }
 
   const copyPlaybookMd = async () => {

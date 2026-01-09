@@ -5,10 +5,14 @@ import { buildInfo } from '../utils/buildInfo'
 import { useLocation } from 'react-router-dom'
 import { getActiveSubscriptions } from '../data/subscriptionCache'
 import { getTrace, clearTrace } from '../utils/trace'
+import { buildDiagnosticsBundle } from '../utils/buildDiagnosticsBundle'
+import type { ValidationResult } from '../data/scanCollections'
+import type { RepairPlaybook } from '../models/repair'
 import { ValidatorPanel } from '../ui/components/ValidatorPanel'
 
 type Info = {
   uid?: string
+  isAnonymous?: boolean
   loading: boolean
 }
 
@@ -20,10 +24,13 @@ export function Diagnostics() {
   const [subs, setSubs] = useState<{ key: string; listeners: number }[]>([])
   const [traceView, setTraceView] = useState(getTrace())
   const devLogSentRef = useRef(false)
+  const [validatorResult, setValidatorResult] = useState<ValidationResult | null>(null)
+  const [playbook, setPlaybook] = useState<RepairPlaybook | null>(null)
+  const [bundleStatus, setBundleStatus] = useState<string | null>(null)
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      setInfo({ loading: false, uid: user?.uid })
+      setInfo({ loading: false, uid: user?.uid, isAnonymous: user?.isAnonymous })
     })
     return unsub
   }, [])
@@ -116,6 +123,51 @@ export function Diagnostics() {
     }
   }
 
+  const buildBundle = () => {
+    try {
+      const bundle = buildDiagnosticsBundle({
+        auth: { uid: info.uid, isAnonymous: info.isAnonymous },
+        routePath: location.pathname,
+        subs: { active: subs.reduce((sum, s) => sum + s.listeners, 0), keys: subs.map((s) => s.key) },
+        validator: validatorResult,
+        playbook,
+      })
+      return bundle
+    } catch (err) {
+      setBundleStatus('Failed to build bundle')
+      return null
+    }
+  }
+
+  const copyBundle = async () => {
+    const bundle = buildBundle()
+    if (!bundle) return
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(bundle, null, 2))
+      setBundleStatus('Bundle copied')
+      setTimeout(() => setBundleStatus(null), 1500)
+    } catch {
+      setBundleStatus('Clipboard unavailable')
+    }
+  }
+
+  const downloadBundle = () => {
+    const bundle = buildBundle()
+    if (!bundle) return
+    const json = JSON.stringify(bundle, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const ts = new Date().toISOString().replace(/[:]/g, '-')
+    const name = `diagnostics_${buildInfo.version || 'unknown'}_${ts}.json`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    a.click()
+    URL.revokeObjectURL(url)
+    setBundleStatus('Bundle downloaded')
+    setTimeout(() => setBundleStatus(null), 1500)
+  }
+
   return (
     <div style={{ padding: 16, display: 'grid', gap: 12 }}>
       {isDev ? <div style={{ padding: 8, borderRadius: 8, background: '#e0f2fe', color: '#0b4f71' }}>Diagnostics (dev mode)</div> : null}
@@ -158,7 +210,22 @@ export function Diagnostics() {
           </div>
         </div>
       ) : null}
-      {isDev ? <ValidatorPanel /> : null}
+      {isDev ? (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <ValidatorPanel onResult={setValidatorResult} onPlaybook={setPlaybook} />
+          <div className="card" style={{ display: 'grid', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h3 style={{ margin: 0 }}>Diagnostics bundle</h3>
+              <span style={{ color: 'var(--muted)', fontSize: 12 }}>Non-sensitive summary; admin-only</span>
+            </div>
+            <div style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="row-action" onClick={copyBundle}>Copy bundle (JSON)</button>
+              <button className="row-action" onClick={downloadBundle}>Download bundle (.json)</button>
+              {bundleStatus ? <span style={{ color: 'var(--muted)', fontSize: 12 }}>{bundleStatus}</span> : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

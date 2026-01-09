@@ -11,7 +11,7 @@ import { toModel as toSilence } from './silences'
 import { toModel as toBladeSilence } from './silencedBlades'
 
 export type ValidationIssue = { collection: string; docId: string; level: 'warn' | 'error'; message: string; field?: string }
-export type ValidationResult = { scanned: number; issues: ValidationIssue[] }
+export type ValidationResult = { scanned: number; issues: ValidationIssue[]; lastRunAt?: string }
 
 type ScanOptions = {
   limitPerCollection?: number
@@ -79,5 +79,5 @@ export async function runValidation(opts: ScanOptions = {}): Promise<ValidationR
     if (issues.length >= maxIssues) break
   }
 
-  return { scanned, issues }
+  return { scanned, issues, lastRunAt: new Date().toISOString() }
 }
