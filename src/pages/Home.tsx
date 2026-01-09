@@ -98,11 +98,11 @@ export function Home() {
   }
 
   return (
-    <div>
+    <div className="print-root">
       <div className="card" style={{ marginTop: 4 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} className="print-hide">
               <Button onClick={() => setOpen(true)}>New race</Button>
             </div>
           </div>
@@ -129,7 +129,7 @@ export function Home() {
                       <div className="race-date">{dateLabel}</div>
                       <div className="race-name">{r.name}</div>
                     </Link>
-                    <div className="race-actions">
+                  <div className="race-actions print-hide">
                       <Button
                         variant="secondary"
                         onClick={(e) => {
@@ -182,7 +182,7 @@ export function Home() {
                     )}
                   </div>
                   {/* Mobile-bottom actions */}
-                  <div className="race-actions-bottom">
+                  <div className="race-actions-bottom print-hide">
                     <Button
                       variant="secondary"
                       onClick={(e) => {
@@ -221,7 +221,7 @@ export function Home() {
             })}
           </div>
         )}
-        <div className="card-footer">
+        <div className="card-footer print-hide">
           <div className="meta">© 2025 Designed by Mike Katholnig</div>
           <div style={{ display: 'inline-flex', gap: 12, alignItems: 'center' }}>
           <Link to="/archive" className="text-link">

@@ -428,7 +428,7 @@ export function Entries() {
   }
 
   return (
-    <div>
+    <div className="print-root">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
           <h1 style={{ margin: 0 }}>{race?.name ?? 'Selected race'}</h1>
@@ -444,7 +444,7 @@ export function Entries() {
           )}
         </div>
         {/* Add Entry button moved to navbar */}
-        <div style={{ display: 'inline-flex', gap: 8 }}>
+        <div style={{ display: 'inline-flex', gap: 8 }} className="print-hide">
           <Button
             variant="secondary"
             onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}
@@ -543,7 +543,7 @@ export function Entries() {
           return (
           <div
             key={r.id}
-            className={`entry-card ${r.status === 'withdrawn' || r.status === 'rejected' ? r.status : ''} ${r.crewChanged ? 'changed' : ''}`}
+            className={`entry-card ${r.status === 'withdrawn' || r.status === 'rejected' ? r.status : ''} ${r.crewChanged ? 'changed' : ''} print-avoid-break`}
             style={(() => {
               if (r.status === 'withdrawn' || r.status === 'rejected') return undefined
               // compute group key again to fetch assigned color

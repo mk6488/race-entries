@@ -1,0 +1,46 @@
+/* Baseline print styling */
+@page {
+  margin: 12mm;
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  body {
+    font-size: 12px;
+    line-height: 1.35;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Utilities */
+  .print-hide { display: none !important; }
+  .print-only { display: block !important; }
+  .print-break-before { break-before: page; page-break-before: always; }
+  .print-break-after { break-after: page; page-break-after: always; }
+  .print-avoid-break { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Reduce visual noise */
+  a { color: #000; text-decoration: none; }
+  a[href]::after { content: ''; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { word-break: break-word; white-space: normal; }
+
+  /* Hide non-essential UI */
+  .nav-links,
+  .topbar,
+  .drawer-overlay,
+  .nav-drawer,
+  .row-action,
+  .primary-btn.print-hide,
+  .secondary-btn.print-hide,
+  .btn.print-hide {
+    display: none !important;
+  }
+}
+
+/* Screen fallback for print-only elements */
+.print-only { display: none; }

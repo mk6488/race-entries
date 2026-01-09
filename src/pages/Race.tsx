@@ -206,7 +206,7 @@ export function Race() {
   }
 
   return (
-    <div>
+    <div className="print-root">
       <h1 style={{ marginTop: 0 }}>{race?.name ?? 'Race'}</h1>
       {race && (
         <div style={{ color: 'var(--muted)', marginBottom: 12 }}>
@@ -227,7 +227,7 @@ export function Race() {
         <EmptyState title="No entries yet" description="Entries will appear here once added." />
       ) : (
         <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8, flexWrap: 'wrap' }} className="print-hide">
         <Button variant="secondary" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</Button>
         
         <Button
@@ -286,7 +286,7 @@ export function Race() {
                 const isGroupStart = prevKey !== null && gkey !== prevKey
                 prevKey = gkey
                 out.push(
-                  <tr key={r.id} className={isGroupStart ? 'group-start' : undefined}>
+                  <tr key={r.id} className={`${isGroupStart ? 'group-start' : ''} print-avoid-break`}>
                     <td>{r.day}</td>
                     <td>{r.div}</td>
                     <td>{r.event}</td>
