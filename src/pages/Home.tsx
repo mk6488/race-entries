@@ -7,6 +7,8 @@ import { Modal } from '../ui/Modal'
 import { Button } from '../ui/components/Button'
 import { Field } from '../ui/components/Field'
 import { FormRow } from '../ui/components/FormRow'
+import { PageHeader } from '../ui/components/PageHeader'
+import { confirmDanger } from '../utils/confirm'
 import type { Loadable } from '../models/ui'
 import { LoadingState } from '../ui/components/LoadingState'
 import { EmptyState } from '../ui/components/EmptyState'
@@ -40,6 +42,9 @@ export function Home() {
     broeOpens: new Date(),
     broeCloses: new Date(),
   })
+  const [creating, setCreating] = useState(false)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [archivingId, setArchivingId] = useState<string | null>(null)
 
   const races = racesState.status === 'ready' ? racesState.data : []
 
@@ -100,12 +105,15 @@ export function Home() {
   return (
     <div className="print-root">
       <div className="card" style={{ marginTop: 4 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-            <h1 style={{ marginTop: 0, marginBottom: 0 }}>Select a race</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} className="print-hide">
+        <PageHeader
+          title="Select a race"
+          subtitle="Create or edit races to manage entries."
+          actions={
+            <div className="print-hide" style={{ display: 'inline-flex', gap: 8 }}>
               <Button onClick={() => setOpen(true)}>New race</Button>
             </div>
-          </div>
+          }
+        />
         {racesState.status === 'error' ? <ErrorBanner message={racesState.message} /> : null}
         {racesState.status === 'loading' ? (
           <LoadingState label="Loading races..." />
@@ -130,38 +138,43 @@ export function Home() {
                       <div className="race-name">{r.name}</div>
                     </Link>
                   <div className="race-actions print-hide">
-                      <Button
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setEditId(r.id)
-                          setEditForm({
-                            name: r.name,
-                            details: r.details,
-                            startDate: r.startDate,
-                            endDate: r.endDate ?? null,
-                            broeOpens: r.broeOpens,
-                            broeCloses: r.broeCloses,
-                          })
-                          setEditOpen(true)
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={async (e) => {
-                          e.stopPropagation()
-                          try {
-                            await updateRace(r.id, { archived: true })
-                          } catch (err) {
-                            alert('Failed to archive race. Please try again.')
-                            console.error(err)
-                          }
-                        }}
-                      >
-                        Archive now
-                      </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditId(r.id)
+                        setEditForm({
+                          name: r.name,
+                          details: r.details,
+                          startDate: r.startDate,
+                          endDate: r.endDate ?? null,
+                          broeOpens: r.broeOpens,
+                          broeCloses: r.broeCloses,
+                        })
+                        setEditOpen(true)
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      disabled={archivingId === r.id}
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        if (!confirmDanger(`Archive race "${r.name}"?`)) return
+                        try {
+                          setArchivingId(r.id)
+                          await updateRace(r.id, { archived: true })
+                        } catch (err) {
+                          alert('Failed to archive race. Please try again.')
+                          console.error(err)
+                        } finally {
+                          setArchivingId(null)
+                        }
+                      }}
+                    >
+                      {archivingId === r.id ? 'Archiving…' : 'Archive race'}
+                    </Button>
                     </div>
                   </div>
                   <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -203,17 +216,22 @@ export function Home() {
                     </Button>
                     <Button
                       variant="secondary"
+                      disabled={archivingId === r.id}
                       onClick={async (e) => {
                         e.stopPropagation()
+                        if (!confirmDanger(`Archive race "${r.name}"?`)) return
                         try {
+                          setArchivingId(r.id)
                           await updateRace(r.id, { archived: true })
                         } catch (err) {
                           alert('Failed to archive race. Please try again.')
                           console.error(err)
+                        } finally {
+                          setArchivingId(null)
                         }
                       }}
                     >
-                      Archive now
+                      {archivingId === r.id ? 'Archiving…' : 'Archive race'}
                     </Button>
                   </div>
                 </div>
@@ -250,14 +268,17 @@ export function Home() {
         <form
           onSubmit={async (e) => {
             e.preventDefault()
-            if (!form.name.trim()) return
+            if (!form.name.trim() || creating) return
             try {
+              setCreating(true)
               await createRace(form)
               setForm({ ...form, name: '', details: '' })
               setOpen(false)
             } catch (err) {
               alert('Failed to create race. Please try again.')
               console.error(err)
+            } finally {
+              setCreating(false)
             }
           }}
           style={{ display: 'grid', gap: 12 }}
@@ -311,8 +332,8 @@ export function Home() {
             />
           </FormRow>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit">Create</Button>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={creating}>Cancel</Button>
+            <Button type="submit" disabled={creating}>{creating ? 'Creating…' : 'Create race'}</Button>
           </div>
         </form>
       </Modal>
@@ -321,15 +342,17 @@ export function Home() {
         <form
           onSubmit={async (e) => {
             e.preventDefault()
-            if (!editId) return
-            if (!editForm.name.trim()) return
+            if (!editId || !editForm.name.trim() || savingEdit) return
             try {
+              setSavingEdit(true)
               await updateRace(editId, editForm)
               setEditOpen(false)
               setEditId(null)
             } catch (err) {
               alert('Failed to update race. Please try again.')
               console.error(err)
+            } finally {
+              setSavingEdit(false)
             }
           }}
           style={{ display: 'grid', gap: 12 }}
@@ -381,8 +404,8 @@ export function Home() {
             />
           </FormRow>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
-            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button type="submit">Save</Button>
+            <Button type="button" variant="secondary" onClick={() => setEditOpen(false)} disabled={savingEdit}>Cancel</Button>
+            <Button type="submit" disabled={savingEdit}>{savingEdit ? 'Saving…' : 'Save changes'}</Button>
           </div>
         </form>
       </Modal>

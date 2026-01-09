@@ -17,6 +17,8 @@ import { EmptyState } from '../ui/components/EmptyState'
 import { ErrorBanner } from '../ui/components/ErrorBanner'
 import { Button } from '../ui/components/Button'
 import { Field } from '../ui/components/Field'
+import { PageHeader } from '../ui/components/PageHeader'
+import { confirmDanger } from '../utils/confirm'
 import { toErrorMessage } from '../utils/errors'
 
 export function Entries() {
@@ -42,6 +44,7 @@ export function Entries() {
   const groupsOpen = searchParams.get('groups') === '1'
   const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
   const [groupsDay, setGroupsDay] = useState<string>('')
+  const [savingEntry, setSavingEntry] = useState(false)
   const rows = entriesState.status === 'ready' ? entriesState.data : []
   const race = raceState.status === 'ready' ? raceState.data : null
 
@@ -426,30 +429,29 @@ export function Entries() {
 
   return (
     <div className="print-root">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>{race?.name ?? 'Selected race'}</h1>
-          {race && (
-            <div style={{ color: 'var(--muted)', fontSize: 14 }}>
-              {(() => {
+      <PageHeader
+        title={race?.name ?? 'Entries'}
+        subtitle={
+          race
+            ? (() => {
                 const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' })
                 const start = race.startDate
                 const end = race.endDate
                 return end && end.getTime() !== start.getTime() ? `${fmt(start)} → ${fmt(end)}` : fmt(start)
-              })()}
-            </div>
-          )}
-        </div>
-        {/* Add Entry button moved to navbar */}
-        <div style={{ display: 'inline-flex', gap: 8 }} className="print-hide">
-          <Button
-            variant="secondary"
-            onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}
-          >
-            Div Groups
-          </Button>
-        </div>
-      </div>
+              })()
+            : 'Manage entries for the selected race.'
+        }
+        actions={
+          <div className="print-hide">
+            <Button
+              variant="secondary"
+              onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}
+            >
+              Div groups
+            </Button>
+          </div>
+        }
+      />
       {raceState.status === 'error' ? <ErrorBanner message={`Race: ${raceState.message}`} /> : null}
       {entriesState.status === 'error' ? <ErrorBanner message={`Entries: ${entriesState.message}`} /> : null}
       {(raceState.status === 'loading' || entriesState.status === 'loading') ? <LoadingState label="Loading entries..." /> : null}
@@ -665,27 +667,44 @@ export function Entries() {
           <form
             onSubmit={async (e) => {
               e.preventDefault()
-              if (editingId) {
-                await updateEntry(editingId, form)
-              } else {
-                await createEntry(form)
+              if (!form || savingEntry) return
+              try {
+                setSavingEntry(true)
+                if (editingId) {
+                  await updateEntry(editingId, form)
+                } else {
+                  await createEntry(form)
+                }
+                setOpen(false)
+                searchParams.delete('add')
+                setSearchParams(searchParams)
+                setForm(null)
+                setEditingId(null)
+              } catch (err) {
+                alert('Failed to save entry. Please try again.')
+                console.error(err)
+              } finally {
+                setSavingEntry(false)
               }
-              setOpen(false)
-              searchParams.delete('add')
-              setSearchParams(searchParams)
-              setForm(null)
-              setEditingId(null)
             }}
             className="form-grid"
             onKeyDown={(e) => {
               if ((e.key === 'Enter' && (e.metaKey || e.shiftKey)) && !editingId && form) {
                 e.preventDefault()
                 ;(async () => {
-                  await createEntry(form)
-                  const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
-                  setLastDefaults(nextDefaults)
-                  setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
-                  requestAnimationFrame(() => athleteInputRef.current?.focus())
+                  try {
+                    setSavingEntry(true)
+                    await createEntry(form)
+                    const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
+                    setLastDefaults(nextDefaults)
+                    setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
+                    requestAnimationFrame(() => athleteInputRef.current?.focus())
+                  } catch (err) {
+                    alert('Failed to add entry. Please try again.')
+                    console.error(err)
+                  } finally {
+                    setSavingEntry(false)
+                  }
                 })()
               }
             }}
@@ -818,6 +837,7 @@ export function Entries() {
                 <Button
                   type="button"
                   variant="secondary"
+                  disabled={savingEntry}
                   onClick={() => { setOpen(false); searchParams.delete('add'); setSearchParams(searchParams); setForm(null); setEditingId(null) }}
                 >
                   Cancel
@@ -825,19 +845,22 @@ export function Entries() {
                 {!editingId && (
                   <Button
                     type="button"
+                    disabled={savingEntry}
                     onClick={async () => {
                       if (!form) return
+                      setSavingEntry(true)
                       await createEntry(form)
                       const nextDefaults: Partial<NewEntry> = { day: form.day, div: form.div, event: form.event, boat: form.boat, blades: form.blades }
                       setLastDefaults(nextDefaults)
                       setForm({ ...form, athleteNames: '', notes: '', status: 'in_progress', crewChanged: false })
                       requestAnimationFrame(() => athleteInputRef.current?.focus())
+                      setSavingEntry(false)
                     }}
                   >
-                    Add & add another
+                    {savingEntry ? 'Saving…' : 'Add & add another'}
                   </Button>
                 )}
-                <Button type="submit">{editingId ? 'Save' : 'Add'}</Button>
+                <Button type="submit" disabled={savingEntry}>{savingEntry ? 'Saving…' : editingId ? 'Save' : 'Add'}</Button>
               </span>
             </div>
           </form>
@@ -865,7 +888,15 @@ export function Entries() {
                       <div key={g.id} className="card" style={{ display: 'grid', gap: 8 }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
                           <input value={g.group} onChange={(e)=> updateDivisionGroup(g.id, { group: e.target.value })} placeholder="Group name (e.g. Block A)" />
-                          <button className="row-action" onClick={() => deleteDivisionGroup(g.id)}>Delete</button>
+                          <button
+                            className="row-action"
+                            onClick={() => {
+                              if (!confirmDanger(`Delete group "${g.group}"?`)) return
+                              deleteDivisionGroup(g.id)
+                            }}
+                          >
+                            Delete
+                          </button>
                         </div>
                         <div>
                           <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>Divisions</div>

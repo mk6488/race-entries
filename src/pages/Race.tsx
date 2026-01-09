@@ -13,6 +13,7 @@ import { EmptyState } from '../ui/components/EmptyState'
 import { ErrorBanner } from '../ui/components/ErrorBanner'
 import { Button } from '../ui/components/Button'
 import { Field } from '../ui/components/Field'
+import { PageHeader } from '../ui/components/PageHeader'
 import { toErrorMessage } from '../utils/errors'
  
  
@@ -35,6 +36,7 @@ export function Race() {
   const [eventSel, setEventSel] = useState<string[]>([])
   const race = raceState.status === 'ready' ? raceState.data : null
   const rows = entriesState.status === 'ready' ? entriesState.data : []
+  const [savingTimes, setSavingTimes] = useState(false)
 
   // Plain table — no filters/sorting
 
@@ -195,29 +197,67 @@ export function Race() {
   }
 
   async function saveTimes() {
-    if (!editing) return
+    if (!editing || savingTimes) return
     const crewNumber = crewInput.trim() ? parseInt(crewInput, 10) : null
     if (crewInput.trim() && (!Number.isFinite(crewNumber) || crewNumber! < 0)) return
     const raceTimes = times
       .map(t => ({ round: t.round.trim(), timeMs: parseRaceTimeToMs(t.time) }))
       .filter(t => t.round && t.timeMs != null) as { round: string; timeMs: number }[]
-    await updateEntry(editing.id, { crewNumber: crewNumber ?? null, raceTimes })
-    setEditing(null)
+    try {
+      setSavingTimes(true)
+      await updateEntry(editing.id, { crewNumber: crewNumber ?? null, raceTimes })
+      setEditing(null)
+    } catch (err) {
+      alert('Failed to save times. Please try again.')
+      console.error(err)
+    } finally {
+      setSavingTimes(false)
+    }
   }
 
   return (
     <div className="print-root">
-      <h1 style={{ marginTop: 0 }}>{race?.name ?? 'Race'}</h1>
-      {race && (
-        <div style={{ color: 'var(--muted)', marginBottom: 12 }}>
-          {(() => {
-            const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' })
-            const start = race.startDate
-            const end = race.endDate
-            return end && end.getTime() !== start.getTime() ? `${fmt(start)} → ${fmt(end)}` : fmt(start)
-          })()}
-        </div>
-      )}
+      <PageHeader
+        title={race?.name ?? 'Race'}
+        subtitle={
+          race
+            ? (() => {
+                const fmt = (d: Date) => d.toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' })
+                const start = race.startDate
+                const end = race.endDate
+                return end && end.getTime() !== start.getTime() ? `${fmt(start)} → ${fmt(end)}` : fmt(start)
+              })()
+            : 'View race entries and times.'
+        }
+        actions={
+          race ? (
+            <div className="print-hide" style={{ display: 'inline-flex', gap: 8, flexWrap: 'wrap' }}>
+              <Button variant="secondary" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</Button>
+              <Button
+                variant="secondary"
+                disabled={!raceId || savingDraw}
+                onClick={async () => {
+                  if (!raceId) return
+                  try {
+                    setSavingDraw(true)
+                    await updateRace(raceId, { drawReleased: !drawReleased })
+                    setRaceState((prev) => {
+                      if (prev.status !== 'ready') return prev
+                      const current = prev.data
+                      return { status: 'ready', data: current ? { ...current, drawReleased: !drawReleased } : current }
+                    })
+                  } finally {
+                    setSavingDraw(false)
+                  }
+                }}
+                title={drawReleased ? 'Disable times editing' : 'Enable times editing'}
+              >
+                {savingDraw ? 'Saving…' : drawReleased ? 'Draw released ✓' : 'Release draw'}
+              </Button>
+            </div>
+          ) : null
+        }
+      />
 
       {raceState.status === 'error' ? <ErrorBanner message={`Race: ${raceState.message}`} /> : null}
       {entriesState.status === 'error' ? <ErrorBanner message={`Entries: ${entriesState.message}`} /> : null}
@@ -227,34 +267,6 @@ export function Race() {
         <EmptyState title="No entries yet" description="Entries will appear here once added." />
       ) : (
         <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8, flexWrap: 'wrap' }} className="print-hide">
-        <Button variant="secondary" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</Button>
-        
-        <Button
-          variant="secondary"
-          disabled={!raceId || savingDraw}
-          onClick={async () => {
-            if (!raceId) return
-            try {
-              setSavingDraw(true)
-              await updateRace(raceId, { drawReleased: !drawReleased })
-              setRaceState((prev) => {
-                if (prev.status !== 'ready') return prev
-                const current = prev.data
-                return { status: 'ready', data: current ? { ...current, drawReleased: !drawReleased } : current }
-              })
-            } finally {
-              setSavingDraw(false)
-            }
-          }}
-          title={drawReleased ? 'Disable times editing' : 'Enable times editing'}
-        >
-          {drawReleased ? 'Draw released ✓' : 'Release draw'}
-        </Button>
-      </div>
-
-      
-
       <div className="table-scroll">
         <table className="sheet">
           <thead>
@@ -412,7 +424,7 @@ export function Race() {
             </div>
             <div className="modal-footer">
               <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
-              <Button onClick={saveTimes}>Save</Button>
+              <Button onClick={saveTimes} disabled={savingTimes}>{savingTimes ? 'Saving…' : 'Save'}</Button>
             </div>
           </div>
         </div>

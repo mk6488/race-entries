@@ -42,6 +42,11 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .empty-title { font-weight: 600; color: var(--text); }
 .empty-description { color: var(--muted); }
 .error-banner { border: 1px solid var(--danger-border); background: var(--danger-bg); color: var(--danger-text); padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.page-header__titles { display: grid; gap: 4px; }
+.page-header__title { margin: 0; }
+.page-header__subtitle { margin: 0; color: var(--muted); font-size: 14px; }
+.page-header__actions { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; padding: 10px 14px; font-size: 14px; border: 1px solid transparent; cursor: pointer; height: 36px; line-height: 1; text-decoration: none; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
