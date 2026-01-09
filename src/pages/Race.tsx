@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import type { Entry } from '../models/entry'
-import { subscribeEntries } from '../data/entries'
+import { subscribeEntries, updateEntry } from '../data/entries'
 import { getRaceById, updateRace } from '../data/races'
 import type { Race as RaceType } from '../models/race'
-import { updateEntry } from '../data/entries'
 import { formatRaceTime, parseRaceTimeToMs } from '../utils/dates'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import { subscribeDivisionGroups, type DivisionGroup } from '../data/divisionGroups'
+import type { Loadable } from '../models/ui'
+import { LoadingState } from '../ui/components/LoadingState'
+import { EmptyState } from '../ui/components/EmptyState'
+import { ErrorBanner } from '../ui/components/ErrorBanner'
+import { toErrorMessage } from '../utils/errors'
  
  
 
 export function Race() {
   const { raceId } = useParams()
-  const [race, setRace] = useState<RaceType | null>(null)
-  const [rows, setRows] = useState<Entry[]>([])
+  const [raceState, setRaceState] = useState<Loadable<RaceType | null>>({ status: 'loading' })
+  const [entriesState, setEntriesState] = useState<Loadable<Entry[]>>({ status: 'loading' })
   const [groups, setGroups] = useState<DivisionGroup[]>([])
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -27,12 +31,22 @@ export function Race() {
   const [daySel, setDaySel] = useState<string[]>([])
   const [divSel, setDivSel] = useState<string[]>([])
   const [eventSel, setEventSel] = useState<string[]>([])
+  const race = raceState.status === 'ready' ? raceState.data : null
+  const rows = entriesState.status === 'ready' ? entriesState.data : []
 
   // Plain table — no filters/sorting
 
   useEffect(() => {
-    if (!raceId) return
-    return subscribeEntries(raceId, setRows)
+    if (!raceId) {
+      setEntriesState({ status: 'ready', data: [] })
+      return
+    }
+    setEntriesState({ status: 'loading' })
+    return subscribeEntries(
+      raceId,
+      (data) => setEntriesState({ status: 'ready', data }),
+      (err) => setEntriesState({ status: 'error', message: toErrorMessage(err) }),
+    )
   }, [raceId])
 
   // Bring back lightweight division group subscription to support visual separators only
@@ -45,10 +59,18 @@ export function Race() {
   
 
   useEffect(() => {
-    if (!raceId) return
+    if (!raceId) {
+      setRaceState({ status: 'ready', data: null })
+      return
+    }
+    setRaceState({ status: 'loading' })
     ;(async () => {
-      const r = await getRaceById(raceId)
-      setRace(r)
+      try {
+        const r = await getRaceById(raceId)
+        setRaceState({ status: 'ready', data: r })
+      } catch (err) {
+        setRaceState({ status: 'error', message: toErrorMessage(err) })
+      }
     })()
   }, [raceId])
 
@@ -195,6 +217,14 @@ export function Race() {
         </div>
       )}
 
+      {raceState.status === 'error' ? <ErrorBanner message={`Race: ${raceState.message}`} /> : null}
+      {entriesState.status === 'error' ? <ErrorBanner message={`Entries: ${entriesState.message}`} /> : null}
+      {(raceState.status === 'loading' || entriesState.status === 'loading') ? <LoadingState label="Loading race entries..." /> : null}
+
+      {entriesState.status === 'ready' && rows.length === 0 ? (
+        <EmptyState title="No entries yet" description="Entries will appear here once added." />
+      ) : (
+        <>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
         <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('filter','1'); setSearchParams(p, { replace: true }) }}>Filter</button>
         
@@ -206,7 +236,11 @@ export function Race() {
             try {
               setSavingDraw(true)
               await updateRace(raceId, { drawReleased: !drawReleased })
-              setRace(r => r ? { ...r, drawReleased: !drawReleased } : r)
+              setRaceState((prev) => {
+                if (prev.status !== 'ready') return prev
+                const current = prev.data
+                return { status: 'ready', data: current ? { ...current, drawReleased: !drawReleased } : current }
+              })
             } finally {
               setSavingDraw(false)
             }
@@ -362,6 +396,8 @@ export function Race() {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   )

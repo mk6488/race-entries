@@ -33,7 +33,7 @@ function fromRace(r: NewRace) {
   }
 }
 
-export function subscribeRaces(cb: (races: Race[]) => void) {
+export function subscribeRaces(cb: (races: Race[]) => void, onError?: (error: unknown) => void) {
   const q = query(racesCol, orderBy('startDate'))
   return onSnapshot(q, (snap) => {
     let skipped = 0
@@ -50,6 +50,9 @@ export function subscribeRaces(cb: (races: Race[]) => void) {
       logWarn('races.subscribe', { skipped, total: snap.size })
     }
     cb(races)
+  }, (err) => {
+    logWarn('races.subscribe.error', err)
+    onError?.(err)
   })
 }
 

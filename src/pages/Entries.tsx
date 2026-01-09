@@ -10,12 +10,17 @@ import { subscribeBladeSilences, createBladeSilence, deleteBladeSilenceByBlade, 
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
 import type { Race } from '../models/race'
 import type { Entry, NewEntry } from '../models/entry'
+import type { Loadable } from '../models/ui'
 import { Modal } from '../ui/Modal'
+import { LoadingState } from '../ui/components/LoadingState'
+import { EmptyState } from '../ui/components/EmptyState'
+import { ErrorBanner } from '../ui/components/ErrorBanner'
+import { toErrorMessage } from '../utils/errors'
 
 export function Entries() {
   const { raceId } = useParams()
-  const [rows, setRows] = useState<Entry[]>([])
-  const [race, setRace] = useState<Race | null>(null)
+  const [entriesState, setEntriesState] = useState<Loadable<Entry[]>>({ status: 'loading' })
+  const [raceState, setRaceState] = useState<Loadable<Race | null>>({ status: 'loading' })
   const [dayOptions, setDayOptions] = useState<string[]>([])
   const [allBoats, setAllBoats] = useState<Boat[]>([])
   const [bladeOptions, setBladeOptions] = useState<Blade[]>([])
@@ -35,10 +40,20 @@ export function Entries() {
   const groupsOpen = searchParams.get('groups') === '1'
   const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
   const [groupsDay, setGroupsDay] = useState<string>('')
+  const rows = entriesState.status === 'ready' ? entriesState.data : []
+  const race = raceState.status === 'ready' ? raceState.data : null
 
   useEffect(() => {
-    if (!raceId) return
-    const unsub = subscribeEntries(raceId, setRows)
+    if (!raceId) {
+      setEntriesState({ status: 'ready', data: [] })
+      return
+    }
+    setEntriesState({ status: 'loading' })
+    const unsub = subscribeEntries(
+      raceId,
+      (data) => setEntriesState({ status: 'ready', data }),
+      (err) => setEntriesState({ status: 'error', message: toErrorMessage(err) }),
+    )
     return () => unsub()
   }, [raceId])
 
@@ -338,13 +353,22 @@ export function Entries() {
   }, [enteredRows, dayOptions])
 
   useEffect(() => {
-    if (!raceId) return
+    if (!raceId) {
+      setRaceState({ status: 'ready', data: null })
+      setDayOptions([])
+      return
+    }
+    setRaceState({ status: 'loading' })
     ;(async () => {
-      const r = await getRaceById(raceId)
-      setRace(r)
-      if (!r) { setDayOptions([]); return }
-      const days = enumerateDaysInclusive(r.startDate, r.endDate)
-      setDayOptions(days.map(formatDayLabel))
+      try {
+        const r = await getRaceById(raceId)
+        setRaceState({ status: 'ready', data: r })
+        if (!r) { setDayOptions([]); return }
+        const days = enumerateDaysInclusive(r.startDate, r.endDate)
+        setDayOptions(days.map(formatDayLabel))
+      } catch (err) {
+        setRaceState({ status: 'error', message: toErrorMessage(err) })
+      }
     })()
   }, [raceId])
 
@@ -421,6 +445,18 @@ export function Entries() {
           <button className="secondary-btn" onClick={() => { const p = new URLSearchParams(searchParams); p.set('groups','1'); setSearchParams(p, { replace: true }); if (!groupsDay) setGroupsDay(dayOptions[0] || '') }}>Div Groups</button>
         </div>
       </div>
+      {raceState.status === 'error' ? <ErrorBanner message={`Race: ${raceState.message}`} /> : null}
+      {entriesState.status === 'error' ? <ErrorBanner message={`Entries: ${entriesState.message}`} /> : null}
+      {(raceState.status === 'loading' || entriesState.status === 'loading') ? <LoadingState label="Loading entries..." /> : null}
+
+      {entriesState.status === 'ready' && rows.length === 0 ? (
+        <EmptyState
+          title="No entries yet"
+          description="Add the first entry for this race."
+          action={raceId ? { label: 'Add entry', onClick: () => addRow() } : undefined}
+        />
+      ) : (
+        <>
       {(clashes.length > 0 || bladeClashes.length > 0) && (
         <div className="clashes">
           {clashes.map((c) => (
@@ -623,6 +659,8 @@ export function Entries() {
           )
         })}
       </div>
+      </>
+      )}
       <Modal open={open} onClose={() => { setOpen(false); setForm(null); setEditingId(null) }} title={editingId ? 'Edit entry' : 'Add entry'} footer={null}>
         {form && (
           <form

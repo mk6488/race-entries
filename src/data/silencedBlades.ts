@@ -17,7 +17,7 @@ function toModel(id: string, data: unknown): SilencedBladeClash {
   })
 }
 
-export function subscribeBladeSilences(raceId: string, cb: (rows: SilencedBladeClash[]) => void) {
+export function subscribeBladeSilences(raceId: string, cb: (rows: SilencedBladeClash[]) => void, onError?: (error: unknown) => void) {
   const q = query(col, where('raceId', '==', raceId))
   return onSnapshot(q, (snap) => {
     let skipped = 0
@@ -32,6 +32,9 @@ export function subscribeBladeSilences(raceId: string, cb: (rows: SilencedBladeC
     }).filter(Boolean) as SilencedBladeClash[]
     if (skipped) logWarn('silencedBladeClashes.subscribe', { skipped, total: snap.size })
     cb(rows)
+  }, (err) => {
+    logWarn('silencedBladeClashes.subscribe.error', err)
+    onError?.(err)
   })
 }
 

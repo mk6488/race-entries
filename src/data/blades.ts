@@ -7,7 +7,7 @@ export type { Blade }
 
 const col = collection(db, 'blades')
 
-export function subscribeBlades(cb: (rows: Blade[]) => void) {
+export function subscribeBlades(cb: (rows: Blade[]) => void, onError?: (error: unknown) => void) {
   const q = query(col, orderBy('name'))
   return onSnapshot(q, (snap) => {
     let skipped = 0
@@ -22,6 +22,9 @@ export function subscribeBlades(cb: (rows: Blade[]) => void) {
     }).filter(Boolean) as Blade[]
     if (skipped) logWarn('blades.subscribe', { skipped, total: snap.size })
     cb(rows)
+  }, (err) => {
+    logWarn('blades.subscribe.error', err)
+    onError?.(err)
   })
 }
 

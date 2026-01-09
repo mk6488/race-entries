@@ -36,6 +36,15 @@ html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-
 .nav-links a { color: #111827; text-decoration: none; padding: 8px 10px; border-radius: 8px; }
 .nav-links a.active { background: #f3f4f6; }
 
+.loading-state { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); }
+.loading-state .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--primary); animation: spin .8s linear infinite; }
+.empty-state { border: 1px dashed var(--border); background: #fff; border-radius: 12px; padding: 16px; display: grid; gap: 6px; justify-items: start; color: var(--muted); }
+.empty-title { font-weight: 600; color: var(--text); }
+.empty-description { color: var(--muted); }
+.error-banner { border: 1px solid var(--danger-border); background: var(--danger-bg); color: var(--danger-text); padding: 10px 12px; border-radius: 10px; margin-bottom: 12px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* Utilities */
 .desktop-only { display: block; }
 .mobile-only { display: none !important; }

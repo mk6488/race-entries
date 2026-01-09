@@ -50,7 +50,7 @@ function toEntry(id: string, data: unknown): Entry {
 function fromEntry(e: NewEntry) { return { ...e } }
 function fromPartial(e: Partial<NewEntry>) { return { ...e } }
 
-export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void) {
+export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void, onError?: (error: unknown) => void) {
   const q = query(col, where('raceId', '==', raceId), orderBy('event'))
   return onSnapshot(q, (snap) => {
     let skipped = 0
@@ -65,6 +65,9 @@ export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void) {
     }).filter(Boolean) as Entry[]
     if (skipped) logWarn('entries.subscribe', { skipped, total: snap.size })
     cb(rows)
+  }, (err) => {
+    logWarn('entries.subscribe.error', err)
+    onError?.(err)
   })
 }
 

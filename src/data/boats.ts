@@ -7,7 +7,7 @@ export type { Boat }
 
 const col = collection(db, 'boats')
 
-export function subscribeBoats(cb: (rows: Boat[]) => void) {
+export function subscribeBoats(cb: (rows: Boat[]) => void, onError?: (error: unknown) => void) {
   const q = query(col, orderBy('name'))
   return onSnapshot(q, (snap) => {
     let skipped = 0
@@ -22,6 +22,9 @@ export function subscribeBoats(cb: (rows: Boat[]) => void) {
     }).filter(Boolean) as Boat[]
     if (skipped) logWarn('boats.subscribe', { skipped, total: snap.size })
     cb(rows)
+  }, (err) => {
+    logWarn('boats.subscribe.error', err)
+    onError?.(err)
   })
 }
 

@@ -4,10 +4,20 @@ import type { Race, NewRace } from '../models/race'
 import { Link } from 'react-router-dom'
 import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal, formatUiDate } from '../utils/dates'
 import { Modal } from '../ui/Modal'
+import type { Loadable } from '../models/ui'
+import { LoadingState } from '../ui/components/LoadingState'
+import { EmptyState } from '../ui/components/EmptyState'
+import { ErrorBanner } from '../ui/components/ErrorBanner'
+import { toErrorMessage } from '../utils/errors'
 
 export function Home() {
-  const [races, setRaces] = useState<Race[]>([])
-  useEffect(() => subscribeRaces(setRaces), [])
+  const [racesState, setRacesState] = useState<Loadable<Race[]>>({ status: 'loading' })
+  useEffect(() => {
+    return subscribeRaces(
+      (rows) => setRacesState({ status: 'ready', data: rows }),
+      (err) => setRacesState({ status: 'error', message: toErrorMessage(err) }),
+    )
+  }, [])
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<NewRace>({
     name: '',
@@ -27,6 +37,8 @@ export function Home() {
     broeOpens: new Date(),
     broeCloses: new Date(),
   })
+
+  const races = racesState.status === 'ready' ? racesState.data : []
 
   const now = new Date()
   function isAutoArchive(r: Race): boolean {
@@ -91,20 +103,83 @@ export function Home() {
             <button className="primary-btn" onClick={() => setOpen(true)}>New race</button>
           </div>
         </div>
-        <div className="race-grid">
-          {visibleRaces.map((r) => {
-            const start = formatUiDate(r.startDate)
-            const end = r.endDate ? formatUiDate(r.endDate) : null
-            const dateLabel = end && end !== start ? `${start} → ${end}` : start
-            const status = getRaceStatus(r, new Date())
-            return (
-              <div className="race-card" key={r.id}>
-                <div className="race-card-header">
+        {racesState.status === 'error' ? <ErrorBanner message={racesState.message} /> : null}
+        {racesState.status === 'loading' ? (
+          <LoadingState label="Loading races..." />
+        ) : racesState.status === 'ready' && visibleRaces.length === 0 ? (
+          <EmptyState
+            title="No races yet"
+            description="Create your first race to start managing entries."
+            action={{ label: 'New race', onClick: () => setOpen(true) }}
+          />
+        ) : (
+          <div className="race-grid">
+            {visibleRaces.map((r) => {
+              const start = formatUiDate(r.startDate)
+              const end = r.endDate ? formatUiDate(r.endDate) : null
+              const dateLabel = end && end !== start ? `${start} → ${end}` : start
+              const status = getRaceStatus(r, new Date())
+              return (
+                <div className="race-card" key={r.id}>
+                  <div className="race-card-header">
+                    <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      <div className="race-date">{dateLabel}</div>
+                      <div className="race-name">{r.name}</div>
+                    </Link>
+                    <div className="race-actions">
+                      <button
+                        className="secondary-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditId(r.id)
+                          setEditForm({
+                            name: r.name,
+                            details: r.details,
+                            startDate: r.startDate,
+                            endDate: r.endDate ?? null,
+                            broeOpens: r.broeOpens,
+                            broeCloses: r.broeCloses,
+                          })
+                          setEditOpen(true)
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="secondary-btn"
+                        onClick={async (e) => {
+                          e.stopPropagation()
+                          try {
+                            await updateRace(r.id, { archived: true })
+                          } catch (err) {
+                            alert('Failed to archive race. Please try again.')
+                            console.error(err)
+                          }
+                        }}
+                      >
+                        Archive now
+                      </button>
+                    </div>
+                  </div>
                   <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                    <div className="race-date">{dateLabel}</div>
-                    <div className="race-name">{r.name}</div>
+                    <div className="race-details">{r.details || 'No details'}</div>
                   </Link>
-                  <div className="race-actions">
+                  <div>
+                    {status.kind === 'open' && (
+                      <span className="race-status open">OPEN</span>
+                    )}
+                    {status.kind === 'closed' && (
+                      <span className="race-status closed">CLOSED</span>
+                    )}
+                    {status.kind === 'opening_soon' && (
+                      <span className="race-status opening">OPENING SOON <span className="countdown">{fmtCountdown(status.target, new Date())}</span></span>
+                    )}
+                    {status.kind === 'closing_soon' && (
+                      <span className="race-status closing">CLOSING SOON <span className="countdown">{fmtCountdown(status.target, new Date())}</span></span>
+                    )}
+                  </div>
+                  {/* Mobile-bottom actions */}
+                  <div className="race-actions-bottom">
                     <button
                       className="secondary-btn"
                       onClick={(e) => {
@@ -139,62 +214,10 @@ export function Home() {
                     </button>
                   </div>
                 </div>
-                <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <div className="race-details">{r.details || 'No details'}</div>
-                </Link>
-                <div>
-                  {status.kind === 'open' && (
-                    <span className="race-status open">OPEN</span>
-                  )}
-                  {status.kind === 'closed' && (
-                    <span className="race-status closed">CLOSED</span>
-                  )}
-                  {status.kind === 'opening_soon' && (
-                    <span className="race-status opening">OPENING SOON <span className="countdown">{fmtCountdown(status.target, new Date())}</span></span>
-                  )}
-                  {status.kind === 'closing_soon' && (
-                    <span className="race-status closing">CLOSING SOON <span className="countdown">{fmtCountdown(status.target, new Date())}</span></span>
-                  )}
-                </div>
-                {/* Mobile-bottom actions */}
-                <div className="race-actions-bottom">
-                  <button
-                    className="secondary-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditId(r.id)
-                      setEditForm({
-                        name: r.name,
-                        details: r.details,
-                        startDate: r.startDate,
-                        endDate: r.endDate ?? null,
-                        broeOpens: r.broeOpens,
-                        broeCloses: r.broeCloses,
-                      })
-                      setEditOpen(true)
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="secondary-btn"
-                    onClick={async (e) => {
-                      e.stopPropagation()
-                      try {
-                        await updateRace(r.id, { archived: true })
-                      } catch (err) {
-                        alert('Failed to archive race. Please try again.')
-                        console.error(err)
-                      }
-                    }}
-                  >
-                    Archive now
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
         <div className="card-footer">
           <div className="meta">© 2025 Designed by Mike Katholnig</div>
           <div style={{ display: 'inline-flex', gap: 12, alignItems: 'center' }}>

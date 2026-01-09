@@ -17,7 +17,7 @@ function toModel(id: string, data: unknown): DivisionGroup {
   })
 }
 
-export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup[]) => void) {
+export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup[]) => void, onError?: (error: unknown) => void) {
   const q = query(col, where('raceId', '==', raceId))
   return onSnapshot(q, (snap) => {
     let skipped = 0
@@ -32,6 +32,9 @@ export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup
     }).filter(Boolean) as DivisionGroup[]
     if (skipped) logWarn('divisionGroups.subscribe', { skipped, total: snap.size })
     cb(rows)
+  }, (err) => {
+    logWarn('divisionGroups.subscribe.error', err)
+    onError?.(err)
   })
 }
 
