@@ -20,6 +20,7 @@ import { Field } from '../ui/components/Field'
 import { PageHeader } from '../ui/components/PageHeader'
 import { confirmDanger } from '../utils/confirm'
 import { toErrorMessage } from '../utils/errors'
+import { buildGroupMap, computeBladeClashes, computeBoatClashes, groupEntriesByDayGroup } from '../utils/clashes'
 
 export function Entries() {
   const { raceId } = useParams()
@@ -179,154 +180,22 @@ export function Entries() {
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
   // Build grouping map per day → group name → set of divisions
-  const groupMap = useMemo(() => {
-    const m = new Map<string, Map<string, Set<string>>>()
-    for (const g of groups) {
-      if (!m.has(g.day)) m.set(g.day, new Map())
-      const gm = m.get(g.day) as Map<string, Set<string>>
-      gm.set(g.group, new Set(g.divisions || []))
-    }
-    return m
-  }, [groups])
+  const groupMap = useMemo(() => buildGroupMap(groups), [groups])
 
   // Assign each entered row to a day/group key. If div not in any group that day, fallback to its own group named by div.
-  const rowsByDayGroup = useMemo(() => {
-    const out = new Map<string, Entry[]>()
-    for (const r of enteredRows) {
-      const dm = groupMap.get(r.day)
-      let key = `${r.day}::__${r.div}` // default solo group
-      if (dm) {
-        for (const [gname, set] of dm.entries()) {
-          if (set.has(r.div)) { key = `${r.day}::${gname}`; break }
-        }
-      }
-      if (!out.has(key)) out.set(key, [])
-      ;(out.get(key) as Entry[]).push(r)
-    }
-    return out
-  }, [enteredRows, groupMap])
+  const rowsByDayGroup = useMemo(() => groupEntriesByDayGroup(enteredRows, groupMap), [enteredRows, groupMap])
 
   // Compute clashes per day/group: same boat appears >1 times
-  const clashes = useMemo(() => {
-    type Clash = { key: string; day: string; group: string; boat: string; count: number; entries: Entry[]; silenced: boolean }
-    const list: Clash[] = []
-    for (const [key, ers] of rowsByDayGroup.entries()) {
-      const [day, group] = key.split('::')
-      const byBoat = new Map<string, Entry[]>()
-      for (const e of ers) {
-        const boat = (e.boat || '').trim()
-        if (!boat) continue
-        if (!byBoat.has(boat)) byBoat.set(boat, [])
-        byBoat.get(boat)!.push(e)
-      }
-      for (const [boat, es] of byBoat.entries()) {
-        if (es.length > 1) {
-          const silenced = silences.some(s => s.raceId === (raceId||'') && s.day === day && s.group === group && s.boat === boat)
-          list.push({ key: `${day}::${group}::${boat}`, day, group, boat, count: es.length, entries: es, silenced })
-        }
-      }
-    }
-    // Sort clashes by day order then group name then boat
-    const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
-    return list.sort((a,b) => {
-      const ai = dayOrder.get(a.day) ?? 9999
-      const bi = dayOrder.get(b.day) ?? 9999
-      if (ai !== bi) return ai - bi
-      if (a.group !== b.group) return a.group.localeCompare(b.group)
-      return a.boat.localeCompare(b.boat)
-    })
-  }, [rowsByDayGroup, silences, dayOptions, raceId])
-
-  function inferPreciseBoatType(event: string): string | null {
-    const e = event.toLowerCase()
-    // check longer/specific tokens first
-    if (e.includes('8x+')) return '8x+'
-    if (e.includes('8+')) return '8+'
-    if (e.includes('4x+')) return '4x+'
-    if (e.includes('4x-')) return '4x-'
-    if (e.includes('4x')) return '4x'
-    if (e.includes('4+')) return '4+'
-    if (e.includes('4-')) return '4-'
-    if (e.includes('2x-')) return '2x-'
-    if (e.includes('2x')) return '2x'
-    if (e.includes('2-')) return '2-'
-    if (e.includes('1x-')) return '1x-'
-    if (e.includes('1x')) return '1x'
-    return null
-  }
-
-  function bladesRequiredFor(type: string | null): number {
-    switch (type) {
-      case '1x':
-      case '1x-':
-        return 2
-      case '2-':
-        return 2
-      case '2x':
-      case '2x-':
-        return 4
-      case '4-':
-      case '4+':
-        return 4
-      case '4x':
-      case '4x-':
-      case '4x+':
-        return 8
-      case '8+':
-        return 8
-      case '8x+':
-        return 16
-      default:
-        return 0
-    }
-  }
+  const clashes = useMemo(
+    () => computeBoatClashes(rowsByDayGroup, silences, raceId, dayOptions),
+    [rowsByDayGroup, silences, dayOptions, raceId],
+  )
 
   // Compute blade usage per day/group and detect when usage exceeds available amount
-  const bladeClashes = useMemo(() => {
-    type Clash = { key: string; day: string; group: string; blade: string; used: number; amount: number; silenced: boolean }
-    const avail = new Map<string, number>() // blade name -> amount
-    for (const b of bladeRefs) {
-      const name = (b.name || '').trim()
-      const amt = typeof (b as any).amount === 'number' ? (b as any).amount : NaN
-      if (name) avail.set(name, Number.isFinite(amt) ? amt : Infinity)
-    }
-    const list: Clash[] = []
-    for (const [key, ers] of rowsByDayGroup.entries()) {
-      const [day, group] = key.split('::')
-      const byBlade = new Map<string, number>()
-      for (const e of ers) {
-        const raw = (e.blades || '').trim()
-        if (!raw) continue
-        const parts = raw.includes('+') ? raw.split('+').map(s => s.trim()).filter(Boolean) : [raw]
-        const type = inferPreciseBoatType(e.event || '')
-        const needed = bladesRequiredFor(type)
-        if (needed <= 0) continue
-        const n = Math.max(1, parts.length)
-        const base = Math.floor(needed / n)
-        let rem = needed % n
-        for (const p of parts) {
-          const inc = base + (rem > 0 ? 1 : 0)
-          if (rem > 0) rem -= 1
-          byBlade.set(p, (byBlade.get(p) || 0) + inc)
-        }
-      }
-      for (const [blade, used] of byBlade.entries()) {
-        const amount = avail.has(blade) ? (avail.get(blade) as number) : Infinity
-        if (amount !== Infinity && used > amount) {
-          const silenced = bladeSilences.some(s => s.raceId === (raceId||'') && s.day === day && s.group === group && s.blade === blade)
-          list.push({ key: `${day}::${group}::${blade}`, day, group, blade, used, amount, silenced })
-        }
-      }
-    }
-    const dayOrder = new Map<string, number>(dayOptions.map((d, i) => [d, i]))
-    return list.sort((a,b) => {
-      const ai = dayOrder.get(a.day) ?? 9999
-      const bi = dayOrder.get(b.day) ?? 9999
-      if (ai !== bi) return ai - bi
-      if (a.group !== b.group) return a.group.localeCompare(b.group)
-      return a.blade.localeCompare(b.blade)
-    })
-  }, [rowsByDayGroup, bladeSilences, dayOptions, raceId, bladeRefs])
+  const bladeClashes = useMemo(
+    () => computeBladeClashes(rowsByDayGroup, bladeRefs, bladeSilences, dayOptions, raceId),
+    [rowsByDayGroup, bladeSilences, dayOptions, raceId, bladeRefs],
+  )
 
   const bladeClashLookup = useMemo(() => {
     const m = new Map<string, boolean>()

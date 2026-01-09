@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { subscribeRaces, createRace, updateRace } from '../data/races'
 import type { Race, NewRace } from '../models/race'
-import { Link } from 'react-router-dom'
+import type { Blade, DivisionGroup, Entry, SilencedBladeClash, SilencedClash } from '../models/firestore'
 import { toInputDate, fromInputDate, toInputDateTimeLocal, fromInputDateTimeLocal, formatUiDate } from '../utils/dates'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/components/Button'
@@ -14,6 +16,9 @@ import { LoadingState } from '../ui/components/LoadingState'
 import { EmptyState } from '../ui/components/EmptyState'
 import { ErrorBanner } from '../ui/components/ErrorBanner'
 import { toErrorMessage } from '../utils/errors'
+import { computeRaceClashSummary } from '../utils/clashes'
+import { db } from '../firebase'
+import { asNumber, asRecord, asString, asStringArray } from '../data/firestoreMapping'
 
 export function Home() {
   const [racesState, setRacesState] = useState<Loadable<Race[]>>({ status: 'loading' })
@@ -45,6 +50,7 @@ export function Home() {
   const [creating, setCreating] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
   const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [clashMap, setClashMap] = useState<Record<string, boolean>>({})
 
   const races = racesState.status === 'ready' ? racesState.data : []
 
@@ -71,6 +77,128 @@ export function Home() {
   }, [races])
 
   const visibleRaces = races.filter(r => !r.archived && !isAutoArchive(r))
+
+  useEffect(() => {
+    let cancelled = false
+    const raceIds = visibleRaces.map((r) => r.id)
+    if (!raceIds.length) {
+      setClashMap({})
+      return
+    }
+
+    const chunks: string[][] = []
+    for (let i = 0; i < raceIds.length; i += 10) {
+      chunks.push(raceIds.slice(i, i + 10))
+    }
+
+    const push = <T,>(map: Record<string, T[]>, id: string, value: T) => {
+      if (!map[id]) map[id] = []
+      map[id].push(value)
+    }
+
+    ;(async () => {
+      try {
+        const bladesSnap = await getDocs(collection(db, 'blades'))
+        const blades: Blade[] = bladesSnap.docs.map((d) => {
+          const rec = asRecord(d.data())
+          return {
+            id: d.id,
+            name: asString(rec.name, ''),
+            amount: asNumber(rec.amount, undefined) ?? undefined,
+          }
+        })
+
+        const entriesByRace: Record<string, Entry[]> = {}
+        const groupsByRace: Record<string, DivisionGroup[]> = {}
+        const silencesByRace: Record<string, SilencedClash[]> = {}
+        const bladeSilencesByRace: Record<string, SilencedBladeClash[]> = {}
+
+        for (const ids of chunks) {
+          const [entriesSnap, groupsSnap, silencesSnap, bladeSilencesSnap] = await Promise.all([
+            getDocs(query(collection(db, 'entries'), where('raceId', 'in', ids))),
+            getDocs(query(collection(db, 'divisionGroups'), where('raceId', 'in', ids))),
+            getDocs(query(collection(db, 'silencedClashes'), where('raceId', 'in', ids))),
+            getDocs(query(collection(db, 'silencedBladeClashes'), where('raceId', 'in', ids))),
+          ])
+
+          entriesSnap.forEach((d) => {
+            const rec = asRecord(d.data())
+            const entry: Entry = {
+              id: d.id,
+              raceId: asString(rec.raceId, ''),
+              day: asString(rec.day, ''),
+              div: asString(rec.div, ''),
+              event: asString(rec.event, ''),
+              athleteNames: asString(rec.athleteNames, ''),
+              boat: asString(rec.boat, ''),
+              blades: asString(rec.blades, ''),
+              notes: asString(rec.notes, ''),
+              status: asString(rec.status, 'ready') as Entry['status'],
+              crewChanged: !!rec.crewChanged,
+            }
+            push(entriesByRace, entry.raceId, entry)
+          })
+
+          groupsSnap.forEach((d) => {
+            const rec = asRecord(d.data())
+            const g: DivisionGroup = {
+              id: d.id,
+              raceId: asString(rec.raceId, ''),
+              day: asString(rec.day, ''),
+              group: asString(rec.group, ''),
+              divisions: asStringArray(rec.divisions, []),
+            }
+            push(groupsByRace, g.raceId, g)
+          })
+
+          silencesSnap.forEach((d) => {
+            const rec = asRecord(d.data())
+            const s: SilencedClash = {
+              id: d.id,
+              raceId: asString(rec.raceId, ''),
+              day: asString(rec.day, ''),
+              group: asString(rec.group, ''),
+              boat: asString(rec.boat, ''),
+            }
+            push(silencesByRace, s.raceId, s)
+          })
+
+          bladeSilencesSnap.forEach((d) => {
+            const rec = asRecord(d.data())
+            const s: SilencedBladeClash = {
+              id: d.id,
+              raceId: asString(rec.raceId, ''),
+              day: asString(rec.day, ''),
+              group: asString(rec.group, ''),
+              blade: asString(rec.blade, ''),
+            }
+            push(bladeSilencesByRace, s.raceId, s)
+          })
+        }
+
+        const next: Record<string, boolean> = {}
+        for (const id of raceIds) {
+          const summary = computeRaceClashSummary({
+            entries: entriesByRace[id] || [],
+            divisionGroups: groupsByRace[id] || [],
+            silences: silencesByRace[id] || [],
+            bladeSilences: bladeSilencesByRace[id] || [],
+            blades,
+            raceId: id,
+          })
+          if (summary.hasAnyClash) next[id] = true
+        }
+        if (!cancelled) setClashMap(next)
+      } catch (err) {
+        console.warn('Failed to load clash summaries', err)
+        if (!cancelled) setClashMap({})
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [visibleRaces])
 
   function getRaceStatus(r: Race, now: Date) {
     const opens = r.broeOpens
@@ -135,7 +263,19 @@ export function Home() {
                   <div className="race-card-header">
                     <Link to={`/entries/${r.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <div className="race-date">{dateLabel}</div>
-                      <div className="race-name">{r.name}</div>
+                      <div className="race-name">
+                        {r.name}
+                        {clashMap[r.id] ? (
+                          <span
+                            className="clash-icon active"
+                            title="Equipment clashes detected"
+                            aria-label="Equipment clashes detected"
+                            style={{ marginLeft: 6 }}
+                          >
+                            🚨
+                          </span>
+                        ) : null}
+                      </div>
                     </Link>
                   <div className="race-actions print-hide">
                     <Button
