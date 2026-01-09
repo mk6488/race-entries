@@ -17,7 +17,6 @@ import { EmptyState } from '../ui/components/EmptyState'
 import { ErrorBanner } from '../ui/components/ErrorBanner'
 import { Button } from '../ui/components/Button'
 import { Field } from '../ui/components/Field'
-import { FormRow } from '../ui/components/FormRow'
 import { toErrorMessage } from '../utils/errors'
 
 export function Entries() {
@@ -341,8 +340,6 @@ export function Entries() {
     }
     return m
   }, [clashes])
-
-  const uniqueDivs = useMemo(() => Array.from(new Set(enteredRows.map(r => r.div).filter(Boolean))).sort(), [enteredRows])
   const uniqueDivsByDay = useMemo(() => {
     const m = new Map<string, string[]>()
     for (const d of dayOptions) m.set(d, [])
@@ -351,7 +348,7 @@ export function Entries() {
       const arr = m.get(r.day) as string[]
       if (r.div && !arr.includes(r.div)) arr.push(r.div)
     }
-    for (const [d, arr] of m) arr.sort()
+    for (const [, arr] of m) arr.sort()
     return m
   }, [enteredRows, dayOptions])
 
@@ -510,12 +507,6 @@ export function Entries() {
       )}
       <div className="entries-list">
         {sortedRows.map((r) => {
-          const dayIndex = Math.max(0, dayOptions.indexOf(r.day))
-          const divIndex = (() => {
-            const n = Number(r.div)
-            if (Number.isFinite(n)) return Math.min(5, Math.max(0, n % 6))
-            return (r.div || '').toUpperCase().charCodeAt(0) % 6
-          })()
           // Determine current entry's group key for clash lookup
           let gkey = `${r.day}::__${r.div}`
           const dm = groupMap.get(r.day)

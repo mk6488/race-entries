@@ -73,7 +73,7 @@ export function EquipmentBlades() {
           <input placeholder="Filter" value={filter} onChange={(e)=> setFilter(e.target.value)} style={{ maxWidth: 220 }} />
           <input placeholder="Set name" value={name} onChange={(e)=> setName(e.target.value)} />
           <input placeholder="Amount" inputMode="numeric" value={amount} onChange={(e)=> setAmount(e.target.value)} style={{ width: 100 }} />
-          <select defaultValue="NA" onChange={(e)=>{ /* optional default for new rows */ }}>
+          <select defaultValue="NA" onChange={(_e)=>{ /* optional default for new rows */ }}>
             <option value="NA">N/A</option>
             <option value="1">1</option>
             <option value="2">2</option>
