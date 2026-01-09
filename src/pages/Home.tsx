@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { subscribeRaces, createRace, updateRace } from '../data/races'
 import type { Race, NewRace } from '../models/race'
 import type { Blade, DivisionGroup, Entry, SilencedBladeClash, SilencedClash } from '../models/firestore'
@@ -18,7 +18,9 @@ import { ErrorBanner } from '../ui/components/ErrorBanner'
 import { toErrorMessage } from '../utils/errors'
 import { computeRaceClashSummary } from '../utils/clashes'
 import { db } from '../firebase'
-import { asNumber, asRecord, asString, asStringArray } from '../data/firestoreMapping'
+import { asRecord, asString, asStringArray } from '../data/firestoreMapping'
+import { subscribeEntriesByRaceIds } from '../data/subscribeEntriesByRaceIds'
+import { subscribeBlades } from '../data/blades'
 
 export function Home() {
   const [racesState, setRacesState] = useState<Loadable<Race[]>>({ status: 'loading' })
@@ -50,7 +52,11 @@ export function Home() {
   const [creating, setCreating] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
   const [archivingId, setArchivingId] = useState<string | null>(null)
-  const [clashMap, setClashMap] = useState<Record<string, boolean>>({})
+  const [entriesByRace, setEntriesByRace] = useState<Record<string, Entry[]>>({})
+  const [groupsByRace, setGroupsByRace] = useState<Record<string, DivisionGroup[]>>({})
+  const [silencesByRace, setSilencesByRace] = useState<Record<string, SilencedClash[]>>({})
+  const [bladeSilencesByRace, setBladeSilencesByRace] = useState<Record<string, SilencedBladeClash[]>>({})
+  const [blades, setBlades] = useState<Blade[]>([])
 
   const races = racesState.status === 'ready' ? racesState.data : []
 
@@ -77,128 +83,137 @@ export function Home() {
   }, [races])
 
   const visibleRaces = races.filter(r => !r.archived && !isAutoArchive(r))
+  const raceIdsLimited = useMemo(() => visibleRaces.slice(0, 30).map((r) => r.id), [visibleRaces])
+  const raceIdsKey = raceIdsLimited.join('|')
 
   useEffect(() => {
-    let cancelled = false
-    const raceIds = visibleRaces.map((r) => r.id)
-    if (!raceIds.length) {
-      setClashMap({})
+    const unsub = subscribeBlades((rows) => setBlades(rows))
+    return () => unsub()
+  }, [])
+
+  useEffect(() => {
+    const unsub = subscribeEntriesByRaceIds(
+      raceIdsLimited,
+      (entries) => {
+        const map: Record<string, Entry[]> = {}
+        for (const e of entries) {
+          if (!map[e.raceId]) map[e.raceId] = []
+          map[e.raceId].push(e)
+        }
+        setEntriesByRace(map)
+      },
+      (err) => {
+        console.warn('Failed to subscribe entries for clashes', err)
+      },
+    )
+    return () => unsub()
+  }, [raceIdsKey, raceIdsLimited])
+
+  useEffect(() => {
+    if (!raceIdsLimited.length) {
+      setGroupsByRace({})
+      setSilencesByRace({})
+      setBladeSilencesByRace({})
       return
     }
 
     const chunks: string[][] = []
-    for (let i = 0; i < raceIds.length; i += 10) {
-      chunks.push(raceIds.slice(i, i + 10))
+    for (let i = 0; i < raceIdsLimited.length; i += 10) {
+      chunks.push(raceIdsLimited.slice(i, i + 10))
     }
 
-    const push = <T,>(map: Record<string, T[]>, id: string, value: T) => {
-      if (!map[id]) map[id] = []
-      map[id].push(value)
+    const makeSub = <T,>(
+      collectionName: string,
+      mapDoc: (data: Record<string, unknown>, id: string) => T | null,
+      setter: (val: Record<string, T[]>) => void,
+    ) => {
+      const chunkData = new Map<number, T[]>()
+      const unsubs = chunks.map((ids, idx) => {
+        const q = query(collection(db, collectionName), where('raceId', 'in', ids))
+        return onSnapshot(
+          q,
+          (snap) => {
+            const rows = snap.docs
+              .map((d) => mapDoc(asRecord(d.data()), d.id))
+              .filter(Boolean) as T[]
+            chunkData.set(idx, rows)
+            const merged: Record<string, T[]> = {}
+            for (const arr of chunkData.values()) {
+              for (const item of arr) {
+                const raceId = (item as any).raceId as string | undefined
+                if (!raceId) continue
+                if (!merged[raceId]) merged[raceId] = []
+                merged[raceId].push(item)
+              }
+            }
+            setter(merged)
+          },
+          (err) => {
+            console.warn(`Failed to subscribe ${collectionName}`, err)
+          },
+        )
+      })
+      return () => unsubs.forEach((u) => u())
     }
 
-    ;(async () => {
-      try {
-        const bladesSnap = await getDocs(collection(db, 'blades'))
-        const blades: Blade[] = bladesSnap.docs.map((d) => {
-          const rec = asRecord(d.data())
-          return {
-            id: d.id,
-            name: asString(rec.name, ''),
-            amount: asNumber(rec.amount, undefined) ?? undefined,
-          }
-        })
+    const unsubGroups = makeSub<DivisionGroup>(
+      'divisionGroups',
+      (rec, id) => ({
+        id,
+        raceId: asString(rec.raceId, ''),
+        day: asString(rec.day, ''),
+        group: asString(rec.group, ''),
+        divisions: asStringArray(rec.divisions, []),
+      }),
+      setGroupsByRace,
+    )
 
-        const entriesByRace: Record<string, Entry[]> = {}
-        const groupsByRace: Record<string, DivisionGroup[]> = {}
-        const silencesByRace: Record<string, SilencedClash[]> = {}
-        const bladeSilencesByRace: Record<string, SilencedBladeClash[]> = {}
+    const unsubSilences = makeSub<SilencedClash>(
+      'silencedClashes',
+      (rec, id) => ({
+        id,
+        raceId: asString(rec.raceId, ''),
+        day: asString(rec.day, ''),
+        group: asString(rec.group, ''),
+        boat: asString(rec.boat, ''),
+      }),
+      setSilencesByRace,
+    )
 
-        for (const ids of chunks) {
-          const [entriesSnap, groupsSnap, silencesSnap, bladeSilencesSnap] = await Promise.all([
-            getDocs(query(collection(db, 'entries'), where('raceId', 'in', ids))),
-            getDocs(query(collection(db, 'divisionGroups'), where('raceId', 'in', ids))),
-            getDocs(query(collection(db, 'silencedClashes'), where('raceId', 'in', ids))),
-            getDocs(query(collection(db, 'silencedBladeClashes'), where('raceId', 'in', ids))),
-          ])
-
-          entriesSnap.forEach((d) => {
-            const rec = asRecord(d.data())
-            const entry: Entry = {
-              id: d.id,
-              raceId: asString(rec.raceId, ''),
-              day: asString(rec.day, ''),
-              div: asString(rec.div, ''),
-              event: asString(rec.event, ''),
-              athleteNames: asString(rec.athleteNames, ''),
-              boat: asString(rec.boat, ''),
-              blades: asString(rec.blades, ''),
-              notes: asString(rec.notes, ''),
-              status: asString(rec.status, 'ready') as Entry['status'],
-              crewChanged: !!rec.crewChanged,
-            }
-            push(entriesByRace, entry.raceId, entry)
-          })
-
-          groupsSnap.forEach((d) => {
-            const rec = asRecord(d.data())
-            const g: DivisionGroup = {
-              id: d.id,
-              raceId: asString(rec.raceId, ''),
-              day: asString(rec.day, ''),
-              group: asString(rec.group, ''),
-              divisions: asStringArray(rec.divisions, []),
-            }
-            push(groupsByRace, g.raceId, g)
-          })
-
-          silencesSnap.forEach((d) => {
-            const rec = asRecord(d.data())
-            const s: SilencedClash = {
-              id: d.id,
-              raceId: asString(rec.raceId, ''),
-              day: asString(rec.day, ''),
-              group: asString(rec.group, ''),
-              boat: asString(rec.boat, ''),
-            }
-            push(silencesByRace, s.raceId, s)
-          })
-
-          bladeSilencesSnap.forEach((d) => {
-            const rec = asRecord(d.data())
-            const s: SilencedBladeClash = {
-              id: d.id,
-              raceId: asString(rec.raceId, ''),
-              day: asString(rec.day, ''),
-              group: asString(rec.group, ''),
-              blade: asString(rec.blade, ''),
-            }
-            push(bladeSilencesByRace, s.raceId, s)
-          })
-        }
-
-        const next: Record<string, boolean> = {}
-        for (const id of raceIds) {
-          const summary = computeRaceClashSummary({
-            entries: entriesByRace[id] || [],
-            divisionGroups: groupsByRace[id] || [],
-            silences: silencesByRace[id] || [],
-            bladeSilences: bladeSilencesByRace[id] || [],
-            blades,
-            raceId: id,
-          })
-          if (summary.hasAnyClash) next[id] = true
-        }
-        if (!cancelled) setClashMap(next)
-      } catch (err) {
-        console.warn('Failed to load clash summaries', err)
-        if (!cancelled) setClashMap({})
-      }
-    })()
+    const unsubBladeSilences = makeSub<SilencedBladeClash>(
+      'silencedBladeClashes',
+      (rec, id) => ({
+        id,
+        raceId: asString(rec.raceId, ''),
+        day: asString(rec.day, ''),
+        group: asString(rec.group, ''),
+        blade: asString(rec.blade, ''),
+      }),
+      setBladeSilencesByRace,
+    )
 
     return () => {
-      cancelled = true
+      unsubGroups()
+      unsubSilences()
+      unsubBladeSilences()
     }
-  }, [visibleRaces])
+  }, [raceIdsKey, raceIdsLimited])
+
+  const clashMap = useMemo(() => {
+    const out: Record<string, boolean> = {}
+    for (const id of raceIdsLimited) {
+      const summary = computeRaceClashSummary({
+        entries: entriesByRace[id] || [],
+        divisionGroups: groupsByRace[id] || [],
+        silences: silencesByRace[id] || [],
+        bladeSilences: bladeSilencesByRace[id] || [],
+        blades,
+        raceId: id,
+      })
+      if (summary.hasAnyClash) out[id] = true
+    }
+    return out
+  }, [raceIdsLimited, entriesByRace, groupsByRace, silencesByRace, bladeSilencesByRace, blades])
 
   function getRaceStatus(r: Race, now: Date) {
     const opens = r.broeOpens
