@@ -477,6 +477,22 @@ export function Entries() {
             }
           }
           const needsCharging = r.status === 'entered' && !r.charged
+          const chargingIndicator = r.status === 'entered'
+            ? (needsCharging ? (
+              <button
+                type="button"
+                className="row-action"
+                onClick={(e) => { e.stopPropagation(); void markCharged(r) }}
+                title="Needs charging (club website) — click to mark charged"
+                aria-label="Needs charging (club website) — click to mark charged"
+                style={{ cursor: 'pointer' }}
+              >
+                💷
+              </button>
+            ) : (
+              <span title="Charged on club website" aria-label="Charged on club website">✅</span>
+            ))
+            : null
           return (
           <div
             key={r.id}
@@ -548,24 +564,15 @@ export function Entries() {
                     title="Click to change status"
                     style={{ cursor: 'pointer' }}
                   >{r.status.replace('_',' ')}</span>
-                  {needsCharging ? (
-                    <span className="badge" style={{ marginLeft: 8 }}>Needs charging</span>
-                  ) : null}
-                  {needsCharging ? (
-                    <button
-                      className="row-action"
-                      onClick={(e) => { e.stopPropagation(); void markCharged(r) }}
-                      style={{ marginLeft: 8 }}
-                    >
-                      Mark as charged
-                    </button>
-                  ) : null}
                 </div>
                 <div>
-                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
-                    <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
-                    Crew changed
-                  </label>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }} onClick={(e)=>e.stopPropagation()}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
+                      Crew changed
+                    </label>
+                    {chargingIndicator}
+                  </div>
                 </div>
               </div>
               {r.notes?.trim() ? <div className="entry-notes">{r.notes}</div> : null}
@@ -601,7 +608,7 @@ export function Entries() {
                   </span>
                 ) : null}
               </div>
-              {/* Row 4: status | EMPTY | crew changed */}
+              {/* Row 4: status | charging | crew changed */}
               <div className="cell">
                 <span
                   className={`status ${r.status}`}
@@ -614,10 +621,8 @@ export function Entries() {
                   title="Click to change status"
                 >{r.status.replace('_',' ')}</span>
               </div>
-              <div className="cell">
-                {needsCharging ? (
-                  <span className="badge" style={{ marginLeft: 0 }}>Needs charging</span>
-                ) : null}
+              <div className="cell" onClick={(e)=>e.stopPropagation()}>
+                {chargingIndicator}
               </div>
               <div className="cell" onClick={(e)=>e.stopPropagation()}>
                 <label className="changes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -625,11 +630,6 @@ export function Entries() {
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                 </label>
               </div>
-              {needsCharging ? (
-                <div className="cell col-span-3" onClick={(e)=>e.stopPropagation()}>
-                  <button className="row-action" onClick={(e) => { e.stopPropagation(); void markCharged(r) }}>Mark as charged</button>
-                </div>
-              ) : null}
               {/* Row 5: notes when present (span 3) */}
               {r.notes?.trim() ? <div className="cell notes col-span-3 entry-notes">{r.notes}</div> : null}
             </div>
