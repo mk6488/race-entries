@@ -49,6 +49,53 @@ export function Entries() {
   const rows = entriesState.status === 'ready' ? entriesState.data : []
   const race = raceState.status === 'ready' ? raceState.data : null
 
+  function getDivisionOwnerMap(day: string) {
+    const map = new Map<string, { groupId: string; groupName: string }>()
+    if (!day) return map
+    for (const g of groups.filter((row) => row.day === day)) {
+      for (const dv of g.divisions || []) {
+        if (!map.has(dv)) map.set(dv, { groupId: g.id, groupName: g.group })
+      }
+    }
+    return map
+  }
+
+  const divisionOwnerMap = useMemo(
+    () => (groupsDay ? getDivisionOwnerMap(groupsDay) : new Map<string, { groupId: string; groupName: string }>()),
+    [groupsDay, groups],
+  )
+
+  async function toggleDivisionAssignment(day: string, targetGroupId: string, dv: string, checked: boolean) {
+    if (!day) return
+    const groupsForDay = groups.filter((g) => g.day === day)
+    const target = groupsForDay.find((g) => g.id === targetGroupId)
+    if (!target) return
+
+    if (!checked) {
+      const next = new Set(target.divisions || [])
+      next.delete(dv)
+      await updateDivisionGroup(target.id, { divisions: Array.from(next) })
+      return
+    }
+
+    const owner = divisionOwnerMap.get(dv)
+    if (owner?.groupId === targetGroupId && (target.divisions || []).includes(dv)) return
+
+    const updates: Promise<unknown>[] = []
+    if (owner && owner.groupId !== targetGroupId) {
+      const ownerGroup = groupsForDay.find((g) => g.id === owner.groupId)
+      if (ownerGroup) {
+        const nextOwner = new Set(ownerGroup.divisions || [])
+        nextOwner.delete(dv)
+        updates.push(updateDivisionGroup(ownerGroup.id, { divisions: Array.from(nextOwner) }))
+      }
+    }
+    const nextTarget = new Set(target.divisions || [])
+    nextTarget.add(dv)
+    updates.push(updateDivisionGroup(target.id, { divisions: Array.from(nextTarget) }))
+    await Promise.all(updates)
+  }
+
   useEffect(() => {
     if (!raceId) {
       setEntriesState({ status: 'ready', data: [] })
@@ -786,14 +833,25 @@ export function Entries() {
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 8 }}>
                             {Array.from(uniqueDivsByDay.get(groupsDay || '') || []).map((dv) => {
                               const checked = (g.divisions || []).includes(dv)
+                              const owner = divisionOwnerMap.get(dv)
+                              const ownedElsewhere = !!owner && owner.groupId !== g.id
+                              const disabled = ownedElsewhere && !checked
                               return (
-                                <label key={dv} style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                                  <input type="checkbox" checked={checked} onChange={(e)=> {
-                                    const next = new Set(g.divisions || [])
-                                    if (e.target.checked) next.add(dv); else next.delete(dv)
-                                    updateDivisionGroup(g.id, { divisions: Array.from(next) })
-                                  }} />
-                                  {dv}
+                                <label key={dv} style={{ display: 'grid', gap: 4 }}>
+                                  <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      disabled={disabled}
+                                      onChange={(e)=> { void toggleDivisionAssignment(groupsDay, g.id, dv, e.target.checked) }}
+                                    />
+                                    {dv}
+                                  </span>
+                                  {ownedElsewhere ? (
+                                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                                      Assigned to: {owner?.groupName || 'another group'}
+                                    </span>
+                                  ) : null}
                                 </label>
                               )
                             })}
