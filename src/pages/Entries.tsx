@@ -483,11 +483,11 @@ export function Entries() {
                 type="button"
                 className="row-action"
                 onClick={(e) => { e.stopPropagation(); void markCharged(r) }}
-                title="Needs charging (club website) — click to mark charged"
-                aria-label="Needs charging (club website) — click to mark charged"
+                title="Needs charging on club website — click to mark charged"
+                aria-label="Needs charging on club website — click to mark charged"
                 style={{ cursor: 'pointer' }}
               >
-                💷
+                💲
               </button>
             ) : (
               <span title="Charged on club website" aria-label="Charged on club website">✅</span>
