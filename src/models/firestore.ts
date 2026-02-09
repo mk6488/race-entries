@@ -27,6 +27,9 @@ export type Entry = {
   crewNumber?: number | null
   raceTimes?: { round: string; timeMs: number }[]
   result?: 'OK' | 'DNS' | 'DNF' | 'DQ'
+  charged?: boolean
+  chargedAt?: Date | null
+  chargedBy?: string
 }
 
 export type NewEntry = Omit<Entry, 'id'>

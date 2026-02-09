@@ -39,7 +39,7 @@ service cloud.firestore {
 
     // entries for a race
     function validEntry(data) {
-      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','crewNumber','raceTimes','result']) &&
+      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','crewNumber','raceTimes','result','charged','chargedAt','chargedBy']) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
         isString(data.boat) && isString(data.blades) && isString(data.notes) &&
@@ -48,6 +48,9 @@ service cloud.firestore {
         (!('withdrawn' in data) || (data.withdrawn is bool)) &&
         (!('rejected' in data) || (data.rejected is bool)) &&
         (!('crewNumber' in data) || (data.crewNumber is int && data.crewNumber >= 0)) &&
+        (!('charged' in data) || (data.charged is bool)) &&
+        (!('chargedAt' in data) || data.chargedAt == null || isTimestamp(data.chargedAt) || (data.chargedAt is int)) &&
+        (!('chargedBy' in data) || isString(data.chargedBy)) &&
         (!('raceTimes' in data) || (data.raceTimes is list && data.raceTimes.size() <= 12 && (
           data.raceTimes.size() == 0 || (data.raceTimes[0] is map &&
             data.raceTimes[0].keys().hasOnly(['round','timeMs']) &&

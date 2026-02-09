@@ -46,6 +46,7 @@ export function Entries() {
   const closeGroups = () => { searchParams.delete('groups'); setSearchParams(searchParams, { replace: true }) }
   const [groupsDay, setGroupsDay] = useState<string>('')
   const [savingEntry, setSavingEntry] = useState(false)
+  const [showNeedsChargingOnly, setShowNeedsChargingOnly] = useState(false)
   const rows = entriesState.status === 'ready' ? entriesState.data : []
   const race = raceState.status === 'ready' ? raceState.data : null
 
@@ -186,6 +187,16 @@ export function Entries() {
     }
   }, [open, form])
 
+  const needsChargingRows = useMemo(
+    () => rows.filter((r) => r.status === 'entered' && !r.charged),
+    [rows],
+  )
+  const needsChargingCount = needsChargingRows.length
+  const visibleRows = useMemo(
+    () => (showNeedsChargingOnly ? needsChargingRows : rows),
+    [needsChargingRows, rows, showNeedsChargingOnly],
+  )
+
   const sortedRows = useMemo(() => {
     const dayRank: Record<string, number> = {}
     dayOptions.forEach((d, i) => { dayRank[d] = i })
@@ -220,8 +231,8 @@ export function Entries() {
       if (divCmp !== 0) return divCmp
       return a.event.localeCompare(b.event, undefined, { sensitivity: 'base', numeric: true })
     }
-    return [...rows].sort(cmp)
-  }, [rows, dayOptions])
+    return [...visibleRows].sort(cmp)
+  }, [visibleRows, dayOptions])
 
   // Entered-only rows for filters and grouping labels
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
@@ -343,6 +354,11 @@ export function Entries() {
     await updateEntry(id, nextPatch)
   }
 
+  async function markCharged(entry: Entry) {
+    if (entry.status !== 'entered' || entry.charged) return
+    await updateEntry(entry.id, { charged: true, chargedAt: new Date() })
+  }
+
   return (
     <div className="print-root">
       <PageHeader
@@ -382,6 +398,15 @@ export function Entries() {
         />
       ) : (
         <>
+      <div className="print-hide" style={{ display: 'inline-flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+        <Button
+          variant="secondary"
+          disabled={needsChargingCount === 0}
+          onClick={() => setShowNeedsChargingOnly((prev) => !prev)}
+        >
+          Needs charging: {needsChargingCount}{showNeedsChargingOnly ? ' (filtered)' : ''}
+        </Button>
+      </div>
       {(clashes.length > 0 || bladeClashes.length > 0) && (
         <div className="clashes">
           {clashes.map((c) => (
@@ -451,6 +476,7 @@ export function Entries() {
               if (bladeClashLookup.get(k)) bladeSilenced = true
             }
           }
+          const needsCharging = r.status === 'entered' && !r.charged
           return (
           <div
             key={r.id}
@@ -522,6 +548,18 @@ export function Entries() {
                     title="Click to change status"
                     style={{ cursor: 'pointer' }}
                   >{r.status.replace('_',' ')}</span>
+                  {needsCharging ? (
+                    <span className="badge" style={{ marginLeft: 8 }}>Needs charging</span>
+                  ) : null}
+                  {needsCharging ? (
+                    <button
+                      className="row-action"
+                      onClick={(e) => { e.stopPropagation(); void markCharged(r) }}
+                      style={{ marginLeft: 8 }}
+                    >
+                      Mark as charged
+                    </button>
+                  ) : null}
                 </div>
                 <div>
                   <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={(e)=>e.stopPropagation()}>
@@ -576,13 +614,22 @@ export function Entries() {
                   title="Click to change status"
                 >{r.status.replace('_',' ')}</span>
               </div>
-              <div className="cell" />
+              <div className="cell">
+                {needsCharging ? (
+                  <span className="badge" style={{ marginLeft: 0 }}>Needs charging</span>
+                ) : null}
+              </div>
               <div className="cell" onClick={(e)=>e.stopPropagation()}>
                 <label className="changes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   Changes
                   <input type="checkbox" disabled={r.status==='withdrawn'||r.status==='rejected'} checked={r.crewChanged} onChange={(e)=>updateCell(r.id,{ crewChanged: e.target.checked })} />
                 </label>
               </div>
+              {needsCharging ? (
+                <div className="cell col-span-3" onClick={(e)=>e.stopPropagation()}>
+                  <button className="row-action" onClick={(e) => { e.stopPropagation(); void markCharged(r) }}>Mark as charged</button>
+                </div>
+              ) : null}
               {/* Row 5: notes when present (span 3) */}
               {r.notes?.trim() ? <div className="cell notes col-span-3 entry-notes">{r.notes}</div> : null}
             </div>

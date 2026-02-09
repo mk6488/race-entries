@@ -2,7 +2,7 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateD
 import type { UpdateData } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { Entry, NewEntry } from '../models/firestore'
-import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
+import { asBool, asDateFromTimestampLike, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
 import { subscribeCached } from './subscriptionCache'
 import { trace } from '../utils/trace'
@@ -34,6 +34,10 @@ export function toEntry(id: string, data: unknown, ctx?: { issues?: any; collect
     ? (resultValue as NonNullable<Entry['result']>)
     : 'OK'
 
+  const chargedAt = asDateFromTimestampLike(record.chargedAt, false, baseCtx, 'chargedAt')
+  const chargedByRaw = asString(record.chargedBy, '', false, baseCtx, 'chargedBy')
+  const chargedBy = chargedByRaw ? chargedByRaw : undefined
+
   return {
     ...withId(id, {
       raceId: asString(record.raceId, '', false, baseCtx, 'raceId'),
@@ -49,6 +53,9 @@ export function toEntry(id: string, data: unknown, ctx?: { issues?: any; collect
       crewNumber: asNumber(record.crewNumber, null, false, baseCtx, 'crewNumber'),
       raceTimes,
       result,
+      charged: asBool(record.charged, false, false, baseCtx, 'charged'),
+      chargedAt: chargedAt ?? undefined,
+      chargedBy,
     }),
   }
 }
