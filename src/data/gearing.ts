@@ -1,8 +1,10 @@
 import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
+import type { UpdateData } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 import type { GearingMatrix } from '../models/firestore'
 import { asRecord, asString } from './firestoreMapping'
 import { logWarn } from '../utils/log'
+import { stripUndefined } from '../utils/stripUndefined'
 export type { GearingMatrix }
 
 const col = collection(db, 'gearing')
@@ -30,7 +32,8 @@ export async function updateGearingCell(raceId: string, age: string, boatType: s
   await authReady.catch(() => {})
   const ref = doc(col, raceId)
   const path = `values.${age}.${boatType}`
-  await updateDoc(ref, { [path]: code })
+  const payload: UpdateData<GearingMatrix> = stripUndefined({ [path]: code })
+  await updateDoc(ref, payload)
 }
 
 // Global (non-race) gearing defaults stored under doc id 'default'
@@ -61,7 +64,8 @@ export async function updateGlobalGearingCell(age: string, boatType: string, cod
   await authReady.catch(() => {})
   const ref = doc(col, 'default')
   const path = `values.${age}.${boatType}`
-  await updateDoc(ref, { [path]: code })
+  const payload: UpdateData<GearingMatrix> = stripUndefined({ [path]: code })
+  await updateDoc(ref, payload)
 }
 
 function toGearingMatrix(value: unknown): GearingMatrix {

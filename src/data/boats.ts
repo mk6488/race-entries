@@ -1,8 +1,10 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
+import type { UpdateData } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 import type { Boat } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
+import { stripUndefined } from '../utils/stripUndefined'
 export type { Boat }
 
 const col = collection(db, 'boats')
@@ -48,7 +50,8 @@ export async function createBoat(data: Omit<Boat, 'id'>) {
 
 export async function updateBoat(id: string, data: Partial<Omit<Boat, 'id'>>) {
   await authReady.catch(() => {})
-  await updateDoc(doc(db, 'boats', id), data as any)
+  const payload: UpdateData<Omit<Boat, 'id'>> = stripUndefined(data)
+  await updateDoc(doc(db, 'boats', id), payload)
 }
 
 export async function deleteBoat(id: string) {

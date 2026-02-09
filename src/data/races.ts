@@ -1,8 +1,10 @@
 import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, getDoc } from 'firebase/firestore'
+import type { UpdateData } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 import type { NewRace, Race } from '../models/firestore'
 import { asBool, asDateFromTimestampLike, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
+import { stripUndefined } from '../utils/stripUndefined'
 
 const racesCol = collection(db, 'races')
 
@@ -72,7 +74,8 @@ export async function createRace(data: NewRace) {
 
 export async function updateRace(id: string, data: Partial<NewRace>) {
   await authReady.catch(() => {})
-  await updateDoc(doc(db, 'races', id), fromRacePartial(data))
+  const payload: UpdateData<NewRace> = stripUndefined(fromRacePartial(data))
+  await updateDoc(doc(db, 'races', id), payload)
 }
 
 export async function deleteRace(id: string) {

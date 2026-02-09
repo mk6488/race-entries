@@ -1,4 +1,5 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, where } from 'firebase/firestore'
+import type { UpdateData } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { Entry, NewEntry } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
@@ -6,6 +7,7 @@ import { logWarn } from '../utils/log'
 import { subscribeCached } from './subscriptionCache'
 import { trace } from '../utils/trace'
 import { wrapError } from '../utils/wrapError'
+import { stripUndefined } from '../utils/stripUndefined'
 
 const col = collection(db, 'entries')
 
@@ -103,7 +105,8 @@ export async function createEntry(data: NewEntry) {
 
 export async function updateEntry(id: string, data: Partial<NewEntry>) {
   trace({ type: 'write:update', scope: 'entries', meta: { id } })
-  await updateDoc(doc(db, 'entries', id), fromPartial(data))
+  const payload: UpdateData<NewEntry> = stripUndefined(fromPartial(data))
+  await updateDoc(doc(db, 'entries', id), payload)
 }
 
 export async function deleteEntry(id: string) {

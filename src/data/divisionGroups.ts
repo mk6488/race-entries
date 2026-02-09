@@ -1,4 +1,5 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
+import type { UpdateData } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { DivisionGroup } from '../models/firestore'
 import { asRecord, asString, asStringArray, withId } from './firestoreMapping'
@@ -6,6 +7,7 @@ import { logWarn } from '../utils/log'
 import { subscribeCached } from './subscriptionCache'
 import { trace } from '../utils/trace'
 import { wrapError } from '../utils/wrapError'
+import { stripUndefined } from '../utils/stripUndefined'
 export type { DivisionGroup }
 
 const col = collection(db, 'divisionGroups')
@@ -69,7 +71,8 @@ export async function createDivisionGroup(data: Omit<DivisionGroup, 'id'>) {
 
 export async function updateDivisionGroup(id: string, data: Partial<DivisionGroup>) {
   trace({ type: 'write:update', scope: 'divisionGroups', meta: { id } })
-  await updateDoc(doc(db, 'divisionGroups', id), data as any)
+  const payload: UpdateData<DivisionGroup> = stripUndefined(data)
+  await updateDoc(doc(db, 'divisionGroups', id), payload)
 }
 
 export async function deleteDivisionGroup(id: string) {

@@ -1,8 +1,10 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
+import type { UpdateData } from 'firebase/firestore'
 import { db, authReady } from '../firebase'
 import type { Blade } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
+import { stripUndefined } from '../utils/stripUndefined'
 export type { Blade }
 
 const col = collection(db, 'blades')
@@ -48,7 +50,8 @@ export function toBlade(id: string, data: unknown, ctx?: { issues?: any; collect
 export async function updateBladeAmount(id: string, amount: number) {
   await authReady.catch(() => {})
   const ref = doc(db, 'blades', id)
-  await updateDoc(ref, { amount })
+  const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined({ amount })
+  await updateDoc(ref, payload)
 }
 
 export async function createBlade(data: Omit<Blade, 'id'>) {
@@ -59,7 +62,8 @@ export async function createBlade(data: Omit<Blade, 'id'>) {
 
 export async function updateBlade(id: string, data: Partial<Omit<Blade, 'id'>>) {
   await authReady.catch(() => {})
-  await updateDoc(doc(db, 'blades', id), data as any)
+  const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined(data)
+  await updateDoc(doc(db, 'blades', id), payload)
 }
 
 export async function deleteBlade(id: string) {
