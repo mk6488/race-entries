@@ -395,6 +395,23 @@ table.sheet input[type="checkbox"] { width: 16px; height: 16px; }
   .entry-mobile-grid .changes input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--muted); }
 }
 
+/* Entries: keep card layout through tablet widths */
+@media (max-width: 1024px) {
+  .entries-mobile-md .desktop-only { display: none; }
+  .entries-mobile-md .mobile-only { display: inline-flex !important; }
+  .entries-mobile-md .entry-mobile-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; align-items: center; }
+  .entries-mobile-md .entry-mobile-grid .cell { min-width: 0; }
+  .entries-mobile-md .entry-mobile-grid .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); font-size: 12px; }
+  .entries-mobile-md .entry-mobile-grid .event { font-weight: 600; }
+  .entries-mobile-md .entry-mobile-grid .names { grid-column: 1 / -1; font-weight: 600; }
+  .entries-mobile-md .entry-mobile-grid .col-span-3 { grid-column: 1 / -1; }
+  .entries-mobile-md .entry-mobile-grid .col-span-2 { grid-column: span 2; }
+  .entries-mobile-md .entry-mobile-grid .right { justify-self: end; }
+  .entries-mobile-md .entry-mobile-grid .changes { color: var(--muted); font-size: 12px; }
+  .entries-mobile-md .entry-mobile-grid .muted-label { color: var(--muted); margin-right: 4px; }
+  .entries-mobile-md .entry-mobile-grid .changes input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--muted); }
+}
+
 @media (min-width: 980px) {
   .blades-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 }

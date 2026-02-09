@@ -450,7 +450,7 @@ export function Entries() {
           ))}
         </div>
       )}
-      <div className="entries-list">
+      <div className="entries-list entries-mobile-md">
         {sortedRows.map((r) => {
           // Determine current entry's group key for clash lookup
           let gkey = `${r.day}::__${r.div}`
