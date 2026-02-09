@@ -236,7 +236,7 @@ export function Entries() {
       const r = await getRaceById(raceId)
         setRaceState({ status: 'ready', data: r })
       if (!r) { setDayOptions([]); return }
-      const days = enumerateDaysInclusive(r.startDate, r.endDate)
+      const days = enumerateDaysInclusive(r.startDate ?? new Date(0), r.endDate ?? null)
       setDayOptions(days.map(formatDayLabel))
       } catch (err) {
         setRaceState({ status: 'error', message: toErrorMessage(err) })

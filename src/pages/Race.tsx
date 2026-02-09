@@ -125,11 +125,15 @@ export function Race() {
       return { am, pm, shortW, longW }
     }
     const bestTime = (r: Entry): number | null => {
-      const times = (r.raceTimes || []).map(t => t.timeMs).filter((n) => Number.isFinite(n) && (n as number) > 0) as number[]
+      const times = (r.raceTimes || [])
+        .map((t) => t?.timeMs ?? 0)
+        .filter((n) => Number.isFinite(n) && (n as number) > 0) as number[]
       if (times.length === 0) return null
       return Math.min(...times)
     }
-    const anyTimes = plainRows.some(r => (r.raceTimes || []).some(t => Number.isFinite(t.timeMs) && (t.timeMs as number) > 0))
+    const anyTimes = plainRows.some(
+      r => (r.raceTimes || []).some(t => Number.isFinite(t?.timeMs) && (t?.timeMs as number) > 0),
+    )
 
     const fallbackCmp = (a: Entry, b: Entry) => {
       const ai = dayOrder.has(a.day) ? (dayOrder.get(a.day) as number) : 9999
@@ -184,7 +188,7 @@ export function Race() {
   function openTimes(e: Entry) {
     setEditing(e)
     setCrewInput(e.crewNumber != null ? String(e.crewNumber) : '')
-    const initial = (e.raceTimes || []).map(t => ({ round: t.round || '', time: formatRaceTime(t.timeMs) }))
+    const initial = (e.raceTimes || []).map(t => ({ round: t?.round ?? '', time: formatRaceTime(t?.timeMs ?? 0) }))
     setTimes(initial.length ? initial : [{ round: 'Heat', time: '' }])
   }
 
@@ -307,7 +311,7 @@ export function Race() {
                     <td>{r.boat}</td>
                     <td>{r.blades}</td>
                     <td>{r.crewNumber ?? ''}</td>
-                    <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t.round}:{' '}{formatRaceTime(t.timeMs)}</span>)}</td>
+                    <td>{(r.raceTimes||[]).map((t,i)=> <span key={i} className="badge mono" style={{ marginRight: 6 }}>{t?.round}:{' '}{formatRaceTime(t?.timeMs ?? 0)}</span>)}</td>
                     <td>
                       <button className="row-action" onClick={() => openTimes(r)} disabled={!drawReleased}>Times</button>
                     </td>

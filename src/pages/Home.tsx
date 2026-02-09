@@ -62,7 +62,7 @@ export function Home() {
 
   const now = new Date()
   function isAutoArchive(r: Race): boolean {
-    const d = r.endDate ?? r.startDate
+    const d = r.endDate ?? r.startDate ?? new Date(0)
     const cutoff = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
     cutoff.setDate(cutoff.getDate() + 1) // day after the event
     return now >= cutoff
@@ -216,8 +216,8 @@ export function Home() {
   }, [raceIdsLimited, entriesByRace, groupsByRace, silencesByRace, bladeSilencesByRace, blades])
 
   function getRaceStatus(r: Race, now: Date) {
-    const opens = r.broeOpens
-    const closes = r.broeCloses
+    const opens = r.broeOpens ?? new Date(0)
+    const closes = r.broeCloses ?? new Date(0)
     const msInDay = 24 * 60 * 60 * 1000
     const openingSoonStart = new Date(opens.getTime() - 3 * msInDay)
     const closingSoonStart = new Date(closes.getTime() - 3 * msInDay)

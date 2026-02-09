@@ -14,7 +14,7 @@ export function subscribeGearing(raceId: string, cb: (values: GearingMatrix) => 
   return onSnapshot(ref, (snap) => {
     try {
       const data = snap.exists() ? snap.data() : {}
-      cb(toGearingMatrix(asRecord(data).values))
+      cb(toGearingMatrix(asRecord(data).values ?? {}))
     } catch (err) {
       logWarn('gearing.toGearingMatrix', err)
       cb({})
@@ -42,7 +42,7 @@ export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
   return onSnapshot(ref, (snap) => {
     try {
       const data = snap.exists() ? snap.data() : {}
-      cb(toGearingMatrix(asRecord(data).values))
+      cb(toGearingMatrix(asRecord(data).values ?? {}))
     } catch (err) {
       logWarn('gearing.global.toGearingMatrix', err)
       cb({})
@@ -75,7 +75,7 @@ function toGearingMatrix(value: unknown): GearingMatrix {
     const boatMap = asRecord(boats)
     result[age] = {}
     Object.entries(boatMap).forEach(([boatType, code]) => {
-      result[age][boatType] = asString(code)
+      result[age][boatType] = asString(code ?? '')
     })
   })
   return result
