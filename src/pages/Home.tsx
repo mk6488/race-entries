@@ -215,6 +215,16 @@ export function Home() {
     return out
   }, [raceIdsLimited, entriesByRace, groupsByRace, silencesByRace, bladeSilencesByRace, blades])
 
+  const needsChargingCountByRace = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const id of raceIdsLimited) {
+      const entries = entriesByRace[id] || []
+      const count = entries.filter((e) => e.status === 'entered' && !e.charged).length
+      if (count > 0) out[id] = count
+    }
+    return out
+  }, [raceIdsLimited, entriesByRace])
+
   function getRaceStatus(r: Race, now: Date) {
     const opens = r.broeOpens ?? new Date(0)
     const closes = r.broeCloses ?? new Date(0)
@@ -288,6 +298,16 @@ export function Home() {
                             style={{ marginLeft: 6 }}
                           >
                             🚨
+                          </span>
+                        ) : null}
+                        {needsChargingCountByRace[r.id] ? (
+                          <span
+                            className="clash-icon active"
+                            title={`Needs charging: ${needsChargingCountByRace[r.id]}`}
+                            aria-label={`Needs charging: ${needsChargingCountByRace[r.id]}`}
+                            style={{ marginLeft: 6 }}
+                          >
+                            💲{needsChargingCountByRace[r.id]}
                           </span>
                         ) : null}
                       </div>
