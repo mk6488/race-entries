@@ -74,7 +74,7 @@ export async function createRace(data: NewRace) {
 
 export async function updateRace(id: string, data: Partial<NewRace>) {
   await authReady.catch(() => {})
-  const payload: UpdateData<NewRace> = stripUndefined(fromRacePartial(data))
+  const payload: UpdateData<Race> = stripUndefined<Race>(fromRacePartial(data))
   await updateDoc(doc(db, 'races', id), payload)
 }
 
