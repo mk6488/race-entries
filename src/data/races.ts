@@ -83,8 +83,8 @@ export async function deleteRace(id: string) {
   await deleteDoc(doc(db, 'races', id))
 }
 
-function fromRacePartial(r: Partial<NewRace>) {
-  const out: Record<string, unknown> = {}
+function fromRacePartial(r: Partial<NewRace>): UpdateData<Race> {
+  const out: UpdateData<Race> = {}
   if (r.name !== undefined) out.name = r.name
   if (r.details !== undefined) out.details = r.details
   if (r.startDate !== undefined) out.startDate = Timestamp.fromDate(r.startDate)
