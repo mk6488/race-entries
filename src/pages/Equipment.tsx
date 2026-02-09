@@ -8,6 +8,7 @@ import type { Entry } from '../models/entry'
 import { getRaceById } from '../data/races'
 import type { Race } from '../models/race'
 import { enumerateDaysInclusive, formatDayLabel } from '../utils/dates'
+import { isClashRelevantStatus } from '../utils/clashes'
 
 export function Equipment() {
   const { raceId } = useParams()
@@ -119,7 +120,7 @@ export function Equipment() {
     try { localStorage.setItem(`equip:${raceId}:otherAmounts`, JSON.stringify(otherAmounts)) } catch {}
   }, [otherAmounts, raceId])
 
-  const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
+  const enteredRows = useMemo(() => rows.filter(r => isClashRelevantStatus(r.status)), [rows])
 
   // Group map: day -> group name -> set of divisions
   const groupMap = useMemo(() => {

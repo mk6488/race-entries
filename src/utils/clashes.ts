@@ -3,6 +3,10 @@ import type { Blade, DivisionGroup, Entry, SilencedBladeClash, SilencedClash } f
 export type BoatClash = { key: string; day: string; group: string; boat: string; count: number; silenced: boolean }
 export type BladeClash = { key: string; day: string; group: string; blade: string; used: number; amount: number; silenced: boolean }
 
+export function isClashRelevantStatus(status: Entry['status']): boolean {
+  return status === 'in_progress' || status === 'ready' || status === 'entered'
+}
+
 export function inferPreciseBoatType(event: string): string | null {
   const e = event.toLowerCase()
   if (e.includes('8x+')) return '8x+'
@@ -59,7 +63,7 @@ export function buildGroupMap(groups: DivisionGroup[]): Map<string, Map<string, 
 export function groupEntriesByDayGroup(entries: Entry[], groupMap: Map<string, Map<string, Set<string>>>) {
   const out = new Map<string, Entry[]>()
   for (const r of entries) {
-    if (r.status !== 'entered') continue
+    if (!isClashRelevantStatus(r.status)) continue
     const dm = groupMap.get(r.day)
     let key = `${r.day}::__${r.div}` // default solo group
     if (dm) {

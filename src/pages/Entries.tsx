@@ -223,14 +223,14 @@ export function Entries() {
     return [...rows].sort(cmp)
   }, [rows, dayOptions])
 
-  // Entered-only rows for clash checks and grouping
+  // Entered-only rows for filters and grouping labels
   const enteredRows = useMemo(() => rows.filter(r => r.status === 'entered'), [rows])
 
   // Build grouping map per day → group name → set of divisions
   const groupMap = useMemo(() => buildGroupMap(groups), [groups])
 
   // Assign each entered row to a day/group key. If div not in any group that day, fallback to its own group named by div.
-  const rowsByDayGroup = useMemo(() => groupEntriesByDayGroup(enteredRows, groupMap), [enteredRows, groupMap])
+  const rowsByDayGroup = useMemo(() => groupEntriesByDayGroup(rows, groupMap), [rows, groupMap])
 
   // Compute clashes per day/group: same boat appears >1 times
   const clashes = useMemo(
