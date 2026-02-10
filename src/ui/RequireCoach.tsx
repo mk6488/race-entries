@@ -10,7 +10,7 @@ export function RequireCoach({ children }: { children: ReactNode }) {
   const location = useLocation()
   const bypass = location.pathname.startsWith('/admin/') || location.pathname.startsWith('/diagnostics')
   const [refreshKey, setRefreshKey] = useState(0)
-  const identity = useCoachIdentity(refreshKey)
+  const identity = useCoachIdentity(refreshKey, !bypass)
 
   if (bypass) return <>{children}</>
   if (identity.status === 'loading') {
