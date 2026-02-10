@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useRaceId } from '../hooks/useRaceId'
+import { RequireCoach } from './RequireCoach'
 
 export function Layout() {
   const [open, setOpen] = useState(false)
@@ -75,7 +76,9 @@ export function Layout() {
       </>
 
       <main id="main-content">
-        <Outlet />
+        <RequireCoach>
+          <Outlet />
+        </RequireCoach>
       </main>
     </div>
   )
