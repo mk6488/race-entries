@@ -1,14 +1,6 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
-import {
-  getAuth,
-  signInAnonymously,
-  setPersistence,
-  indexedDBLocalPersistence,
-  browserLocalPersistence,
-  connectAuthEmulator,
-} from 'firebase/auth'
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
+import { getFirestore } from 'firebase/firestore'
+import { getAuth, signInAnonymously, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,13 +14,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
-export const functions = getFunctions(app, 'europe-west2')
-
-if (import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true') {
-  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
-  connectFirestoreEmulator(db, '127.0.0.1', 8080)
-  connectFunctionsEmulator(functions, '127.0.0.1', 5001)
-}
 // Persist auth across reloads when supported (prefer IndexedDB, fallback to local)
 setPersistence(auth, indexedDBLocalPersistence).catch(() => {
   setPersistence(auth, browserLocalPersistence).catch(() => {})
