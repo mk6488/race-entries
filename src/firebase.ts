@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
-import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth'
+import { getAuth, signInAnonymously, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,25 +14,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
-// Persist auth across reloads when supported
-setPersistence(auth, browserLocalPersistence).catch(() => {})
+// Persist auth across reloads when supported (prefer IndexedDB, fallback to local)
+setPersistence(auth, indexedDBLocalPersistence).catch(() => {
+  setPersistence(auth, browserLocalPersistence).catch(() => {})
+})
 
-export const authReady: Promise<void> = new Promise((resolve) => {
-  const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      unsubscribe()
-      resolve()
-      return
-    }
+export const authReady: Promise<void> = (async () => {
+  await auth.authStateReady()
+  if (!auth.currentUser) {
     try {
       await signInAnonymously(auth)
     } catch {
       // Swallow errors to match previous behaviour
-    } finally {
-      unsubscribe()
-      resolve()
     }
-  })
-})
+    await auth.authStateReady()
+  }
+})()
 
 
