@@ -1,0 +1,118 @@
+import * as functions from 'firebase-functions';
+import * as crypto from 'crypto';
+import { assertAuthed, requireNonEmpty } from '../shared/assert';
+import { REGION, admin, db } from '../shared/config';
+import { httpsError } from '../shared/errors';
+
+function normaliseNamePart(value: unknown): string {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function buildNameKey(firstName: unknown, lastName: unknown): string {
+  const f = normaliseNamePart(firstName);
+  const l = normaliseNamePart(lastName);
+  return `${f}|${l}`;
+}
+
+type PinSecret = {
+  saltHex: string;
+  hashHex: string;
+  iterations: number;
+  keylen: number;
+  digest: string;
+};
+
+function hashPin(pin: unknown, saltHex?: string): PinSecret {
+  const iterations = 120000; // reasonable baseline
+  const keylen = 64;
+  const digest = 'sha512';
+
+  const salt = saltHex ? Buffer.from(saltHex, 'hex') : crypto.randomBytes(16);
+  const derived = crypto.pbkdf2Sync(String(pin), salt, iterations, keylen, digest);
+
+  return {
+    saltHex: salt.toString('hex'),
+    hashHex: derived.toString('hex'),
+    iterations,
+    keylen,
+    digest,
+  };
+}
+
+/**
+ * createCoachProfile
+ * Input: { firstName, lastName, pin, deviceLabel? }
+ * Output: { coachId, coachName }
+ *
+ * Writes:
+ *  - coaches/{coachId} : { firstName, lastName, nameKey, createdAt }
+ *  - coachSecrets/{coachId} : { saltHex, hashHex, iterations, keylen, digest, createdAt }
+ *  - devices/{uid} : { coachId, deviceLabel?, createdAt, lastSeenAt }
+ */
+export const createCoachProfile = functions
+  .region(REGION)
+  .https.onCall(async (data: any, context) => {
+    const uid = assertAuthed(context);
+
+    const firstName = requireNonEmpty(data?.firstName, 'firstName');
+    const lastName = requireNonEmpty(data?.lastName, 'lastName');
+    const pin = requireNonEmpty(data?.pin, 'pin');
+    const deviceLabel = String(data?.deviceLabel || '').trim() || null;
+
+    const nameKey = buildNameKey(firstName, lastName);
+
+    // Optional: prevent accidental duplicates (soft check)
+    const existing = await db.collection('coaches').where('nameKey', '==', nameKey).limit(3).get();
+    if (!existing.empty) {
+      // Don’t hard-block (your call); but returning a clear error helps
+      throw httpsError(
+        'already-exists',
+        'A coach profile with this name already exists. Try linking instead.',
+        {
+          matches: existing.docs.map((d) => ({
+            coachId: d.id,
+            firstName: d.data()?.firstName,
+            lastName: d.data()?.lastName,
+          })),
+        },
+      );
+    }
+
+    const coachRef = db.collection('coaches').doc();
+    const coachId = coachRef.id;
+
+    const secret = hashPin(pin);
+    const now = admin.firestore.FieldValue.serverTimestamp();
+
+    const batch = db.batch();
+
+    batch.set(coachRef, {
+      firstName,
+      lastName,
+      nameKey,
+      createdAt: now,
+    });
+
+    batch.set(db.collection('coachSecrets').doc(coachId), {
+      ...secret,
+      createdAt: now,
+    });
+
+    batch.set(
+      db.collection('devices').doc(uid),
+      {
+        coachId,
+        ...(deviceLabel ? { deviceLabel } : {}),
+        createdAt: now,
+        lastSeenAt: now,
+      },
+      { merge: true },
+    );
+
+    await batch.commit();
+
+    return { coachId, coachName: `${firstName} ${lastName}` };
+  });
