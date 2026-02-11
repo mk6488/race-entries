@@ -1,6 +1,6 @@
 import { Timestamp, addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, getDoc } from 'firebase/firestore'
 import type { UpdateData } from 'firebase/firestore'
-import { db, authReady } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { NewRace, Race } from '../models/firestore'
 import { asBool, asDateFromTimestampLike, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -69,19 +69,19 @@ export async function getRaceById(id: string): Promise<Race | null> {
 }
 
 export async function createRace(data: NewRace, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = await addDoc(racesCol, { ...fromRace(data), ...buildCreateAudit(coach) })
   return ref.id
 }
 
 export async function updateRace(id: string, data: Partial<NewRace>, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const payload: UpdateData<Race> = stripUndefined<Race>({ ...fromRacePartial(data), ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'races', id), payload)
 }
 
 export async function deleteRace(id: string) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   await deleteDoc(doc(db, 'races', id))
 }
 

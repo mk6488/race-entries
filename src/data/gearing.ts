@@ -1,6 +1,6 @@
 import { collection, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
 import type { UpdateData } from 'firebase/firestore'
-import { db, authReady } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { Gearing, GearingMatrix } from '../models/firestore'
 import { asRecord, asString } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -25,13 +25,13 @@ export function subscribeGearing(raceId: string, cb: (values: GearingMatrix) => 
 }
 
 export async function initGearingIfMissing(raceId: string, initial: GearingMatrix, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = doc(col, raceId)
   await setDoc(ref, { values: initial, ...buildCreateAudit(coach) }, { merge: true })
 }
 
 export async function updateGearingCell(raceId: string, age: string, boatType: string, code: string, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = doc(col, raceId)
   const path = `values.${age}.${boatType}`
   const payload: UpdateData<Gearing> = stripUndefined({ [path]: code, ...buildUpdateAudit(coach) })
@@ -53,7 +53,7 @@ export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
 }
 
 export async function initGlobalGearingIfMissing(initial: GearingMatrix, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = doc(col, 'default')
   const snap = await getDoc(ref)
   const existing = snap.exists() ? (snap.data() as any) : null
@@ -63,7 +63,7 @@ export async function initGlobalGearingIfMissing(initial: GearingMatrix, coach?:
 }
 
 export async function updateGlobalGearingCell(age: string, boatType: string, code: string, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = doc(col, 'default')
   const path = `values.${age}.${boatType}`
   const payload: UpdateData<Gearing> = stripUndefined({ [path]: code, ...buildUpdateAudit(coach) })

@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, where } from 'firebase/firestore'
 import type { UpdateData } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { Entry, NewEntry } from '../models/firestore'
 import { asBool, asDateFromTimestampLike, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -107,18 +107,21 @@ export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void, on
 }
 
 export async function createEntry(data: NewEntry, coach?: Partial<CoachContext>) {
+  await ensureAnonAuth()
   trace({ type: 'write:create', scope: 'entries', meta: { raceId: data.raceId } })
   const ref = await addDoc(col, { ...fromEntry(data), ...buildCreateAudit(coach) })
   return ref.id
 }
 
 export async function updateEntry(id: string, data: Partial<NewEntry>, coach?: Partial<CoachContext>) {
+  await ensureAnonAuth()
   trace({ type: 'write:update', scope: 'entries', meta: { id } })
   const payload: UpdateData<NewEntry> = stripUndefined({ ...fromPartial(data), ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'entries', id), payload)
 }
 
 export async function deleteEntry(id: string) {
+  await ensureAnonAuth()
   trace({ type: 'write:delete', scope: 'entries', meta: { id } })
   await deleteDoc(doc(db, 'entries', id))
 }

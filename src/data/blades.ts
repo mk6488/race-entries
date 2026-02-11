@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
 import type { UpdateData } from 'firebase/firestore'
-import { db, authReady } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { Blade } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -50,26 +50,26 @@ export function toBlade(id: string, data: unknown, ctx?: { issues?: any; collect
 }
 
 export async function updateBladeAmount(id: string, amount: number, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = doc(db, 'blades', id)
   const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined({ amount, ...buildUpdateAudit(coach) })
   await updateDoc(ref, payload)
 }
 
 export async function createBlade(data: Omit<Blade, 'id'>, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = await addDoc(col, { ...data, ...buildCreateAudit(coach) })
   return ref.id
 }
 
 export async function updateBlade(id: string, data: Partial<Omit<Blade, 'id'>>, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined({ ...data, ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'blades', id), payload)
 }
 
 export async function deleteBlade(id: string) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   await deleteDoc(doc(db, 'blades', id))
 }
 

@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc } from 'firebase/firestore'
 import type { UpdateData } from 'firebase/firestore'
-import { db, authReady } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { Boat } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -45,19 +45,19 @@ export function toBoat(id: string, data: unknown, ctx?: { issues?: any; collecti
 }
 
 export async function createBoat(data: Omit<Boat, 'id'>, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const ref = await addDoc(col, { ...data, ...buildCreateAudit(coach) })
   return ref.id
 }
 
 export async function updateBoat(id: string, data: Partial<Omit<Boat, 'id'>>, coach?: Partial<CoachContext>) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   const payload: UpdateData<Omit<Boat, 'id'>> = stripUndefined({ ...data, ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'boats', id), payload)
 }
 
 export async function deleteBoat(id: string) {
-  await authReady.catch(() => {})
+  await ensureAnonAuth()
   await deleteDoc(doc(db, 'boats', id))
 }
 

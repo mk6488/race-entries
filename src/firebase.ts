@@ -16,6 +16,7 @@ export const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
 const intendedPersistence = 'browserLocalPersistence'
+const autoAnonOnLoad = import.meta.env.VITE_AUTO_ANON_AUTH_ON_LOAD === 'true'
 export const authPersistenceReady: Promise<void> = (async () => {
   try {
     // Must run before any sign-in calls to ensure the session survives tab close/reopen.
@@ -28,17 +29,40 @@ export const authPersistenceReady: Promise<void> = (async () => {
   }
 })()
 
+function waitForFirstAuthState(): Promise<User | null> {
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      unsub()
+      resolve(user ?? null)
+    })
+  })
+}
+
+let ensureAnonInFlight: Promise<User> | null = null
+
+export async function ensureAnonAuth(): Promise<User> {
+  if (auth.currentUser) return auth.currentUser
+  if (ensureAnonInFlight) return ensureAnonInFlight
+  ensureAnonInFlight = (async () => {
+    await authPersistenceReady
+    const firstUser = await waitForFirstAuthState()
+    if (firstUser) return firstUser
+
+    if (import.meta.env.DEV) {
+      console.info('[auth] ensureAnonAuth: signing in anonymously')
+    }
+    await signInAnonymously(auth)
+    const authed = await waitForFirstAuthState()
+    if (!authed) throw new Error('Anonymous sign-in did not produce a user.')
+    return authed
+  })().finally(() => {
+    ensureAnonInFlight = null
+  })
+  return ensureAnonInFlight
+}
+
 export const authReady: Promise<void> = (async () => {
   await authPersistenceReady
-
-  function waitForFirstAuthState(): Promise<User | null> {
-    return new Promise((resolve) => {
-      const unsub = onAuthStateChanged(auth, (user) => {
-        unsub()
-        resolve(user ?? null)
-      })
-    })
-  }
 
   const firstUser = await waitForFirstAuthState()
   if (import.meta.env.DEV) {
@@ -46,6 +70,7 @@ export const authReady: Promise<void> = (async () => {
       uid: firstUser?.uid ?? null,
       isAnonymous: firstUser?.isAnonymous ?? false,
       intendedPersistence,
+      autoAnonOnLoad,
     })
   }
 
@@ -56,26 +81,27 @@ export const authReady: Promise<void> = (async () => {
     return
   }
 
-  if (import.meta.env.DEV) {
-    console.info('[auth] signInAnonymously (no existing user)')
-  }
-
-  try {
-    await signInAnonymously(auth)
-  } catch (err) {
+  // Optional: allow browsing without creating anon users.
+  if (!autoAnonOnLoad) {
     if (import.meta.env.DEV) {
-      console.warn('[auth] signInAnonymously failed', err)
+      console.info('[auth] anon sign-in deferred (no existing user)')
     }
     return
   }
 
-  const authedUser = await waitForFirstAuthState()
-  if (import.meta.env.DEV) {
-    console.info('[auth] ready', {
-      uid: authedUser?.uid ?? null,
-      isAnonymous: authedUser?.isAnonymous ?? false,
-      intendedPersistence,
-    })
+  try {
+    const authedUser = await ensureAnonAuth()
+    if (import.meta.env.DEV) {
+      console.info('[auth] ready', {
+        uid: authedUser?.uid ?? null,
+        isAnonymous: authedUser?.isAnonymous ?? false,
+        intendedPersistence,
+      })
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('[auth] ensureAnonAuth failed', err)
+    }
   }
 })()
 

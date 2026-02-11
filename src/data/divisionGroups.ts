@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
 import type { UpdateData } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { DivisionGroup } from '../models/firestore'
 import { asRecord, asString, asStringArray, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -67,17 +67,20 @@ export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup
 }
 
 export async function createDivisionGroup(data: Omit<DivisionGroup, 'id'>, coach?: Partial<CoachContext>) {
+  await ensureAnonAuth()
   trace({ type: 'write:create', scope: 'divisionGroups', meta: { raceId: data.raceId } })
   await addDoc(col, { ...data, ...buildCreateAudit(coach) })
 }
 
 export async function updateDivisionGroup(id: string, data: Partial<DivisionGroup>, coach?: Partial<CoachContext>) {
+  await ensureAnonAuth()
   trace({ type: 'write:update', scope: 'divisionGroups', meta: { id } })
   const payload: UpdateData<DivisionGroup> = stripUndefined({ ...data, ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'divisionGroups', id), payload)
 }
 
 export async function deleteDivisionGroup(id: string) {
+  await ensureAnonAuth()
   trace({ type: 'write:delete', scope: 'divisionGroups', meta: { id } })
   await deleteDoc(doc(db, 'divisionGroups', id))
 }

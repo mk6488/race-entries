@@ -1,5 +1,5 @@
 import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../firebase'
+import { auth, db } from '../firebase'
 import { touchDevice, logCallableError } from '../firebase/functions'
 
 export type CoachIdentityStatus =
@@ -93,6 +93,8 @@ export async function loadCoachProfileByUid(uid: string): Promise<CoachProfileLo
 }
 
 export async function touchCurrentDevice(params?: { deviceLabel?: string }) {
+  // Avoid creating an auth user just to "touch"; only do this if we're already signed in.
+  if (!auth.currentUser) return
   try {
     await touchDevice({ deviceLabel: params?.deviceLabel })
   } catch (err) {

@@ -1,5 +1,5 @@
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, where } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, ensureAnonAuth } from '../firebase'
 import type { SilencedClash } from '../models/firestore'
 import { asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
@@ -42,10 +42,12 @@ export function subscribeSilences(raceId: string, cb: (rows: SilencedClash[]) =>
 }
 
 export async function createSilence(data: Omit<SilencedClash, 'id'>, coach?: Partial<CoachContext>) {
+  await ensureAnonAuth()
   await addDoc(col, { ...data, ...buildCreateAudit(coach) })
 }
 
 export async function deleteSilenceByBoat(raceId: string, day: string, group: string, boat: string) {
+  await ensureAnonAuth()
   const q = query(col, where('raceId','==',raceId), where('day','==',day), where('group','==',group), where('boat','==',boat))
   const snap = await getDocs(q)
   await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, 'silencedClashes', d.id))))

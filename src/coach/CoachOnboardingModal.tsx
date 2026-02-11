@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { CoachContext } from './coachContext'
 import { createCoachProfile, linkDeviceToCoach, logCallableError } from '../firebase/functions'
+import { ensureAnonAuth } from '../firebase'
 import { Modal } from '../ui/Modal'
 import { Field } from '../ui/components/Field'
 import { Button } from '../ui/components/Button'
@@ -81,8 +82,10 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
       }
 
       if (tab === 'create') {
+        await ensureAnonAuth()
         await createCoachProfile(base)
       } else {
+        await ensureAnonAuth()
         await linkDeviceToCoach(base)
       }
 
@@ -131,6 +134,7 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
     setError(null)
     setBusy(true)
     try {
+      await ensureAnonAuth()
       await linkDeviceToCoach({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
