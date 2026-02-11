@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
-import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, signInAnonymously, setPersistence, browserLocalPersistence } from 'firebase/auth'
+import type { User } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -29,17 +30,52 @@ export const authPersistenceReady: Promise<void> = (async () => {
 
 export const authReady: Promise<void> = (async () => {
   await authPersistenceReady
-  await auth.authStateReady()
-  if (!auth.currentUser) {
-    try {
-      await signInAnonymously(auth)
-    } catch {
-      // Swallow errors to match previous behaviour
-    }
-    await auth.authStateReady()
+
+  function waitForFirstAuthState(): Promise<User | null> {
+    return new Promise((resolve) => {
+      const unsub = onAuthStateChanged(auth, (user) => {
+        unsub()
+        resolve(user ?? null)
+      })
+    })
   }
+
+  const firstUser = await waitForFirstAuthState()
   if (import.meta.env.DEV) {
-    console.info('[auth] ready', { uid: auth.currentUser?.uid ?? null, intendedPersistence })
+    console.info('[auth] resolved', {
+      uid: firstUser?.uid ?? null,
+      isAnonymous: firstUser?.isAnonymous ?? false,
+      intendedPersistence,
+    })
+  }
+
+  if (firstUser) {
+    if (import.meta.env.DEV) {
+      console.info('[auth] reuse existing user', { uid: firstUser.uid, isAnonymous: firstUser.isAnonymous })
+    }
+    return
+  }
+
+  if (import.meta.env.DEV) {
+    console.info('[auth] signInAnonymously (no existing user)')
+  }
+
+  try {
+    await signInAnonymously(auth)
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('[auth] signInAnonymously failed', err)
+    }
+    return
+  }
+
+  const authedUser = await waitForFirstAuthState()
+  if (import.meta.env.DEV) {
+    console.info('[auth] ready', {
+      uid: authedUser?.uid ?? null,
+      isAnonymous: authedUser?.isAnonymous ?? false,
+      intendedPersistence,
+    })
   }
 })()
 
