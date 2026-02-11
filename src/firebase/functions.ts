@@ -2,14 +2,15 @@ import { getFunctions, httpsCallable } from 'firebase/functions'
 import type { HttpsCallable } from 'firebase/functions'
 import { app } from '../firebase'
 
-export const functionsRegion = import.meta.env.VITE_FUNCTIONS_REGION ?? 'europe-west2'
+const region = import.meta.env.VITE_FUNCTIONS_REGION ?? 'europe-west2'
+export const functionsRegion = region
 export const firebaseProjectId = import.meta.env.VITE_FIREBASE_PROJECT_ID ?? 'unknown'
 
 // Explicit region avoids CORS issues from wrong endpoint.
-export const functions = getFunctions(app, functionsRegion)
+export const functions = getFunctions(app, region)
 
 if (import.meta.env.DEV) {
-  console.info(`[functions] region=${functionsRegion} projectId=${firebaseProjectId}`)
+  console.info(`[functions] region=${region} projectId=${firebaseProjectId}`)
 }
 
 export type CoachIdentityResult = { coachId: string; coachName: string }
