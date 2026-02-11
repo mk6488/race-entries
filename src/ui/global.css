@@ -222,7 +222,7 @@ button:hover { background: var(--primary-600); }
 .race-actions-bottom { display: none; gap: 8px; margin-top: 8px; justify-content: flex-end; }
 @media (max-width: 900px) {
   .has-race {
-    --coach-badge-space: 44px;
+    --coach-badge-space: 48px;
     --coach-badge-max-width: 180px;
   }
   .race-card-header { flex-wrap: wrap; align-items: flex-start; }
