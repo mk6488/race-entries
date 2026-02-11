@@ -37,10 +37,13 @@ async function refreshShared() {
   // If auth is not hydrated yet, avoid jumping to unlinked/error states.
   if (!authHydrated) {
     emit({ ...shared, status: 'authLoading', loading: true, error: undefined })
-  } else if (!shared.uid) {
-    emit({ ...shared, status: 'signedOut', loading: false, error: undefined })
   } else {
-    emit({ ...shared, status: 'signedInProfileLoading', loading: true, error: undefined })
+    const uid = auth.currentUser?.uid ?? null
+    if (!uid) {
+      emit({ ...shared, status: 'signedOut', uid: null, coachId: null, coachName: null, isLinked: false, loading: false, error: undefined })
+    } else {
+      emit({ ...shared, status: 'signedInProfileLoading', uid, coachId: null, coachName: null, isLinked: false, loading: true, error: undefined })
+    }
   }
   refreshInFlight = (async () => {
     if (!authHydrated) return
