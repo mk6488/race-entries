@@ -17,12 +17,13 @@ export function Layout() {
   const isEquipment = location.pathname.startsWith('/equipment/')
   const isMatrix = location.pathname.startsWith('/matrix/')
   const isTrailer = location.pathname.startsWith('/trailer/')
+  const isHome = location.pathname === '/'
 
   const showCoachCta = ctx.status === 'signedOut' || ctx.status === 'signedInUnlinked'
   return (
     <div className={`app-shell ${hasRace ? 'has-race' : ''}`}>
       <a href="#main-content" className="sr-only">Skip to content</a>
-      <CoachBadge onOpenOnboarding={() => setShowOnboarding(true)} />
+      {isHome ? <CoachBadge onOpenOnboarding={() => setShowOnboarding(true)} /> : null}
       <CoachOnboardingModal
         ctx={ctx}
         refresh={refresh}
