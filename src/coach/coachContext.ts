@@ -10,8 +10,11 @@ export type CoachIdentityStatus =
   | 'signedInLinked'
   | 'signedInError'
 
+export type AuthStatus = 'loading' | 'signedOut' | 'signedIn'
+
 export type CoachContext = {
   status: CoachIdentityStatus
+  authStatus: AuthStatus
   uid: string | null
   coachId: string | null
   coachName: string | null

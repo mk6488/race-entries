@@ -38,10 +38,7 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
   const now = Date.now()
   const shouldShow =
     !!forceOpen ||
-    (ctx.status !== 'authLoading' &&
-      ctx.status !== 'signedInProfileLoading' &&
-      !ctx.isLinked &&
-      now >= dismissedUntil)
+    (ctx.authStatus === 'signedIn' && ctx.loading === false && ctx.isLinked === false && now >= dismissedUntil)
 
   const [tab, setTab] = useState<Tab>('link')
   const [firstName, setFirstName] = useState('')

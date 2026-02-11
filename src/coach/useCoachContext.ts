@@ -12,6 +12,7 @@ type UseCoachContext = {
 
 const initial: CoachContext = {
   status: 'authLoading',
+  authStatus: 'loading',
   uid: null,
   coachId: null,
   coachName: null,
@@ -36,13 +37,13 @@ async function refreshShared() {
   if (refreshInFlight) return refreshInFlight
   // If auth is not hydrated yet, avoid jumping to unlinked/error states.
   if (!authHydrated) {
-    emit({ ...shared, status: 'authLoading', loading: true, error: undefined })
+    emit({ ...shared, status: 'authLoading', authStatus: 'loading', loading: true, error: undefined })
   } else {
     const uid = auth.currentUser?.uid ?? null
     if (!uid) {
-      emit({ ...shared, status: 'signedOut', uid: null, coachId: null, coachName: null, isLinked: false, loading: false, error: undefined })
+      emit({ ...shared, status: 'signedOut', authStatus: 'signedOut', uid: null, coachId: null, coachName: null, isLinked: false, loading: false, error: undefined })
     } else {
-      emit({ ...shared, status: 'signedInProfileLoading', uid, coachId: null, coachName: null, isLinked: false, loading: true, error: undefined })
+      emit({ ...shared, status: 'signedInProfileLoading', authStatus: 'signedIn', uid, coachId: null, coachName: null, isLinked: false, loading: true, error: undefined })
     }
   }
   refreshInFlight = (async () => {
@@ -59,25 +60,26 @@ async function refreshShared() {
     if (!uid) {
       // Signed out (or anonymous sign-in failed).
       setCachedCoachContext({ coachId: null, coachName: null })
-      emit({ status: 'signedOut', uid: null, coachId: null, coachName: null, isLinked: false, loading: false })
+      emit({ status: 'signedOut', authStatus: 'signedOut', uid: null, coachId: null, coachName: null, isLinked: false, loading: false })
       return
     }
 
     const reqId = ++profileReqId
-    emit({ status: 'signedInProfileLoading', uid, coachId: null, coachName: null, isLinked: false, loading: true })
+    emit({ status: 'signedInProfileLoading', authStatus: 'signedIn', uid, coachId: null, coachName: null, isLinked: false, loading: true })
     try {
       const res = await loadCoachProfileByUid(uid)
       if (reqId !== profileReqId) return
 
       if (!res.exists) {
         setCachedCoachContext({ coachId: null, coachName: null })
-        emit({ status: 'signedInUnlinked', uid, coachId: null, coachName: null, isLinked: false, loading: false })
+        emit({ status: 'signedInUnlinked', authStatus: 'signedIn', uid, coachId: null, coachName: null, isLinked: false, loading: false })
         return
       }
 
       setCachedCoachContext({ coachId: res.coachId, coachName: res.coachName })
       emit({
         status: 'signedInLinked',
+        authStatus: 'signedIn',
         uid,
         coachId: res.coachId,
         coachName: res.coachName,
@@ -101,6 +103,7 @@ async function refreshShared() {
         // Keep last known link, but surface the error state so UI can show a distinct label.
         emit({
           status: 'signedInError',
+          authStatus: 'signedIn',
           uid,
           coachId: cached.coachId,
           coachName: cached.coachName,
@@ -112,6 +115,7 @@ async function refreshShared() {
       }
       emit({
         status: 'signedInError',
+        authStatus: 'signedIn',
         uid,
         coachId: null,
         coachName: null,
@@ -166,6 +170,10 @@ export function useCoachContext(): UseCoachContext {
       })
       authUnsub = onAuthStateChanged(auth, () => {
         if (!authHydrated) return
+        if (import.meta.env.DEV) {
+          const u = auth.currentUser
+          console.info('[coach] auth changed', { uid: u?.uid ?? null, isAnonymous: u?.isAnonymous ?? false })
+        }
         void refreshShared()
       })
     }
