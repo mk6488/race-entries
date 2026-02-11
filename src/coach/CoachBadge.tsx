@@ -50,7 +50,7 @@ export function CoachBadge({ onOpenOnboarding }: Props) {
   const badgeStyle = useMemo<React.CSSProperties>(() => {
     return {
       position: 'fixed',
-      top: 12,
+      top: 'var(--coach-badge-top)',
       right: 16,
       zIndex: 1000,
     }
@@ -68,7 +68,7 @@ export function CoachBadge({ onOpenOnboarding }: Props) {
       boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
       cursor: 'pointer',
       userSelect: 'none',
-      maxWidth: 220,
+      maxWidth: 'var(--coach-badge-max-width, 220px)',
     }
   }, [])
 

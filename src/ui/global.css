@@ -29,7 +29,18 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: var(--text); background: var(--bg); }
 
-.app-shell { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+.app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  --coach-badge-top: 12px;
+  --coach-badge-space: 0px;
+  --coach-badge-max-width: 220px;
+}
+.has-race {
+  --coach-badge-top: calc(var(--topbar-h) + 12px);
+  --coach-badge-space: 52px;
+}
 
 .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
 .nav-links { display: flex; gap: 10px; justify-content: center; }
@@ -136,7 +147,7 @@ body::after {
 .nav-drawer { display: none; }
 .drawer-overlay { display: none; }
 
-.has-race main { padding: calc(16px + var(--topbar-h)) 16px 16px; }
+.has-race main { padding: calc(16px + var(--topbar-h) + var(--coach-badge-space, 0px)) 16px 16px; }
 main { padding: 16px; }
 
 /* Scrollable table container */
@@ -210,6 +221,10 @@ button:hover { background: var(--primary-600); }
 .race-actions { display: inline-flex; gap: 8px; }
 .race-actions-bottom { display: none; gap: 8px; margin-top: 8px; justify-content: flex-end; }
 @media (max-width: 900px) {
+  .has-race {
+    --coach-badge-space: 44px;
+    --coach-badge-max-width: 180px;
+  }
   .race-card-header { flex-wrap: wrap; align-items: flex-start; }
   .race-actions { display: none; }
   .race-actions-bottom { display: inline-flex; }
