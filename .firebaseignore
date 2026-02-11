@@ -2,6 +2,7 @@
 # Prevent accidental deployment/packaging of legacy functions folder.
 
 functions/**
+_deprecated/**
 
 # Common junk
 .DS_Store

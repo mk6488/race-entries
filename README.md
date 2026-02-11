@@ -42,7 +42,7 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 - Anonymous auth is enabled.
 - Collections in use: `races`, `entries`, `boats`, `blades`, `divisionGroups`, `silencedClashes`, `silencedBladeClashes`, `gearing`, `admins`.
 - Admin gating: `/admins/{uid}` with `{ enabled: true }` controls access to `/diagnostics`.
- - Cloud Functions deploy source: `functions-backend/` (legacy `/functions/` is not used).
+ - Cloud Functions deploy source: `functions-backend/` (legacy folder moved under `_deprecated/functions-old/functions/`).
 
 ## Deployment
 - CI runs typecheck/lint/build on PR/main.
