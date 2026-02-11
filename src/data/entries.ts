@@ -8,6 +8,8 @@ import { subscribeCached } from './subscriptionCache'
 import { trace } from '../utils/trace'
 import { wrapError } from '../utils/wrapError'
 import { stripUndefined } from '../utils/stripUndefined'
+import { buildCreateAudit, buildUpdateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 
 const col = collection(db, 'entries')
 
@@ -104,15 +106,15 @@ export function subscribeEntries(raceId: string, cb: (rows: Entry[]) => void, on
   )
 }
 
-export async function createEntry(data: NewEntry) {
+export async function createEntry(data: NewEntry, coach?: Partial<CoachContext>) {
   trace({ type: 'write:create', scope: 'entries', meta: { raceId: data.raceId } })
-  const ref = await addDoc(col, fromEntry(data))
+  const ref = await addDoc(col, { ...fromEntry(data), ...buildCreateAudit(coach) })
   return ref.id
 }
 
-export async function updateEntry(id: string, data: Partial<NewEntry>) {
+export async function updateEntry(id: string, data: Partial<NewEntry>, coach?: Partial<CoachContext>) {
   trace({ type: 'write:update', scope: 'entries', meta: { id } })
-  const payload: UpdateData<NewEntry> = stripUndefined(fromPartial(data))
+  const payload: UpdateData<NewEntry> = stripUndefined({ ...fromPartial(data), ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'entries', id), payload)
 }
 

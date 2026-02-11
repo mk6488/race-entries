@@ -14,6 +14,8 @@ import { Diagnostics } from './pages/Diagnostics'
 import { AdminLogin } from './pages/AdminLogin'
 import { ErrorBoundary } from './ui/ErrorBoundary'
 import { RequireAdmin } from './ui/RequireAdmin'
+import { useCoachContext } from './coach/useCoachContext'
+import { CoachOnboardingModal } from './coach/CoachOnboardingModal'
 
 export const router = createBrowserRouter([
   {
@@ -36,8 +38,10 @@ export const router = createBrowserRouter([
 ])
 
 export function App() {
+  const { ctx, refresh } = useCoachContext()
   return (
     <ErrorBoundary>
+      <CoachOnboardingModal ctx={ctx} refresh={refresh} />
       <RouterProvider router={router} />
     </ErrorBoundary>
   )

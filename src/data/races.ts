@@ -5,6 +5,8 @@ import type { NewRace, Race } from '../models/firestore'
 import { asBool, asDateFromTimestampLike, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
 import { stripUndefined } from '../utils/stripUndefined'
+import { buildCreateAudit, buildUpdateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 
 const racesCol = collection(db, 'races')
 
@@ -66,15 +68,15 @@ export async function getRaceById(id: string): Promise<Race | null> {
   return toRace(snap.id, snap.data())
 }
 
-export async function createRace(data: NewRace) {
+export async function createRace(data: NewRace, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
-  const ref = await addDoc(racesCol, fromRace(data))
+  const ref = await addDoc(racesCol, { ...fromRace(data), ...buildCreateAudit(coach) })
   return ref.id
 }
 
-export async function updateRace(id: string, data: Partial<NewRace>) {
+export async function updateRace(id: string, data: Partial<NewRace>, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
-  const payload: UpdateData<Race> = stripUndefined<Race>(fromRacePartial(data))
+  const payload: UpdateData<Race> = stripUndefined<Race>({ ...fromRacePartial(data), ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'races', id), payload)
 }
 

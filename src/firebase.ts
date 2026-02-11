@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { getAuth, signInAnonymously, setPersistence, indexedDBLocalPersistence, browserLocalPersistence } from 'firebase/auth'
+import { getFunctions } from 'firebase/functions'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,6 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
+export const functions = getFunctions(app)
 // Persist auth across reloads when supported (prefer IndexedDB, fallback to local)
 setPersistence(auth, indexedDBLocalPersistence).catch(() => {
   setPersistence(auth, browserLocalPersistence).catch(() => {})

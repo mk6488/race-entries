@@ -5,6 +5,8 @@ import type { Boat } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
 import { stripUndefined } from '../utils/stripUndefined'
+import { buildCreateAudit, buildUpdateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 export type { Boat }
 
 const col = collection(db, 'boats')
@@ -42,15 +44,15 @@ export function toBoat(id: string, data: unknown, ctx?: { issues?: any; collecti
   })
 }
 
-export async function createBoat(data: Omit<Boat, 'id'>) {
+export async function createBoat(data: Omit<Boat, 'id'>, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
-  const ref = await addDoc(col, data)
+  const ref = await addDoc(col, { ...data, ...buildCreateAudit(coach) })
   return ref.id
 }
 
-export async function updateBoat(id: string, data: Partial<Omit<Boat, 'id'>>) {
+export async function updateBoat(id: string, data: Partial<Omit<Boat, 'id'>>, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
-  const payload: UpdateData<Omit<Boat, 'id'>> = stripUndefined(data)
+  const payload: UpdateData<Omit<Boat, 'id'>> = stripUndefined({ ...data, ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'boats', id), payload)
 }
 

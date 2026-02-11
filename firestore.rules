@@ -9,7 +9,11 @@ service cloud.firestore {
     function hasOnlyFields(data, allowed) { return data.keys().hasOnly(allowed); }
 
     function validRace(data) {
-      return hasOnlyFields(data, ['name','details','startDate','endDate','broeOpens','broeCloses','drawReleased','archived']) &&
+      return hasOnlyFields(data, [
+        'name','details','startDate','endDate','broeOpens','broeCloses','drawReleased','archived',
+        'createdAt','createdByCoachId','createdByCoachName','createdByUid',
+        'updatedAt','updatedByCoachId','updatedByCoachName','updatedByUid'
+      ]) &&
         isString(data.name) && data.name.size() > 0 && data.name.size() <= 200 &&
         isString(data.details) &&
         isTimestamp(data.startDate) &&
@@ -19,7 +23,15 @@ service cloud.firestore {
         (!('endDate' in data) || data.endDate == null || data.endDate >= data.startDate) &&
         data.broeOpens <= data.broeCloses &&
         (!('drawReleased' in data) || (data.drawReleased is bool)) &&
-        (!('archived' in data) || (data.archived is bool));
+        (!('archived' in data) || (data.archived is bool)) &&
+        (!('createdAt' in data) || isTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isTimestamp(data.updatedAt)) &&
+        (!('createdByCoachId' in data) || data.createdByCoachId == null || isString(data.createdByCoachId)) &&
+        (!('createdByCoachName' in data) || data.createdByCoachName == null || isString(data.createdByCoachName)) &&
+        (!('createdByUid' in data) || data.createdByUid == null || isString(data.createdByUid)) &&
+        (!('updatedByCoachId' in data) || data.updatedByCoachId == null || isString(data.updatedByCoachId)) &&
+        (!('updatedByCoachName' in data) || data.updatedByCoachName == null || isString(data.updatedByCoachName)) &&
+        (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid));
     }
 
     // races collection
@@ -39,7 +51,12 @@ service cloud.firestore {
 
     // entries for a race
     function validEntry(data) {
-      return hasOnlyFields(data, ['raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','crewNumber','raceTimes','result','charged','chargedAt','chargedBy']) &&
+      return hasOnlyFields(data, [
+        'raceId','day','div','event','athleteNames','boat','blades','notes','status','crewChanged','withdrawn','rejected','crewNumber','raceTimes','result',
+        'charged','chargedAt','chargedBy',
+        'createdAt','createdByCoachId','createdByCoachName','createdByUid',
+        'updatedAt','updatedByCoachId','updatedByCoachName','updatedByUid'
+      ]) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.div) && isString(data.event) && isString(data.athleteNames) &&
         isString(data.boat) && isString(data.blades) && isString(data.notes) &&
@@ -51,6 +68,14 @@ service cloud.firestore {
         (!('charged' in data) || (data.charged is bool)) &&
         (!('chargedAt' in data) || data.chargedAt == null || isTimestamp(data.chargedAt) || (data.chargedAt is int)) &&
         (!('chargedBy' in data) || isString(data.chargedBy)) &&
+        (!('createdAt' in data) || isTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isTimestamp(data.updatedAt)) &&
+        (!('createdByCoachId' in data) || data.createdByCoachId == null || isString(data.createdByCoachId)) &&
+        (!('createdByCoachName' in data) || data.createdByCoachName == null || isString(data.createdByCoachName)) &&
+        (!('createdByUid' in data) || data.createdByUid == null || isString(data.createdByUid)) &&
+        (!('updatedByCoachId' in data) || data.updatedByCoachId == null || isString(data.updatedByCoachId)) &&
+        (!('updatedByCoachName' in data) || data.updatedByCoachName == null || isString(data.updatedByCoachName)) &&
+        (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid)) &&
         (!('raceTimes' in data) || (data.raceTimes is list && data.raceTimes.size() <= 12 && (
           data.raceTimes.size() == 0 || (data.raceTimes[0] is map &&
             data.raceTimes[0].keys().hasOnly(['round','timeMs']) &&
@@ -69,11 +94,23 @@ service cloud.firestore {
 
     // Division Groups for a race (to group divisions that are simultaneous)
     function validDivisionGroup(data) {
-      return data.keys().hasOnly(['raceId','day','group','divisions']) &&
+      return data.keys().hasOnly([
+        'raceId','day','group','divisions',
+        'createdAt','createdByCoachId','createdByCoachName','createdByUid',
+        'updatedAt','updatedByCoachId','updatedByCoachName','updatedByUid'
+      ]) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
         isString(data.day) && isString(data.group) &&
         (data.divisions is list) &&
-        (data.divisions.size() == 0 || (data.divisions[0] is string));
+        (data.divisions.size() == 0 || (data.divisions[0] is string)) &&
+        (!('createdAt' in data) || isTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isTimestamp(data.updatedAt)) &&
+        (!('createdByCoachId' in data) || data.createdByCoachId == null || isString(data.createdByCoachId)) &&
+        (!('createdByCoachName' in data) || data.createdByCoachName == null || isString(data.createdByCoachName)) &&
+        (!('createdByUid' in data) || data.createdByUid == null || isString(data.createdByUid)) &&
+        (!('updatedByCoachId' in data) || data.updatedByCoachId == null || isString(data.updatedByCoachId)) &&
+        (!('updatedByCoachName' in data) || data.updatedByCoachName == null || isString(data.updatedByCoachName)) &&
+        (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid));
     }
     match /divisionGroups/{groupId} {
       allow read: if true;
@@ -84,9 +121,21 @@ service cloud.firestore {
 
     // Silenced clashes (to acknowledge/ignore a specific boat clash in a group)
     function validSilence(data) {
-      return data.keys().hasOnly(['raceId','day','group','boat']) &&
+      return data.keys().hasOnly([
+        'raceId','day','group','boat',
+        'createdAt','createdByCoachId','createdByCoachName','createdByUid',
+        'updatedAt','updatedByCoachId','updatedByCoachName','updatedByUid'
+      ]) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
-        isString(data.day) && isString(data.group) && isString(data.boat);
+        isString(data.day) && isString(data.group) && isString(data.boat) &&
+        (!('createdAt' in data) || isTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isTimestamp(data.updatedAt)) &&
+        (!('createdByCoachId' in data) || data.createdByCoachId == null || isString(data.createdByCoachId)) &&
+        (!('createdByCoachName' in data) || data.createdByCoachName == null || isString(data.createdByCoachName)) &&
+        (!('createdByUid' in data) || data.createdByUid == null || isString(data.createdByUid)) &&
+        (!('updatedByCoachId' in data) || data.updatedByCoachId == null || isString(data.updatedByCoachId)) &&
+        (!('updatedByCoachName' in data) || data.updatedByCoachName == null || isString(data.updatedByCoachName)) &&
+        (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid));
     }
     match /silencedClashes/{silenceId} {
       allow read: if true;
@@ -107,7 +156,20 @@ service cloud.firestore {
 
     // race-specific gearing matrix for age group x boat type
     function validGearing(data) {
-      return data.keys().hasOnly(['values']) && (data.values is map);
+      return data.keys().hasOnly([
+        'values',
+        'createdAt','createdByCoachId','createdByCoachName','createdByUid',
+        'updatedAt','updatedByCoachId','updatedByCoachName','updatedByUid'
+      ]) &&
+        (data.values is map) &&
+        (!('createdAt' in data) || isTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isTimestamp(data.updatedAt)) &&
+        (!('createdByCoachId' in data) || data.createdByCoachId == null || isString(data.createdByCoachId)) &&
+        (!('createdByCoachName' in data) || data.createdByCoachName == null || isString(data.createdByCoachName)) &&
+        (!('createdByUid' in data) || data.createdByUid == null || isString(data.createdByUid)) &&
+        (!('updatedByCoachId' in data) || data.updatedByCoachId == null || isString(data.updatedByCoachId)) &&
+        (!('updatedByCoachName' in data) || data.updatedByCoachName == null || isString(data.updatedByCoachName)) &&
+        (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid));
     }
     match /gearing/{raceId} {
       allow read: if true;
@@ -117,9 +179,31 @@ service cloud.firestore {
 
     // blade clash silences (separate from boat silences)
     function validBladeSilence(data) {
-      return data.keys().hasOnly(['raceId','day','group','blade']) &&
+      return data.keys().hasOnly([
+        'raceId','day','group','blade',
+        'createdAt','createdByCoachId','createdByCoachName','createdByUid',
+        'updatedAt','updatedByCoachId','updatedByCoachName','updatedByUid'
+      ]) &&
         isString(data.raceId) && data.raceId.size() > 0 &&
-        isString(data.day) && isString(data.group) && isString(data.blade);
+        isString(data.day) && isString(data.group) && isString(data.blade) &&
+        (!('createdAt' in data) || isTimestamp(data.createdAt)) &&
+        (!('updatedAt' in data) || isTimestamp(data.updatedAt)) &&
+        (!('createdByCoachId' in data) || data.createdByCoachId == null || isString(data.createdByCoachId)) &&
+        (!('createdByCoachName' in data) || data.createdByCoachName == null || isString(data.createdByCoachName)) &&
+        (!('createdByUid' in data) || data.createdByUid == null || isString(data.createdByUid)) &&
+        (!('updatedByCoachId' in data) || data.updatedByCoachId == null || isString(data.updatedByCoachId)) &&
+        (!('updatedByCoachName' in data) || data.updatedByCoachName == null || isString(data.updatedByCoachName)) &&
+        (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid));
+    }
+
+    // Coach identity linkage (written by callable functions; client is read-only)
+    match /devices/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create, update, delete: if false;
+    }
+    match /coaches/{coachId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if false;
     }
     match /silencedBladeClashes/{silenceId} {
       allow read: if true;

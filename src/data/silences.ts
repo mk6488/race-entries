@@ -3,6 +3,8 @@ import { db } from '../firebase'
 import type { SilencedClash } from '../models/firestore'
 import { asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
+import { buildCreateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 export type { SilencedClash as Silence }
 
 const col = collection(db, 'silencedClashes')
@@ -39,8 +41,8 @@ export function subscribeSilences(raceId: string, cb: (rows: SilencedClash[]) =>
   })
 }
 
-export async function createSilence(data: Omit<SilencedClash, 'id'>) {
-  await addDoc(col, data)
+export async function createSilence(data: Omit<SilencedClash, 'id'>, coach?: Partial<CoachContext>) {
+  await addDoc(col, { ...data, ...buildCreateAudit(coach) })
 }
 
 export async function deleteSilenceByBoat(raceId: string, day: string, group: string, boat: string) {

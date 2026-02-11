@@ -8,6 +8,8 @@ import { subscribeCached } from './subscriptionCache'
 import { trace } from '../utils/trace'
 import { wrapError } from '../utils/wrapError'
 import { stripUndefined } from '../utils/stripUndefined'
+import { buildCreateAudit, buildUpdateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 export type { DivisionGroup }
 
 const col = collection(db, 'divisionGroups')
@@ -64,14 +66,14 @@ export function subscribeDivisionGroups(raceId: string, cb: (rows: DivisionGroup
   )
 }
 
-export async function createDivisionGroup(data: Omit<DivisionGroup, 'id'>) {
+export async function createDivisionGroup(data: Omit<DivisionGroup, 'id'>, coach?: Partial<CoachContext>) {
   trace({ type: 'write:create', scope: 'divisionGroups', meta: { raceId: data.raceId } })
-  await addDoc(col, data)
+  await addDoc(col, { ...data, ...buildCreateAudit(coach) })
 }
 
-export async function updateDivisionGroup(id: string, data: Partial<DivisionGroup>) {
+export async function updateDivisionGroup(id: string, data: Partial<DivisionGroup>, coach?: Partial<CoachContext>) {
   trace({ type: 'write:update', scope: 'divisionGroups', meta: { id } })
-  const payload: UpdateData<DivisionGroup> = stripUndefined(data)
+  const payload: UpdateData<DivisionGroup> = stripUndefined({ ...data, ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'divisionGroups', id), payload)
 }
 

@@ -5,6 +5,8 @@ import type { Blade } from '../models/firestore'
 import { asBool, asNumber, asRecord, asString, withId } from './firestoreMapping'
 import { logWarn } from '../utils/log'
 import { stripUndefined } from '../utils/stripUndefined'
+import { buildCreateAudit, buildUpdateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 export type { Blade }
 
 const col = collection(db, 'blades')
@@ -47,22 +49,22 @@ export function toBlade(id: string, data: unknown, ctx?: { issues?: any; collect
   })
 }
 
-export async function updateBladeAmount(id: string, amount: number) {
+export async function updateBladeAmount(id: string, amount: number, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
   const ref = doc(db, 'blades', id)
-  const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined({ amount })
+  const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined({ amount, ...buildUpdateAudit(coach) })
   await updateDoc(ref, payload)
 }
 
-export async function createBlade(data: Omit<Blade, 'id'>) {
+export async function createBlade(data: Omit<Blade, 'id'>, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
-  const ref = await addDoc(col, data)
+  const ref = await addDoc(col, { ...data, ...buildCreateAudit(coach) })
   return ref.id
 }
 
-export async function updateBlade(id: string, data: Partial<Omit<Blade, 'id'>>) {
+export async function updateBlade(id: string, data: Partial<Omit<Blade, 'id'>>, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
-  const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined(data)
+  const payload: UpdateData<Omit<Blade, 'id'>> = stripUndefined({ ...data, ...buildUpdateAudit(coach) })
   await updateDoc(doc(db, 'blades', id), payload)
 }
 

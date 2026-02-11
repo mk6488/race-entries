@@ -1,4 +1,17 @@
-export type Race = {
+export type AuditTrail = {
+  // Stored as Firestore timestamp; not read by UI today.
+  createdAt?: unknown
+  createdByCoachId?: string | null
+  createdByCoachName?: string | null
+  createdByUid?: string | null
+  // Stored as Firestore timestamp; not read by UI today.
+  updatedAt?: unknown
+  updatedByCoachId?: string | null
+  updatedByCoachName?: string | null
+  updatedByUid?: string | null
+}
+
+export type Race = AuditTrail & {
   id: string
   name: string
   details: string
@@ -12,7 +25,7 @@ export type Race = {
 
 export type NewRace = Omit<Race, 'id'>
 
-export type Entry = {
+export type Entry = AuditTrail & {
   id: string
   raceId: string
   day: string
@@ -34,7 +47,7 @@ export type Entry = {
 
 export type NewEntry = Omit<Entry, 'id'>
 
-export type Boat = {
+export type Boat = AuditTrail & {
   id: string
   name: string
   type: string
@@ -42,7 +55,7 @@ export type Boat = {
   weight?: number
 }
 
-export type Blade = {
+export type Blade = AuditTrail & {
   id: string
   name: string
   active?: boolean
@@ -53,7 +66,7 @@ export type Blade = {
   span?: number | null
 }
 
-export type DivisionGroup = {
+export type DivisionGroup = AuditTrail & {
   id: string
   raceId: string
   day: string
@@ -62,9 +75,9 @@ export type DivisionGroup = {
 }
 
 export type GearingMatrix = Record<string, Record<string, string>>
-export type Gearing = { id: string; values: GearingMatrix }
+export type Gearing = AuditTrail & { id: string; values: GearingMatrix }
 
-export type SilencedClash = {
+export type SilencedClash = AuditTrail & {
   id: string
   raceId: string
   day: string
@@ -72,7 +85,7 @@ export type SilencedClash = {
   boat: string
 }
 
-export type SilencedBladeClash = {
+export type SilencedBladeClash = AuditTrail & {
   id: string
   raceId: string
   day: string

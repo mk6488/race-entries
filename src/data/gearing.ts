@@ -5,6 +5,8 @@ import type { Gearing, GearingMatrix } from '../models/firestore'
 import { asRecord, asString } from './firestoreMapping'
 import { logWarn } from '../utils/log'
 import { stripUndefined } from '../utils/stripUndefined'
+import { buildCreateAudit, buildUpdateAudit } from './audit'
+import type { CoachContext } from '../coach/coachContext'
 export type { GearingMatrix }
 
 const col = collection(db, 'gearing')
@@ -22,17 +24,17 @@ export function subscribeGearing(raceId: string, cb: (values: GearingMatrix) => 
   })
 }
 
-export async function initGearingIfMissing(raceId: string, initial: GearingMatrix) {
+export async function initGearingIfMissing(raceId: string, initial: GearingMatrix, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
   const ref = doc(col, raceId)
-  await setDoc(ref, { values: initial }, { merge: true })
+  await setDoc(ref, { values: initial, ...buildCreateAudit(coach) }, { merge: true })
 }
 
-export async function updateGearingCell(raceId: string, age: string, boatType: string, code: string) {
+export async function updateGearingCell(raceId: string, age: string, boatType: string, code: string, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
   const ref = doc(col, raceId)
   const path = `values.${age}.${boatType}`
-  const payload: UpdateData<Gearing> = stripUndefined({ [path]: code })
+  const payload: UpdateData<Gearing> = stripUndefined({ [path]: code, ...buildUpdateAudit(coach) })
   await updateDoc(ref, payload)
 }
 
@@ -50,21 +52,21 @@ export function subscribeGlobalGearing(cb: (values: GearingMatrix) => void) {
   })
 }
 
-export async function initGlobalGearingIfMissing(initial: GearingMatrix) {
+export async function initGlobalGearingIfMissing(initial: GearingMatrix, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
   const ref = doc(col, 'default')
   const snap = await getDoc(ref)
   const existing = snap.exists() ? (snap.data() as any) : null
   if (!existing || !existing.values) {
-    await setDoc(ref, { values: initial }, { merge: false })
+    await setDoc(ref, { values: initial, ...buildCreateAudit(coach) }, { merge: false })
   }
 }
 
-export async function updateGlobalGearingCell(age: string, boatType: string, code: string) {
+export async function updateGlobalGearingCell(age: string, boatType: string, code: string, coach?: Partial<CoachContext>) {
   await authReady.catch(() => {})
   const ref = doc(col, 'default')
   const path = `values.${age}.${boatType}`
-  const payload: UpdateData<Gearing> = stripUndefined({ [path]: code })
+  const payload: UpdateData<Gearing> = stripUndefined({ [path]: code, ...buildUpdateAudit(coach) })
   await updateDoc(ref, payload)
 }
 
