@@ -1,0 +1,12 @@
+# Firebase deploy ignore rules (project root)
+# Prevent accidental deployment/packaging of legacy functions folder.
+
+functions/**
+
+# Common junk
+.DS_Store
+**/.DS_Store
+**/*.local
+**/firebase-debug.log
+**/firebase-debug.*.log
+

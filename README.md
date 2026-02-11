@@ -36,11 +36,13 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 - Diagnostics: `docs/DIAGNOSTICS.md`
 - Printing: `docs/PRINTING.md`
 - Backups & recovery: `docs/BACKUP_RECOVERY.md`
+- Docs index: `docs/README.md`
 
 ## Firebase assumptions
 - Anonymous auth is enabled.
 - Collections in use: `races`, `entries`, `boats`, `blades`, `divisionGroups`, `silencedClashes`, `silencedBladeClashes`, `gearing`, `admins`.
 - Admin gating: `/admins/{uid}` with `{ enabled: true }` controls access to `/diagnostics`.
+ - Cloud Functions deploy source: `functions-backend/` (legacy `/functions/` is not used).
 
 ## Deployment
 - CI runs typecheck/lint/build on PR/main.
