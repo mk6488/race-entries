@@ -11,8 +11,14 @@ export type CoachContext = {
   error?: string
 }
 
-type DeviceDoc = { coachId?: string; coachName?: string }
-type CoachDoc = { name?: string; firstName?: string; lastName?: string }
+type CoachDoc = {
+  uid?: string
+  displayName?: string
+  email?: string | null
+  name?: string
+  firstName?: string
+  lastName?: string
+}
 
 const COACH_CACHE_KEY = 'coach:context:v1'
 
@@ -48,30 +54,45 @@ export async function loadCoachContext(): Promise<CoachContext> {
   }
 
   try {
-    const deviceSnap = await getDoc(doc(db, 'devices', uid))
-    const device = (deviceSnap.exists() ? (deviceSnap.data() as DeviceDoc) : null) || null
-    const coachId = typeof device?.coachId === 'string' && device.coachId ? device.coachId : null
-    if (!coachId) {
+    if (import.meta.env.DEV) {
+      console.info('[coach] start', { uid })
+    }
+
+    let coachName: string | null = null
+    const coachPath = `coaches/${uid}`
+    if (import.meta.env.DEV) {
+      console.info('[coach] read', { path: coachPath })
+    }
+    const coachSnap = await getDoc(doc(db, 'coaches', uid))
+    if (!coachSnap.exists()) {
+      if (import.meta.env.DEV) {
+        console.info('[coach] result', { path: coachPath, exists: false })
+      }
       setCachedCoachContext({ coachId: null, coachName: null })
       return { uid, coachId: null, coachName: null, isLinked: false, loading: false }
     }
 
-    let coachName: string | null = null
-    const coachSnap = await getDoc(doc(db, 'coaches', coachId))
-    if (coachSnap.exists()) {
-      const coach = coachSnap.data() as CoachDoc
-      if (typeof coach.name === 'string' && coach.name.trim()) coachName = coach.name.trim()
-      else {
-        const first = typeof coach.firstName === 'string' ? coach.firstName.trim() : ''
-        const last = typeof coach.lastName === 'string' ? coach.lastName.trim() : ''
-        const combined = `${first} ${last}`.trim()
-        coachName = combined || null
-      }
+    const coachId = uid
+    const coach = coachSnap.data() as CoachDoc
+    if (typeof coach.displayName === 'string' && coach.displayName.trim()) coachName = coach.displayName.trim()
+    else if (typeof coach.name === 'string' && coach.name.trim()) coachName = coach.name.trim()
+    else {
+      const first = typeof coach.firstName === 'string' ? coach.firstName.trim() : ''
+      const last = typeof coach.lastName === 'string' ? coach.lastName.trim() : ''
+      const combined = `${first} ${last}`.trim()
+      coachName = combined || null
+    }
+
+    if (import.meta.env.DEV) {
+      console.info('[coach] result', { path: coachPath, exists: true, coachName })
     }
 
     setCachedCoachContext({ coachId, coachName })
     return { uid, coachId, coachName, isLinked: true, loading: false }
-  } catch (err) {
+  } catch (err: unknown) {
+    if (import.meta.env.DEV) {
+      console.info('[coach] result', { path: `coaches/${uid}`, error: true, err })
+    }
     const cached = getCachedCoachContext()
     // If we have a cached coachId/name, prefer returning it rather than blocking the app.
     if (cached.coachId) {

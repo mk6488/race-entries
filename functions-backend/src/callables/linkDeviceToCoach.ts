@@ -64,6 +64,7 @@ export const linkDeviceToCoach = functions
       const pin = requireNonEmpty(data?.pin, 'pin');
       const deviceLabel = String(data?.deviceLabel || '').trim() || null;
 
+      const displayName = `${firstName} ${lastName}`.trim();
       const nameKey = buildNameKey(firstName, lastName);
 
       const qs = await db.collection('coaches').where('nameKey', '==', nameKey).limit(5).get();
@@ -103,20 +104,40 @@ export const linkDeviceToCoach = functions
       }
 
       const now = admin.firestore.FieldValue.serverTimestamp();
+      const email =
+        typeof context.auth?.token?.email === 'string' && context.auth.token.email.trim()
+          ? context.auth.token.email.trim()
+          : null;
+
+      // Canonical location: coaches/{uid}
+      await db.collection('coaches').doc(uid).set(
+        {
+          uid,
+          displayName,
+          email,
+          firstName,
+          lastName,
+          nameKey,
+          createdAt: now,
+          updatedAt: now,
+        },
+        { merge: true },
+      );
+
       await db
         .collection('devices')
         .doc(uid)
         .set(
           {
-            coachId,
+            coachId: uid,
+            coachName: displayName,
             ...(deviceLabel ? { deviceLabel } : {}),
             lastSeenAt: now,
           },
           { merge: true },
         );
 
-      const coachName = `${coachDoc.data()?.firstName || firstName} ${coachDoc.data()?.lastName || lastName}`;
-      return { coachId, coachName };
+      return { coachId: uid, coachName: displayName };
     } catch (err: unknown) {
       if (isHttpsError(err)) throw err;
       throw internal();

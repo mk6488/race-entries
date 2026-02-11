@@ -64,6 +64,7 @@ export const createCoachProfile = functions
       const pin = requireNonEmpty(data?.pin, 'pin');
       const deviceLabel = String(data?.deviceLabel || '').trim() || null;
 
+      const displayName = `${firstName} ${lastName}`.trim();
       const nameKey = buildNameKey(firstName, lastName);
 
       // Optional: prevent accidental duplicates (soft check)
@@ -72,7 +73,11 @@ export const createCoachProfile = functions
         .where('nameKey', '==', nameKey)
         .limit(3)
         .get();
-      if (!existing.empty) {
+      if (
+        !existing.empty &&
+        // Allow idempotent re-run for same uid (canonical doc id), but keep legacy behavior otherwise.
+        !(existing.size === 1 && existing.docs[0].id === uid)
+      ) {
         // Don’t hard-block (your call); but returning a clear error helps
         throw new functions.https.HttpsError(
           'already-exists',
@@ -87,30 +92,41 @@ export const createCoachProfile = functions
         );
       }
 
-      const coachRef = db.collection('coaches').doc();
-      const coachId = coachRef.id;
+      // Canonical location: coaches/{uid}
+      const coachRef = db.collection('coaches').doc(uid);
+      const coachId = uid;
 
       const secret = hashPin(pin);
       const now = admin.firestore.FieldValue.serverTimestamp();
+      const email =
+        typeof context.auth?.token?.email === 'string' && context.auth.token.email.trim()
+          ? context.auth.token.email.trim()
+          : null;
 
       const batch = db.batch();
 
       batch.set(coachRef, {
+        uid,
+        displayName,
+        email,
         firstName,
         lastName,
         nameKey,
         createdAt: now,
+        updatedAt: now,
       });
 
       batch.set(db.collection('coachSecrets').doc(coachId), {
         ...secret,
         createdAt: now,
+        updatedAt: now,
       });
 
       batch.set(
         db.collection('devices').doc(uid),
         {
           coachId,
+          coachName: displayName,
           ...(deviceLabel ? { deviceLabel } : {}),
           createdAt: now,
           lastSeenAt: now,
