@@ -87,8 +87,14 @@ async function refreshShared() {
     } catch (err: unknown) {
       if (reqId !== profileReqId) return
       if (import.meta.env.DEV) {
-        // Do not include Firestore payloads; just the exception object.
-        console.warn('[coach] identity load failed', { uid, err })
+        // Do not include Firestore payloads; just the exception object and error metadata.
+        const anyErr = err as { code?: unknown; message?: unknown }
+        console.warn('[coach] identity load failed', {
+          uid,
+          code: typeof anyErr?.code === 'string' ? anyErr.code : undefined,
+          message: typeof anyErr?.message === 'string' ? anyErr.message : undefined,
+          err,
+        })
       }
       const cached = getCachedCoachContext()
       if (cached.coachId) {
