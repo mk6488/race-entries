@@ -1,8 +1,17 @@
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from '../firebase'
+import { db } from '../firebase'
 import { touchDevice, logCallableError } from '../firebase/functions'
 
+export type CoachIdentityStatus =
+  | 'authLoading'
+  | 'signedOut'
+  | 'signedInProfileLoading'
+  | 'signedInUnlinked'
+  | 'signedInLinked'
+  | 'signedInError'
+
 export type CoachContext = {
+  status: CoachIdentityStatus
   uid: string | null
   coachId: string | null
   coachName: string | null
@@ -47,59 +56,40 @@ export function setCachedCoachContext(input: { coachId: string | null; coachName
   }
 }
 
-export async function loadCoachContext(): Promise<CoachContext> {
-  const uid = auth.currentUser?.uid ?? null
-  if (!uid) {
-    return { uid: null, coachId: null, coachName: null, isLinked: false, loading: false, error: 'Not signed in.' }
+export type CoachProfileLoadResult =
+  | { exists: false; coachId: null; coachName: null }
+  | { exists: true; coachId: string; coachName: string | null }
+
+export async function loadCoachProfileByUid(uid: string): Promise<CoachProfileLoadResult> {
+  let coachName: string | null = null
+  const coachPath = `coaches/${uid}`
+  if (import.meta.env.DEV) {
+    console.info('[coach] read', { path: coachPath })
   }
 
-  try {
+  const coachSnap = await getDoc(doc(db, 'coaches', uid))
+  if (!coachSnap.exists()) {
     if (import.meta.env.DEV) {
-      console.info('[coach] start', { uid })
+      console.info('[coach] result', { path: coachPath, exists: false })
     }
-
-    let coachName: string | null = null
-    const coachPath = `coaches/${uid}`
-    if (import.meta.env.DEV) {
-      console.info('[coach] read', { path: coachPath })
-    }
-    const coachSnap = await getDoc(doc(db, 'coaches', uid))
-    if (!coachSnap.exists()) {
-      if (import.meta.env.DEV) {
-        console.info('[coach] result', { path: coachPath, exists: false })
-      }
-      setCachedCoachContext({ coachId: null, coachName: null })
-      return { uid, coachId: null, coachName: null, isLinked: false, loading: false }
-    }
-
-    const coachId = uid
-    const coach = coachSnap.data() as CoachDoc
-    if (typeof coach.displayName === 'string' && coach.displayName.trim()) coachName = coach.displayName.trim()
-    else if (typeof coach.name === 'string' && coach.name.trim()) coachName = coach.name.trim()
-    else {
-      const first = typeof coach.firstName === 'string' ? coach.firstName.trim() : ''
-      const last = typeof coach.lastName === 'string' ? coach.lastName.trim() : ''
-      const combined = `${first} ${last}`.trim()
-      coachName = combined || null
-    }
-
-    if (import.meta.env.DEV) {
-      console.info('[coach] result', { path: coachPath, exists: true, coachName })
-    }
-
-    setCachedCoachContext({ coachId, coachName })
-    return { uid, coachId, coachName, isLinked: true, loading: false }
-  } catch (err: unknown) {
-    if (import.meta.env.DEV) {
-      console.info('[coach] result', { path: `coaches/${uid}`, error: true, err })
-    }
-    const cached = getCachedCoachContext()
-    // If we have a cached coachId/name, prefer returning it rather than blocking the app.
-    if (cached.coachId) {
-      return { uid, coachId: cached.coachId, coachName: cached.coachName, isLinked: true, loading: false, error: 'Failed to refresh coach identity.' }
-    }
-    return { uid, coachId: null, coachName: null, isLinked: false, loading: false, error: 'Failed to load coach identity.' }
+    return { exists: false, coachId: null, coachName: null }
   }
+
+  const coach = coachSnap.data() as CoachDoc
+  if (typeof coach.displayName === 'string' && coach.displayName.trim()) coachName = coach.displayName.trim()
+  else if (typeof coach.name === 'string' && coach.name.trim()) coachName = coach.name.trim()
+  else {
+    const first = typeof coach.firstName === 'string' ? coach.firstName.trim() : ''
+    const last = typeof coach.lastName === 'string' ? coach.lastName.trim() : ''
+    const combined = `${first} ${last}`.trim()
+    coachName = combined || null
+  }
+
+  if (import.meta.env.DEV) {
+    console.info('[coach] result', { path: coachPath, exists: true, coachName })
+  }
+
+  return { exists: true, coachId: uid, coachName }
 }
 
 export async function touchCurrentDevice(params?: { deviceLabel?: string }) {

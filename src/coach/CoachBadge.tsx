@@ -12,7 +12,14 @@ export function CoachBadge({ onOpenOnboarding }: Props) {
   const [copied, setCopied] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
 
-  const status = ctx.loading ? 'loading' : ctx.isLinked ? 'linked' : ctx.error ? 'error' : 'unlinked'
+  const status =
+    ctx.status === 'signedInLinked'
+      ? 'linked'
+      : ctx.status === 'signedInUnlinked'
+        ? 'unlinked'
+        : ctx.status === 'signedInError'
+          ? 'error'
+          : 'loading'
 
   const dotColor =
     status === 'linked'
@@ -23,13 +30,14 @@ export function CoachBadge({ onOpenOnboarding }: Props) {
           ? '#d32f2f'
           : '#9e9e9e'
 
-  const label = ctx.loading
-    ? 'Loading...'
-    : ctx.isLinked
-      ? (ctx.coachName || 'Coach')
-      : ctx.error
-        ? 'Coach identity error'
-        : 'Unlinked Coach'
+  const label =
+    status === 'loading'
+      ? 'Loading...'
+      : status === 'linked'
+        ? (ctx.coachName || 'Coach')
+        : status === 'unlinked'
+          ? 'Unlinked Coach'
+          : 'Coach identity error'
 
   const badgeStyle = useMemo<React.CSSProperties>(() => {
     return {

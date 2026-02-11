@@ -35,7 +35,12 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
   })
 
   const now = Date.now()
-  const shouldShow = !!forceOpen || (!ctx.loading && !ctx.isLinked && now >= dismissedUntil)
+  const shouldShow =
+    !!forceOpen ||
+    (ctx.status !== 'authLoading' &&
+      ctx.status !== 'signedInProfileLoading' &&
+      !ctx.isLinked &&
+      now >= dismissedUntil)
 
   const [tab, setTab] = useState<Tab>('link')
   const [firstName, setFirstName] = useState('')
@@ -171,7 +176,7 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
         </div>
       }
     >
-      {ctx.error ? (
+      {ctx.status === 'signedInError' ? (
         <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>
           Note: coach identity refresh failed. You can still continue unlinked.
         </div>
