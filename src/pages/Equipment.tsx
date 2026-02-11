@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { subscribeEntries } from '../data/entries'
 import { subscribeBoats, type Boat } from '../data/boats'
 import { subscribeBlades, type Blade } from '../data/blades'
@@ -335,9 +335,6 @@ export function Equipment() {
 
   return (
     <div>
-      <div style={{ marginBottom: 8 }}>
-        <Link to="/" className="secondary-btn">Back</Link>
-      </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div>
           <h1 style={{ margin: 0 }}>{race?.name ?? 'Equipment'}</h1>
