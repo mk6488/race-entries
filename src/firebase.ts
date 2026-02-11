@@ -17,6 +17,11 @@ export const db = getFirestore(app)
 export const auth = getAuth(app)
 const intendedPersistence = 'browserLocalPersistence'
 const autoAnonOnLoad = import.meta.env.VITE_AUTO_ANON_AUTH_ON_LOAD === 'true'
+
+if (import.meta.env.DEV) {
+  console.info('[auth] config', { autoAnonOnLoad })
+}
+
 export const authPersistenceReady: Promise<void> = (async () => {
   try {
     // Must run before any sign-in calls to ensure the session survives tab close/reopen.

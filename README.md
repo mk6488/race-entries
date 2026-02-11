@@ -28,6 +28,7 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 - `VITE_FIREBASE_MESSAGING_SENDER_ID`
 - `VITE_FIREBASE_APP_ID`
 - `VITE_ADMIN_EMAILS` (comma-separated allowlist for admin access)
+- `VITE_AUTO_ANON_AUTH_ON_LOAD` (`true` to auto sign-in anonymously on load)
 
 ## Roadmap & processes
 - Roadmap: `docs/ROADMAP.md`
@@ -47,6 +48,7 @@ Set these in `.env.local` (Vite-style `VITE_*`):
 ## Deployment
 - CI runs typecheck/lint/build on PR/main.
 - See `docs/DEPLOYMENT.md` for the deploy checklist and verification steps (use `/diagnostics` to confirm version/build).
+- Netlify: set `VITE_AUTO_ANON_AUTH_ON_LOAD=true` in production so users get a stable anonymous session immediately (better UX for coach linking).
 
 ## Diagnostics (admin-only)
 - `/diagnostics` requires an admin doc.
