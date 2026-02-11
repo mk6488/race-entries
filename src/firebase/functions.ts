@@ -43,6 +43,17 @@ export const linkDeviceToCoach: HttpsCallable<LinkDeviceToCoachInput, CoachIdent
 
 export const touchDevice: HttpsCallable<TouchDeviceInput, unknown> = httpsCallable(functions, 'touchDevice')
 
+/*
+DEV-only snippet (no UI needed):
+
+  import { httpsCallable } from 'firebase/functions'
+  import { functions } from './functions'
+
+  const healthcheck = httpsCallable(functions, 'healthcheck')
+  const res = await healthcheck({})
+  console.info('healthcheck', res.data)
+*/
+
 export function logCallableError(scope: string, err: unknown) {
   if (!import.meta.env.DEV) return
   const anyErr = err as { code?: unknown; message?: unknown; details?: unknown }
