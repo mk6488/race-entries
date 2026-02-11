@@ -1,6 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore'
-import { httpsCallable } from 'firebase/functions'
-import { auth, db, functions } from '../firebase'
+import { auth, db } from '../firebase'
+import { touchDevice, logCallableError } from '../firebase/functions'
 
 export type CoachContext = {
   uid: string | null
@@ -83,9 +83,9 @@ export async function loadCoachContext(): Promise<CoachContext> {
 
 export async function touchCurrentDevice(params?: { deviceLabel?: string }) {
   try {
-    const call = httpsCallable(functions, 'touchDevice')
-    await call({ deviceLabel: params?.deviceLabel })
-  } catch {
+    await touchDevice({ deviceLabel: params?.deviceLabel })
+  } catch (err) {
+    logCallableError('touchDevice', err)
     // Swallow failures (do not break app usage)
   }
 }

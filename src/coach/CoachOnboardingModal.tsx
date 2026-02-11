@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { httpsCallable } from 'firebase/functions'
-import { functions } from '../firebase'
 import type { CoachContext } from './coachContext'
+import { createCoachProfile, linkDeviceToCoach, logCallableError } from '../firebase/functions'
 import { Modal } from '../ui/Modal'
 import { Field } from '../ui/components/Field'
 import { Button } from '../ui/components/Button'
@@ -77,11 +76,9 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
       }
 
       if (tab === 'create') {
-        const call = httpsCallable(functions, 'createCoachProfile')
-        await call(base)
+        await createCoachProfile(base)
       } else {
-        const call = httpsCallable(functions, 'linkDeviceToCoach')
-        await call(base)
+        await linkDeviceToCoach(base)
       }
 
       // Never keep PIN beyond the session interaction.
@@ -90,6 +87,7 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
       if (forceOpen) onRequestClose?.()
       else dismissFor(60 * 24) // hide for the rest of session once linked
     } catch (err) {
+      logCallableError(tab === 'create' ? 'createCoachProfile' : 'linkDeviceToCoach', err)
       const details = (err as { details?: unknown }).details
       const d = details && typeof details === 'object' ? (details as Record<string, unknown>) : null
       const multipleMatches = !!d && d.multipleMatches === true
@@ -128,8 +126,7 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
     setError(null)
     setBusy(true)
     try {
-      const call = httpsCallable(functions, 'linkDeviceToCoach')
-      await call({
+      await linkDeviceToCoach({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         pin: pin.trim(),
@@ -141,6 +138,7 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
       if (forceOpen) onRequestClose?.()
       else dismissFor(60 * 24)
     } catch (err) {
+      logCallableError('linkDeviceToCoach', err)
       setError(toUiError(err))
     } finally {
       setBusy(false)
