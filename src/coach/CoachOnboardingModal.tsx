@@ -10,6 +10,8 @@ import { ErrorBanner } from '../ui/components/ErrorBanner'
 type Props = {
   ctx: CoachContext
   refresh: () => Promise<void>
+  forceOpen?: boolean
+  onRequestClose?: () => void
 }
 
 type Tab = 'create' | 'link'
@@ -22,7 +24,7 @@ function toUiError(err: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
-export function CoachOnboardingModal({ ctx, refresh }: Props) {
+export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }: Props) {
   const [dismissedUntil, setDismissedUntil] = useState<number>(() => {
     try {
       const raw = sessionStorage.getItem('coach:onboarding:dismissedUntil')
@@ -34,7 +36,7 @@ export function CoachOnboardingModal({ ctx, refresh }: Props) {
   })
 
   const now = Date.now()
-  const shouldShow = !ctx.loading && !ctx.isLinked && now >= dismissedUntil
+  const shouldShow = !!forceOpen || (!ctx.loading && !ctx.isLinked && now >= dismissedUntil)
 
   const [tab, setTab] = useState<Tab>('link')
   const [firstName, setFirstName] = useState('')
@@ -85,7 +87,8 @@ export function CoachOnboardingModal({ ctx, refresh }: Props) {
       // Never keep PIN beyond the session interaction.
       setPin('')
       await refresh()
-      dismissFor(60 * 24) // hide for the rest of session once linked
+      if (forceOpen) onRequestClose?.()
+      else dismissFor(60 * 24) // hide for the rest of session once linked
     } catch (err) {
       const details = (err as { details?: unknown }).details
       const d = details && typeof details === 'object' ? (details as Record<string, unknown>) : null
@@ -135,7 +138,8 @@ export function CoachOnboardingModal({ ctx, refresh }: Props) {
       })
       setPin('')
       await refresh()
-      dismissFor(60 * 24)
+      if (forceOpen) onRequestClose?.()
+      else dismissFor(60 * 24)
     } catch (err) {
       setError(toUiError(err))
     } finally {
@@ -147,10 +151,20 @@ export function CoachOnboardingModal({ ctx, refresh }: Props) {
     <Modal
       open={shouldShow}
       title="Coach identity"
-      onClose={() => dismissFor(10)}
+      onClose={() => {
+        if (forceOpen) onRequestClose?.()
+        else dismissFor(10)
+      }}
       footer={
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-          <Button type="button" variant="secondary" onClick={() => dismissFor(10)}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              if (forceOpen) onRequestClose?.()
+              else dismissFor(10)
+            }}
+          >
             Continue unlinked
           </Button>
           <Button type="button" disabled={busy} onClick={handleSubmit}>

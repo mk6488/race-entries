@@ -16,6 +16,8 @@ import { ErrorBoundary } from './ui/ErrorBoundary'
 import { RequireAdmin } from './ui/RequireAdmin'
 import { useCoachContext } from './coach/useCoachContext'
 import { CoachOnboardingModal } from './coach/CoachOnboardingModal'
+import { CoachBadge } from './coach/CoachBadge'
+import { useState } from 'react'
 
 export const router = createBrowserRouter([
   {
@@ -39,9 +41,16 @@ export const router = createBrowserRouter([
 
 export function App() {
   const { ctx, refresh } = useCoachContext()
+  const [showOnboarding, setShowOnboarding] = useState(false)
   return (
     <ErrorBoundary>
-      <CoachOnboardingModal ctx={ctx} refresh={refresh} />
+      <CoachBadge onOpenOnboarding={() => setShowOnboarding(true)} />
+      <CoachOnboardingModal
+        ctx={ctx}
+        refresh={refresh}
+        forceOpen={showOnboarding}
+        onRequestClose={() => setShowOnboarding(false)}
+      />
       <RouterProvider router={router} />
     </ErrorBoundary>
   )
