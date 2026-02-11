@@ -1,8 +1,8 @@
 import * as functions from 'firebase-functions';
 import * as crypto from 'crypto';
-import { assertAuthed, requireNonEmpty } from '../shared/assert';
+import { assertAuthed, requireFields, requireNonEmpty } from '../shared/assert';
 import { REGION, admin, db } from '../shared/config';
-import { httpsError } from '../shared/errors';
+import { internal, isHttpsError, permissionDenied } from '../shared/errors';
 
 function normaliseNamePart(value: unknown): string {
   return String(value || '')
@@ -55,57 +55,70 @@ function verifyPin(pin: unknown, secret: PinSecret): boolean {
 export const linkDeviceToCoach = functions
   .region(REGION)
   .https.onCall(async (data: any, context) => {
-    const uid = assertAuthed(context);
+    try {
+      const uid = assertAuthed(context);
+      requireFields(data, ['firstName', 'lastName', 'pin']);
 
-    const firstName = requireNonEmpty(data?.firstName, 'firstName');
-    const lastName = requireNonEmpty(data?.lastName, 'lastName');
-    const pin = requireNonEmpty(data?.pin, 'pin');
-    const deviceLabel = String(data?.deviceLabel || '').trim() || null;
+      const firstName = requireNonEmpty(data?.firstName, 'firstName');
+      const lastName = requireNonEmpty(data?.lastName, 'lastName');
+      const pin = requireNonEmpty(data?.pin, 'pin');
+      const deviceLabel = String(data?.deviceLabel || '').trim() || null;
 
-    const nameKey = buildNameKey(firstName, lastName);
+      const nameKey = buildNameKey(firstName, lastName);
 
-    const qs = await db.collection('coaches').where('nameKey', '==', nameKey).limit(5).get();
+      const qs = await db.collection('coaches').where('nameKey', '==', nameKey).limit(5).get();
 
-    if (qs.empty) {
-      throw httpsError('not-found', 'No coach profile found for that name.');
+      if (qs.empty) {
+        throw new functions.https.HttpsError('not-found', 'No coach profile found for that name.');
+      }
+
+      if (qs.size > 1) {
+        throw new functions.https.HttpsError(
+          'failed-precondition',
+          'Multiple coach profiles match that name.',
+          {
+            matches: qs.docs.map((d) => ({
+              coachId: d.id,
+              firstName: d.data()?.firstName,
+              lastName: d.data()?.lastName,
+            })),
+          },
+        );
+      }
+
+      const coachDoc = qs.docs[0];
+      const coachId = coachDoc.id;
+
+      const secretSnap = await db.collection('coachSecrets').doc(coachId).get();
+      if (!secretSnap.exists) {
+        throw new functions.https.HttpsError(
+          'failed-precondition',
+          'Coach PIN is not set up. Contact an admin.',
+        );
+      }
+
+      const secret = secretSnap.data() as PinSecret;
+      if (!verifyPin(pin, secret)) {
+        throw permissionDenied('Incorrect PIN.');
+      }
+
+      const now = admin.firestore.FieldValue.serverTimestamp();
+      await db
+        .collection('devices')
+        .doc(uid)
+        .set(
+          {
+            coachId,
+            ...(deviceLabel ? { deviceLabel } : {}),
+            lastSeenAt: now,
+          },
+          { merge: true },
+        );
+
+      const coachName = `${coachDoc.data()?.firstName || firstName} ${coachDoc.data()?.lastName || lastName}`;
+      return { coachId, coachName };
+    } catch (err: unknown) {
+      if (isHttpsError(err)) throw err;
+      throw internal();
     }
-
-    if (qs.size > 1) {
-      throw httpsError('failed-precondition', 'Multiple coach profiles match that name.', {
-        matches: qs.docs.map((d) => ({
-          coachId: d.id,
-          firstName: d.data()?.firstName,
-          lastName: d.data()?.lastName,
-        })),
-      });
-    }
-
-    const coachDoc = qs.docs[0];
-    const coachId = coachDoc.id;
-
-    const secretSnap = await db.collection('coachSecrets').doc(coachId).get();
-    if (!secretSnap.exists) {
-      throw httpsError('failed-precondition', 'Coach PIN is not set up. Contact an admin.');
-    }
-
-    const secret = secretSnap.data() as PinSecret;
-    if (!verifyPin(pin, secret)) {
-      throw httpsError('permission-denied', 'Incorrect PIN.');
-    }
-
-    const now = admin.firestore.FieldValue.serverTimestamp();
-    await db
-      .collection('devices')
-      .doc(uid)
-      .set(
-        {
-          coachId,
-          ...(deviceLabel ? { deviceLabel } : {}),
-          lastSeenAt: now,
-        },
-        { merge: true },
-      );
-
-    const coachName = `${coachDoc.data()?.firstName || firstName} ${coachDoc.data()?.lastName || lastName}`;
-    return { coachId, coachName };
   });

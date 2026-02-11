@@ -1,8 +1,8 @@
 import * as functions from 'firebase-functions';
 import * as crypto from 'crypto';
-import { assertAuthed, requireNonEmpty } from '../shared/assert';
+import { assertAuthed, requireFields, requireNonEmpty } from '../shared/assert';
 import { REGION, admin, db } from '../shared/config';
-import { httpsError } from '../shared/errors';
+import { internal, isHttpsError } from '../shared/errors';
 
 function normaliseNamePart(value: unknown): string {
   return String(value || '')
@@ -55,64 +55,74 @@ function hashPin(pin: unknown, saltHex?: string): PinSecret {
 export const createCoachProfile = functions
   .region(REGION)
   .https.onCall(async (data: any, context) => {
-    const uid = assertAuthed(context);
+    try {
+      const uid = assertAuthed(context);
+      requireFields(data, ['firstName', 'lastName', 'pin']);
 
-    const firstName = requireNonEmpty(data?.firstName, 'firstName');
-    const lastName = requireNonEmpty(data?.lastName, 'lastName');
-    const pin = requireNonEmpty(data?.pin, 'pin');
-    const deviceLabel = String(data?.deviceLabel || '').trim() || null;
+      const firstName = requireNonEmpty(data?.firstName, 'firstName');
+      const lastName = requireNonEmpty(data?.lastName, 'lastName');
+      const pin = requireNonEmpty(data?.pin, 'pin');
+      const deviceLabel = String(data?.deviceLabel || '').trim() || null;
 
-    const nameKey = buildNameKey(firstName, lastName);
+      const nameKey = buildNameKey(firstName, lastName);
 
-    // Optional: prevent accidental duplicates (soft check)
-    const existing = await db.collection('coaches').where('nameKey', '==', nameKey).limit(3).get();
-    if (!existing.empty) {
-      // Don’t hard-block (your call); but returning a clear error helps
-      throw httpsError(
-        'already-exists',
-        'A coach profile with this name already exists. Try linking instead.',
-        {
-          matches: existing.docs.map((d) => ({
-            coachId: d.id,
-            firstName: d.data()?.firstName,
-            lastName: d.data()?.lastName,
-          })),
-        },
-      );
-    }
+      // Optional: prevent accidental duplicates (soft check)
+      const existing = await db
+        .collection('coaches')
+        .where('nameKey', '==', nameKey)
+        .limit(3)
+        .get();
+      if (!existing.empty) {
+        // Don’t hard-block (your call); but returning a clear error helps
+        throw new functions.https.HttpsError(
+          'already-exists',
+          'A coach profile with this name already exists. Try linking instead.',
+          {
+            matches: existing.docs.map((d) => ({
+              coachId: d.id,
+              firstName: d.data()?.firstName,
+              lastName: d.data()?.lastName,
+            })),
+          },
+        );
+      }
 
-    const coachRef = db.collection('coaches').doc();
-    const coachId = coachRef.id;
+      const coachRef = db.collection('coaches').doc();
+      const coachId = coachRef.id;
 
-    const secret = hashPin(pin);
-    const now = admin.firestore.FieldValue.serverTimestamp();
+      const secret = hashPin(pin);
+      const now = admin.firestore.FieldValue.serverTimestamp();
 
-    const batch = db.batch();
+      const batch = db.batch();
 
-    batch.set(coachRef, {
-      firstName,
-      lastName,
-      nameKey,
-      createdAt: now,
-    });
-
-    batch.set(db.collection('coachSecrets').doc(coachId), {
-      ...secret,
-      createdAt: now,
-    });
-
-    batch.set(
-      db.collection('devices').doc(uid),
-      {
-        coachId,
-        ...(deviceLabel ? { deviceLabel } : {}),
+      batch.set(coachRef, {
+        firstName,
+        lastName,
+        nameKey,
         createdAt: now,
-        lastSeenAt: now,
-      },
-      { merge: true },
-    );
+      });
 
-    await batch.commit();
+      batch.set(db.collection('coachSecrets').doc(coachId), {
+        ...secret,
+        createdAt: now,
+      });
 
-    return { coachId, coachName: `${firstName} ${lastName}` };
+      batch.set(
+        db.collection('devices').doc(uid),
+        {
+          coachId,
+          ...(deviceLabel ? { deviceLabel } : {}),
+          createdAt: now,
+          lastSeenAt: now,
+        },
+        { merge: true },
+      );
+
+      await batch.commit();
+
+      return { coachId, coachName: `${firstName} ${lastName}` };
+    } catch (err: unknown) {
+      if (isHttpsError(err)) throw err;
+      throw internal();
+    }
   });
