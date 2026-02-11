@@ -18,7 +18,9 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "*.local"
+        "**/.DS_Store",
+        "**/coverage/**",
+        "**/.env*"
       ]
     }
   ]

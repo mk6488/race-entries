@@ -9,4 +9,7 @@ functions/**
 **/*.local
 **/firebase-debug.log
 **/firebase-debug.*.log
+**/coverage/**
+**/.env*
+tsconfig.tsbuildinfo
 
