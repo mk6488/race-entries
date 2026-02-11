@@ -196,14 +196,13 @@ service cloud.firestore {
         (!('updatedByUid' in data) || data.updatedByUid == null || isString(data.updatedByUid));
     }
 
-    // Coach identity linkage (written by callable functions; client is read-only)
+    // Coach identity linkage
     match /devices/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow create, update, delete: if false;
     }
-    match /coaches/{coachId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if false;
+    match /coaches/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
     match /silencedBladeClashes/{silenceId} {
       allow read: if true;
