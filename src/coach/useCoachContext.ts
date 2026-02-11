@@ -46,7 +46,15 @@ async function refreshShared() {
     }
   }
   refreshInFlight = (async () => {
-    if (!authHydrated) return
+    if (!authHydrated) {
+      // If a refresh is requested before our authReady handler runs (e.g. immediately after onboarding),
+      // wait for auth hydration so we don't incorrectly show "unlinked" or "error".
+      await authReady.catch(() => {})
+      authHydrated = true
+      if (import.meta.env.DEV) {
+        console.info('[coach] auth hydrated (via refresh)', { uid: auth.currentUser?.uid ?? null })
+      }
+    }
     const uid = auth.currentUser?.uid ?? null
     if (!uid) {
       // Signed out (or anonymous sign-in failed).
