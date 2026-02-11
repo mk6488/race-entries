@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useCoachContext } from './useCoachContext'
+import { firebaseProjectId, functionsRegion } from '../firebase/functions'
 
 type Props = {
   onOpenOnboarding: () => void
@@ -137,6 +138,13 @@ export function CoachBadge({ onOpenOnboarding }: Props) {
           <button className="row-action" type="button" onClick={handleCopyUid}>
             {copied ? 'Copied' : 'Copy UID'}
           </button>
+          {import.meta.env.DEV ? (
+            <div style={{ paddingTop: 6, borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--muted)' }}>
+              Functions: {functionsRegion}
+              <br />
+              Project: {firebaseProjectId}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
