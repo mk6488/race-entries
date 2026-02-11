@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
-import { auth } from '../firebase'
+import { auth, authPersistenceReady } from '../firebase'
 import { isAdminUser, useAdminStatus } from '../auth/adminAuth'
 import { PageHeader } from '../ui/components/PageHeader'
 import { Field } from '../ui/components/Field'
@@ -27,6 +27,7 @@ export function AdminLogin() {
     setError(null)
     setBusy(true)
     try {
+      await authPersistenceReady
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password)
       if (isAdminUser(cred.user)) {
         navigate('/diagnostics', { replace: true })
