@@ -7,7 +7,7 @@
   },
   "functions": [
     {
-      "source": "functions-backend",
+      "source": "functions",
       "codebase": "default",
       "disallowLegacyRuntimeConfig": true,
       "predeploy": [
@@ -18,9 +18,7 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "**/.DS_Store",
-        "**/coverage/**",
-        "**/.env*"
+        "**/.DS_Store"
       ]
     }
   ]

@@ -2,9 +2,9 @@
 
 ## Cloud Functions source of truth
 
-Cloud Functions are deployed from `functions-backend/` only.
+Cloud Functions are deployed from `functions/` (Gen2 TS) only.
 
-The legacy functions folder has been moved under `_deprecated/functions-old/functions/` and is intentionally ignored (see `firebase.json` and `.firebaseignore`).
+Do not deploy from `functions-backend/` (deprecated).
 
 ## Netlify environment variables
 

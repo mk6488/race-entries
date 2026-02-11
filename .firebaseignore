@@ -1,8 +1,7 @@
 # Firebase deploy ignore rules (project root)
-# Prevent accidental deployment/packaging of legacy functions folder.
-
-functions/**
+# Prevent accidental deployment/packaging of deprecated folders.
 _deprecated/**
+functions-backend/**
 
 # Common junk
 .DS_Store
