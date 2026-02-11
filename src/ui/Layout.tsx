@@ -1,9 +1,14 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useRaceId } from '../hooks/useRaceId'
+import { useCoachContext } from '../coach/useCoachContext'
+import { CoachBadge } from '../coach/CoachBadge'
+import { CoachOnboardingModal } from '../coach/CoachOnboardingModal'
 
 export function Layout() {
   const [open, setOpen] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const { ctx, refresh } = useCoachContext()
   const raceId = useRaceId()
   const hasRace = !!raceId
   const location = useLocation()
@@ -12,9 +17,18 @@ export function Layout() {
   const isEquipment = location.pathname.startsWith('/equipment/')
   const isMatrix = location.pathname.startsWith('/matrix/')
   const isTrailer = location.pathname.startsWith('/trailer/')
+
+  const showCoachCta = ctx.status === 'signedOut' || ctx.status === 'signedInUnlinked'
   return (
     <div className={`app-shell ${hasRace ? 'has-race' : ''}`}>
       <a href="#main-content" className="sr-only">Skip to content</a>
+      <CoachBadge onOpenOnboarding={() => setShowOnboarding(true)} />
+      <CoachOnboardingModal
+        ctx={ctx}
+        refresh={refresh}
+        forceOpen={showOnboarding}
+        onRequestClose={() => setShowOnboarding(false)}
+      />
       <header className="topbar" role="banner">
         <div className="brand">
           <button className="menu-btn mobile-only" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">☰</button>
@@ -75,6 +89,34 @@ export function Layout() {
       </>
 
       <main id="main-content">
+        {showCoachCta ? (
+          <div
+            className="print-hide"
+            style={{
+              maxWidth: 920,
+              margin: '12px auto 0',
+              padding: '10px 12px',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              background: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              boxShadow: '0 6px 16px rgba(0,0,0,0.10)',
+            }}
+            aria-live="polite"
+          >
+            <div style={{ fontSize: 13, color: 'var(--text)' }}>
+              {ctx.status === 'signedOut'
+                ? 'Session needed to link coach identity.'
+                : 'Coach identity is not linked on this device.'}
+            </div>
+            <button className="primary-btn" type="button" onClick={() => setShowOnboarding(true)}>
+              Link coach identity
+            </button>
+          </div>
+        ) : null}
         <Outlet />
       </main>
     </div>

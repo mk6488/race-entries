@@ -60,6 +60,20 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
     }
   }
 
+  async function handleStartSession() {
+    if (busy) return
+    setError(null)
+    setBusy(true)
+    try {
+      await ensureAnonAuth()
+      await refresh()
+    } catch (err) {
+      setError(toUiError(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function handleSubmit() {
     if (busy) return
     setError(null)
@@ -160,21 +174,39 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
         else dismissFor(10)
       }}
       footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              if (forceOpen) onRequestClose?.()
-              else dismissFor(10)
-            }}
-          >
-            Continue unlinked
-          </Button>
-          <Button type="button" disabled={busy} onClick={handleSubmit}>
-            {busy ? 'Saving…' : tab === 'create' ? 'Create profile' : 'Link device'}
-          </Button>
-        </div>
+        ctx.status === 'signedOut' ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                if (forceOpen) onRequestClose?.()
+                else dismissFor(10)
+              }}
+            >
+              Continue without session
+            </Button>
+            <Button type="button" disabled={busy} onClick={handleStartSession}>
+              {busy ? 'Starting…' : 'Start session'}
+            </Button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                if (forceOpen) onRequestClose?.()
+                else dismissFor(10)
+              }}
+            >
+              Continue unlinked
+            </Button>
+            <Button type="button" disabled={busy} onClick={handleSubmit}>
+              {busy ? 'Saving…' : tab === 'create' ? 'Create profile' : 'Link device'}
+            </Button>
+          </div>
+        )
       }
     >
       {ctx.status === 'signedInError' ? (
@@ -184,6 +216,22 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
       ) : null}
       {error ? <ErrorBanner message={error} /> : null}
 
+      {ctx.status === 'signedOut' ? (
+        <div style={{ display: 'grid', gap: 10 }}>
+          <div style={{ fontSize: 13 }}>
+            You are not signed in yet. Start a session to link or create a coach identity on this device.
+          </div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <Button type="button" disabled={busy} onClick={handleStartSession}>
+              {busy ? 'Starting…' : 'Start session'}
+            </Button>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+            After starting a session, you can link to an existing coach profile or create a new one.
+          </div>
+        </div>
+      ) : (
+      <>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <button
           className="row-action"
@@ -242,6 +290,8 @@ export function CoachOnboardingModal({ ctx, refresh, forceOpen, onRequestClose }
       <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>
         PIN is used only to link your device and is not stored in the app.
       </div>
+      </>
+      )}
     </Modal>
   )
 }
